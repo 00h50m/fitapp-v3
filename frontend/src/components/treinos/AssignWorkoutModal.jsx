@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/select";
 import { Save, X, User, ClipboardList, Loader2, Edit } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { copyTemplateToStudent } from "@/services/workoutService";
 import { toast } from "sonner";
 
 
@@ -132,37 +131,42 @@ const AssignWorkoutModal = ({ isOpen, onClose, onSave, workout = null }) => {
           status: "active",
         });
       } else {
-        // Modo criação — cria student_workout + copia blocos
+        // Modo criação — usa função assign_template_to_student que cria e copia tudo
         const template = templates.find(t => t.id === formData.template_id);
+        const { data: session } = await supabase.auth.getSession();
+        const adminId = session?.session?.user?.id;
 
-        const { data: studentWorkout, error } = await supabase
-          .from("student_workouts")
-          .insert([{
-            student_id: formData.student_id,
-            template_id: formData.template_id,
-            title: template?.title || "Treino",
-            start_date: formData.start_date,
-            end_date: formData.end_date,
-            status: "active",
-          }])
-          .select()
-          .single();
+        // Chama a RPC que cria student_workout + copia blocos e exercícios
+        const { data: newWorkoutId, error: rpcErr } = await supabase.rpc(
+          "assign_template_to_student",
+          {
+            p_template_id: formData.template_id,
+            p_student_id: formData.student_id,
+            p_created_by: adminId,
+          }
+        );
+        if (rpcErr) throw rpcErr;
 
-        if (error) throw error;
-
-        await copyTemplateToStudent({
-          studentWorkoutId: studentWorkout.id,
-          templateId: formData.template_id,
-          studentProfileId: formData.student_id,
-          title: template?.title || "Treino",
-        });
+        // Atualiza as datas do treino criado
+        if (newWorkoutId && (formData.start_date || formData.end_date)) {
+          await supabase.from("student_workouts").update({
+            start_date: formData.start_date || null,
+            end_date: formData.end_date || null,
+          }).eq("id", newWorkoutId);
+        }
 
         toast.success(`Treino atribuído para ${student?.name}!`);
         onSave?.({
-          ...studentWorkout,
+          id: newWorkoutId,
+          student_id: formData.student_id,
           student_name: student?.name || "Aluno",
           workout_name: template?.title || "Treino",
+          template_id: formData.template_id,
+          start_date: formData.start_date,
+          end_date: formData.end_date,
+          status: "active",
         });
+
       }
 
       onClose();

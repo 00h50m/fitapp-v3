@@ -10,30 +10,34 @@ import { cn } from "@/lib/utils";
 const SEL = "w-full bg-muted border border-border text-foreground rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
 
 const muscleOptions = [
-  { value: "chest",       label: "Peitoral" },
-  { value: "back",        label: "Costas" },
-  { value: "shoulders",   label: "Ombros" },
-  { value: "biceps",      label: "Bíceps" },
-  { value: "triceps",     label: "Tríceps" },
-  { value: "forearms",    label: "Antebraço" },
-  { value: "core",        label: "Core/Abdômen" },
-  { value: "glutes",      label: "Glúteos" },
-  { value: "legs",        label: "Pernas" },
-  { value: "calves",      label: "Panturrilha" },
-  { value: "full_body",   label: "Corpo Inteiro" },
-  { value: "cardio",      label: "Cardio" },
+  { value: "chest",        label: "Peitoral" },
+  { value: "back",         label: "Costas" },
+  { value: "shoulders",    label: "Ombros" },
+  { value: "biceps",       label: "Bíceps" },
+  { value: "triceps",      label: "Tríceps" },
+  { value: "forearms",     label: "Antebraço" },
+  { value: "core",         label: "Core/Abdômen" },
+  { value: "glutes",       label: "Glúteos" },
+  { value: "quads",        label: "Quadríceps" },
+  { value: "hamstrings",   label: "Posterior de Coxa" },
+  { value: "adductors",    label: "Adutores" },
+  { value: "calves",       label: "Panturrilha" },
+  { value: "full_body",    label: "Corpo Inteiro" },
+  { value: "cardio",       label: "Cardio" },
 ];
 
 const equipmentOptions = [
-  { value: "barbell",     label: "Barra" },
-  { value: "dumbbell",    label: "Haltere" },
-  { value: "cable",       label: "Cabo/Polia" },
-  { value: "machine",     label: "Máquina" },
-  { value: "bodyweight",  label: "Peso Corporal" },
-  { value: "kettlebell",  label: "Kettlebell" },
-  { value: "band",        label: "Elástico" },
-  { value: "smith",       label: "Smith" },
-  { value: "other",       label: "Outro" },
+  { value: "barbell",      label: "Barra" },
+  { value: "dumbbell",     label: "Halteres" },
+  { value: "cable",        label: "Cabo/Polia" },
+  { value: "machine",      label: "Máquina" },
+  { value: "bodyweight",   label: "Peso Corporal" },
+  { value: "kettlebell",   label: "Kettlebell" },
+  { value: "band",         label: "Elástico" },
+  { value: "smith",        label: "Smith" },
+  { value: "trap_bar",     label: "Trap Bar" },
+  { value: "bench",        label: "Banco" },
+  { value: "other",        label: "Outro" },
 ];
 
 const difficultyOptions = [
@@ -46,20 +50,40 @@ const categoryOptions = [
   { value: "strength",    label: "Força" },
   { value: "hypertrophy", label: "Hipertrofia" },
   { value: "endurance",   label: "Resistência" },
+  { value: "power",       label: "Potência" },
   { value: "mobility",    label: "Mobilidade" },
   { value: "cardio",      label: "Cardio" },
 ];
 
 const mechanicsOptions = [
-  { value: "compound",   label: "Composto" },
-  { value: "isolation",  label: "Isolado" },
+  { value: "compound",    label: "Composto" },
+  { value: "isolation",   label: "Isolado" },
 ];
 
 const forceOptions = [
-  { value: "push", label: "Empurrar" },
-  { value: "pull", label: "Puxar" },
-  { value: "legs", label: "Pernas" },
-  { value: "core", label: "Core" },
+  { value: "push",         label: "Empurrar" },
+  { value: "pull",         label: "Puxar" },
+  { value: "legs",         label: "Pernas" },
+  { value: "core",         label: "Core" },
+  { value: "rotation",     label: "Rotação" },
+  { value: "stabilization",label: "Estabilização" },
+];
+
+// Músculos secundários — sem Cardio
+const secondaryMuscleOptions = [
+  { value: "chest",        label: "Peitoral" },
+  { value: "back",         label: "Costas" },
+  { value: "shoulders",    label: "Ombros" },
+  { value: "biceps",       label: "Bíceps" },
+  { value: "triceps",      label: "Tríceps" },
+  { value: "forearms",     label: "Antebraço" },
+  { value: "core",         label: "Core/Abdômen" },
+  { value: "glutes",       label: "Glúteos" },
+  { value: "quads",        label: "Quadríceps" },
+  { value: "hamstrings",   label: "Posterior de Coxa" },
+  { value: "adductors",    label: "Adutores" },
+  { value: "calves",       label: "Panturrilha" },
+  { value: "full_body",    label: "Corpo Inteiro" },
 ];
 
 const getYoutubeId = (url) => {
@@ -246,7 +270,7 @@ const ExerciseFormModal = ({ isOpen, onClose, onSave, exercise }) => {
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Músculos Secundários</Label>
             <div className="flex flex-wrap gap-2">
-              {muscleOptions.map(o => {
+              {secondaryMuscleOptions.map(o => {
                 const selected = form.secondary_muscles.includes(o.value);
                 return (
                   <button

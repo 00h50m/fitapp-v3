@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useParams, useNavigate } from "react-router-dom";
 import { AdminLayout } from "@/components/layout/AdminLayout";
@@ -33,13 +33,14 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { 
-  mockWorkoutTemplates, 
-  blockTypeOptions,
-  getBlockTypeLabel,
-  getExerciseById,
-  mockExercises
-} from "@/data/mockTreinosData";
+const blockTypeOptions = [
+  { value: "single",  label: "Simples" },
+  { value: "biset",   label: "Biset" },
+  { value: "triset",  label: "Triset" },
+  { value: "circuit", label: "Circuito" },
+  { value: "dropset", label: "Drop Set" },
+];
+const getBlockTypeLabel = (v) => blockTypeOptions.find(o => o.value === v)?.label || v;
 import ExerciseSelectorModal from "@/components/treinos/ExerciseSelectorModal";
 
 // Block type colors
@@ -55,16 +56,63 @@ const WorkoutEditorPage = () => {
   const navigate = useNavigate();
   const isNew = id === "new";
 
-  // Find existing workout or create new
-  const existingWorkout = !isNew ? mockWorkoutTemplates.find(w => w.id === id) : null;
-
   // Form state
-  const [workoutName, setWorkoutName] = useState(existingWorkout?.name || "");
-  const [workoutDescription, setWorkoutDescription] = useState(existingWorkout?.description || "");
+  const [workoutName, setWorkoutName] = useState("");
+  const [workoutDescription, setWorkoutDescription] = useState("");
   const [pdfFile, setPdfFile] = useState(null);
-  const [pdfUrl, setPdfUrl] = useState(existingWorkout?.pdf_url || null);
+  const [pdfUrl, setPdfUrl] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [blocks, setBlocks] = useState(existingWorkout?.blocks || []);
+  const [loadingData, setLoadingData] = useState(!isNew);
+  const [blocks, setBlocks] = useState([]);
+  const [exerciseMap, setExerciseMap] = useState({});
+
+  useEffect(() => {
+    if (isNew) return;
+    const load = async () => {
+      setLoadingData(true);
+      try {
+        const { data: tmpl } = await supabase.from("workout_templates").select("*").eq("id", id).single();
+        if (tmpl) {
+          setWorkoutName(tmpl.title || "");
+          setWorkoutDescription(tmpl.description || "");
+          setPdfUrl(tmpl.pdf_url || null);
+        }
+        const { data: blks, error: blkErr } = await supabase.from("workout_template_blocks").select("*").eq("template_id", id).order("order_index");
+        console.log("[Editor] blocks:", blks?.length, "err:", blkErr?.message);
+        if (blks?.length) {
+          const { data: exs, error: exErr } = await supabase.from("workout_template_exercises").select("*").in("block_id", blks.map(b => b.id)).order("order_index");
+          console.log("[Editor] exercises:", exs?.length, "err:", exErr?.message);
+          const exIds = [...new Set((exs||[]).map(e=>e.exercise_id).filter(Boolean))];
+          if (exIds.length) {
+            const { data: exData } = await supabase.from("exercises").select("id, title").in("id", exIds);
+            const map = {};
+            (exData||[]).forEach(e => { map[e.id] = e.title; });
+            setExerciseMap(map);
+          }
+          setBlocks(blks.map(b => ({
+            id: b.id, label: b.title || b.block_label || "Bloco",
+            type: b.block_type || "single", rounds: 1,
+            rest_after: b.rest_after_block_seconds || 60, order: b.order_index || 0,
+            exercises: (exs||[]).filter(e => e.block_id === b.id).map(e => ({
+              exercise_id: e.exercise_id, sets: e.sets || 3, reps: e.reps || "10-12",
+              rest: e.rest_seconds || 60, tempo: e.tempo || "", notes: e.notes || "",
+            })),
+          })));
+        }
+      } catch(err) { console.error(err); }
+      finally { setLoadingData(false); }
+    };
+    load();
+  }, [id, isNew]);
+
+  useEffect(() => {
+    const allIds = blocks.flatMap(b => b.exercises.map(e => e.exercise_id)).filter(Boolean);
+    const missing = allIds.filter(eid => !exerciseMap[eid]);
+    if (!missing.length) return;
+    supabase.from("exercises").select("id, title").in("id", missing).then(({ data }) => {
+      if (data?.length) { const m = {}; data.forEach(e => { m[e.id] = e.title; }); setExerciseMap(p => ({...p,...m})); }
+    });
+  }, [blocks]);
 
   // Modal state
   const [showExerciseSelector, setShowExerciseSelector] = useState(false);
@@ -214,53 +262,122 @@ const WorkoutEditorPage = () => {
 
   // Save workout
   const handleSave = async () => {
-    if (!workoutName.trim()) {
-      toast.error("Nome do treino é obrigatório");
-      return;
-    }
+    if (!workoutName.trim()) { toast.error("Nome do treino é obrigatório"); return; }
     setSaving(true);
     try {
       let finalPdfUrl = pdfUrl;
+      let templateId = isNew ? null : id;
 
-      // Se tem arquivo novo, faz upload primeiro
+      // Upload PDF se necessário
       if (pdfFile) {
         const tmpId = isNew ? `tmp_${Date.now()}` : id;
         finalPdfUrl = await uploadPdf(tmpId, pdfFile);
       }
 
       if (isNew) {
-        // Cria template no Supabase
-        const { data: created, error } = await supabase
-          .from("workout_templates")
-          .insert([{
-            name: workoutName.trim(),
-            description: workoutDescription.trim() || null,
-            pdf_url: finalPdfUrl || null,
-          }])
-          .select()
-          .single();
-        if (error) throw error;
+        const { error: ie } = await supabase.from("workout_templates").insert([{
+          title: workoutName.trim(),
+          description: workoutDescription.trim() || null,
+          pdf_url: finalPdfUrl || null,
+        }]);
+        if (ie) throw ie;
 
-        // Se fez upload com tmpId, re-faz o path com id real
-        if (pdfFile && created.id) {
-          const realUrl = await uploadPdf(created.id, pdfFile);
-          await supabase.from("workout_templates").update({ pdf_url: realUrl }).eq("id", created.id);
+        const { data: cr } = await supabase.from("workout_templates")
+          .select("id").eq("title", workoutName.trim())
+          .order("created_at", { ascending: false }).limit(1).maybeSingle();
+        templateId = cr?.id;
+
+        if (pdfFile && templateId) {
+          const realUrl = await uploadPdf(templateId, pdfFile);
+          await supabase.from("workout_templates").update({ pdf_url: realUrl }).eq("id", templateId);
         }
-        toast.success("Treino criado com sucesso!");
       } else {
-        // Atualiza template existente
-        const { error } = await supabase
-          .from("workout_templates")
-          .update({
-            name: workoutName.trim(),
-            description: workoutDescription.trim() || null,
-            pdf_url: finalPdfUrl || null,
-          })
-          .eq("id", id);
-        if (error) throw error;
-        toast.success("Treino salvo com sucesso!");
+        const { error: ue } = await supabase.from("workout_templates").update({
+          title: workoutName.trim(),
+          description: workoutDescription.trim() || null,
+          pdf_url: finalPdfUrl || null,
+        }).eq("id", templateId);
+        if (ue) throw ue;
       }
 
+      // Salva blocos e exercícios via fetch direto (evita body stream do SDK)
+      if (templateId && blocks.length > 0) {
+        await supabase.from("workout_template_blocks").delete().eq("template_id", templateId);
+
+        const SUPA_URL = "https://gsixrfvbusezudqbquiu.supabase.co";
+        const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzaXhyZnZidXNlenVkcWJxdWl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3NTIxMTEsImV4cCI6MjA4NjMyODExMX0.7TAhXexcqjhfCcL1CDPx1llz46uGIWZkYaW32BiGzTw";
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token || ANON_KEY;
+
+        const headers = {
+          "Content-Type": "application/json",
+          "apikey": ANON_KEY,
+          "Authorization": `Bearer ${token}`,
+          "Prefer": "return=representation",
+        };
+
+        // Insere todos os blocos de uma vez
+        // Mapeia tipo do editor para valor aceito pelo banco
+        const typeMap = { single: "normal", biset: "biset", triset: "triset", circuit: "circuit", dropset: "dropset" };
+        const validTypes = ["normal","biset","triset","circuit","dropset","giantset","superset"];
+        const blocksPayload = blocks.map((b, i) => ({
+          template_id: templateId,
+          title: b.label,
+          block_label: b.label,
+          block_type: typeMap[b.type] || (validTypes.includes(b.type) ? b.type : "normal"),
+          rest_after_block_seconds: Number(b.rest_after) || 60,
+          order_index: i,
+        }));
+
+        console.log("[save] blocksPayload:", JSON.stringify(blocksPayload, null, 2));
+        const bRes = await fetch(`${SUPA_URL}/rest/v1/workout_template_blocks`, {
+          method: "POST", headers,
+          body: JSON.stringify(blocksPayload),
+        });
+        const bText = await bRes.text();
+        console.log("[save] blocks response:", bRes.status, bText);
+        if (!bRes.ok) throw new Error("Erro ao salvar blocos: " + bText);
+        const savedBlocks_raw = bText;
+        const savedBlocks = JSON.parse(savedBlocks_raw);
+
+        // Para cada bloco, insere exercícios
+        const allExercises = [];
+        for (const savedBlock of savedBlocks) {
+          const orig = blocks[savedBlock.order_index];
+          if (!orig?.exercises?.length) continue;
+          orig.exercises.forEach((ex, j) => {
+            allExercises.push({
+              template_id: templateId,
+              block_id: savedBlock.id,
+              exercise_id: ex.exercise_id,
+              sets: Number(ex.sets) || 3,
+              reps: String(ex.reps || "10-12"),
+              rest_seconds: Number(ex.rest) || 60,
+              tempo: ex.tempo || null,
+              notes: ex.notes || null,
+              order_index: j,
+            });
+          });
+        }
+
+        if (allExercises.length > 0) {
+          console.log("[save] exercises payload:", JSON.stringify(allExercises[0]));
+          const eRes = await fetch(`${SUPA_URL}/rest/v1/workout_template_exercises`, {
+            method: "POST",
+            headers: { ...headers, "Prefer": "return=minimal" },
+            body: JSON.stringify(allExercises),
+          });
+          const eText = await eRes.text();
+          if (!eRes.ok) {
+            console.error("[save] exercises error:", eRes.status, eText);
+          } else {
+            console.log("[save] exercises saved OK");
+          }
+        }
+      }
+
+      console.log("[Editor] saved templateId:", templateId, "blocks:", blocks.length);
+      toast.success(isNew ? "Treino criado!" : "Treino salvo!");
       navigate("/admin/treinos/templates");
     } catch (err) {
       console.error(err);
@@ -275,6 +392,14 @@ const WorkoutEditorPage = () => {
     const block = blocks.find(b => b.id === blockId);
     return block?.exercises.map(e => e.exercise_id) || [];
   };
+
+  if (loadingData) return (
+    <AdminLayout>
+      <div className="flex items-center justify-center py-32">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    </AdminLayout>
+  );
 
   return (
     <AdminLayout>
@@ -542,8 +667,7 @@ const WorkoutEditorPage = () => {
                       ) : (
                         <>
                           {block.exercises.map((blockExercise, exIndex) => {
-                            const exerciseData = getExerciseById(blockExercise.exercise_id) || 
-                              mockExercises.find(e => e.id === blockExercise.exercise_id);
+                            const exerciseName = exerciseMap[blockExercise.exercise_id] || "Exercício";
                             
                             return (
                               <Card key={`${block.id}-${exIndex}`} className="bg-card border-border">
@@ -579,7 +703,7 @@ const WorkoutEditorPage = () => {
                                             <Dumbbell className="h-4 w-4 text-primary" />
                                           </div>
                                           <span className="font-medium text-foreground">
-                                            {exerciseData?.name || "Exercício"}
+                                            {exerciseName}
                                           </span>
                                         </div>
                                         <Button

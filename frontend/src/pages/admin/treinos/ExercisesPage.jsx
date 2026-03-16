@@ -26,6 +26,27 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import ExerciseFormModal from "@/components/treinos/ExerciseFormModal";
 
+// Labels para exibição na tabela
+const muscleLabels = {
+  chest: "Peitoral", back: "Costas", shoulders: "Ombros",
+  biceps: "Bíceps", triceps: "Tríceps", forearms: "Antebraço",
+  core: "Core/Abdômen", glutes: "Glúteos", quads: "Quadríceps",
+  hamstrings: "Post. Coxa", adductors: "Adutores", calves: "Panturrilha",
+  full_body: "Corpo Inteiro", cardio: "Cardio",
+  // legacy
+  legs: "Pernas",
+};
+
+const equipmentLabels = {
+  barbell: "Barra", dumbbell: "Halteres", cable: "Cabo/Polia",
+  machine: "Máquina", bodyweight: "Peso Corporal", kettlebell: "Kettlebell",
+  band: "Elástico", smith: "Smith", trap_bar: "Trap Bar", bench: "Banco", other: "Outro",
+};
+
+const difficultyLabels = {
+  beginner: "Iniciante", intermediate: "Intermediário", advanced: "Avançado",
+};
+
 const difficultyColors = {
   beginner: "bg-success/15 text-success border-success/30",
   intermediate: "bg-warning/15 text-warning border-warning/30",
@@ -269,7 +290,7 @@ const ExercisesPage = () => {
                               <div className="min-w-0">
                                 <p className="font-medium text-foreground truncate max-w-[200px]">{exercise.title}</p>
                                 <p className="text-xs text-muted-foreground line-clamp-1 max-w-[200px]">
-                                  {exercise.description || "Sem descrição"}
+                                  {exercise.default_description || exercise.description || "Sem descrição"}
                                 </p>
                               </div>
                             </div>
@@ -277,17 +298,17 @@ const ExercisesPage = () => {
                           <TableCell>
                             {exercise.muscle_group && (
                               <Badge className={cn("border text-xs", muscleGroupColors[exercise.muscle_group] || "bg-muted text-muted-foreground")}>
-                                {exercise.muscle_group}
+                                {muscleLabels[exercise.muscle_group] || exercise.muscle_group}
                               </Badge>
                             )}
                           </TableCell>
                           <TableCell className="hidden lg:table-cell">
-                            <span className="text-sm text-foreground">{exercise.equipment || "—"}</span>
+                            <span className="text-sm text-foreground">{equipmentLabels[exercise.equipment] || exercise.equipment || "—"}</span>
                           </TableCell>
                           <TableCell>
                             {exercise.difficulty && (
                               <Badge className={cn("border text-xs", difficultyColors[exercise.difficulty] || "bg-muted text-muted-foreground")}>
-                                {difficultyLabel[exercise.difficulty] || exercise.difficulty}
+                                {difficultyLabels[exercise.difficulty] || exercise.difficulty}
                               </Badge>
                             )}
                           </TableCell>
@@ -329,11 +350,11 @@ const ExercisesPage = () => {
                         <p className="font-medium text-foreground truncate">{exercise.title}</p>
                         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                           {exercise.muscle_group && (
-                            <span className="text-xs text-muted-foreground">{exercise.muscle_group}</span>
+                            <span className="text-xs text-muted-foreground">{muscleLabels[exercise.muscle_group] || exercise.muscle_group}</span>
                           )}
                           {exercise.difficulty && (
                             <Badge className={cn("border text-[10px] px-1", difficultyColors[exercise.difficulty] || "bg-muted")}>
-                              {difficultyLabel[exercise.difficulty] || exercise.difficulty}
+                              {difficultyLabels[exercise.difficulty] || exercise.difficulty}
                             </Badge>
                           )}
                         </div>

@@ -91,18 +91,14 @@ export async function saveWorkoutTemplate({ id, title, description, blocks, crea
 
   // 1. Cria ou atualiza o template
   if (isNew) {
-    const { data, error } = await supabase
+    const { error: ie } = await supabase
       .from("workout_templates")
-      .insert([{
-        title,
-        description: description || "",
-        is_active: true,
-        created_by: createdBy,
-      }])
-      .select()
-      .single();
-    if (error) throw error;
-    templateId = data.id;
+      .insert([{ title, description: description || "", is_active: true, created_by: createdBy }]);
+    if (ie) throw ie;
+    const { data } = await supabase
+      .from("workout_templates").select("id").eq("title", title)
+      .order("created_at", { ascending: false }).limit(1).maybeSingle();
+    templateId = data?.id;
   } else {
     const { error } = await supabase
       .from("workout_templates")
@@ -134,21 +130,17 @@ export async function saveWorkoutTemplate({ id, title, description, blocks, crea
   for (let i = 0; i < blocks.length; i++) {
     const block = blocks[i];
 
-    const { data: blockData, error: bErr } = await supabase
+    const { error: bErr } = await supabase
       .from("workout_template_blocks")
       .insert([{
-        template_id: templateId,
-        block_label: block.label,
-        title: block.label,
-        block_type: block.type || "single",
-        order_index: i + 1,
-        notes: block.notes || "",
-        rest_after_block_seconds: 60,
-      }])
-      .select()
-      .single();
-
+        template_id: templateId, block_label: block.label, title: block.label,
+        block_type: block.type || "single", order_index: i + 1,
+        notes: block.notes || "", rest_after_block_seconds: 60,
+      }]);
     if (bErr) throw bErr;
+    const { data: blockData } = await supabase
+      .from("workout_template_blocks").select("id")
+      .eq("template_id", templateId).eq("order_index", i + 1).maybeSingle();
 
     for (let j = 0; j < block.exercises.length; j++) {
       const ex = block.exercises[j];
@@ -212,7 +204,7 @@ export async function copyTemplateToStudent({ studentWorkoutId, templateId }) {
 
   // 3. Copia cada bloco e seus exercícios para o aluno
   for (const block of blocks) {
-    const { data: swBlock, error: sbErr } = await supabase
+    const { error: sbErr } = await supabase
       .from("student_workout_blocks")
       .insert([{
         student_workout_id: studentWorkoutId,
@@ -222,11 +214,12 @@ export async function copyTemplateToStudent({ studentWorkoutId, templateId }) {
         order_index: block.order_index,
         rest_after_block_seconds: block.rest_after_block_seconds || 60,
         notes: block.notes || "",
-      }])
-      .select()
-      .single();
-
+      }]);
     if (sbErr) throw sbErr;
+    const { data: swBlock } = await supabase
+      .from("student_workout_blocks").select("id")
+      .eq("student_workout_id", studentWorkoutId)
+      .eq("order_index", block.order_index).maybeSingle();
 
     const blockExercises = (exercises || []).filter(e => e.block_id === block.id);
 

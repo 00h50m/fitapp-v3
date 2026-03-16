@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 
 const blockTypeConfig = {
   normal:   { label: "Normal",    color: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
+  single:   { label: "Simples",   color: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
   biset:    { label: "Biset",     color: "bg-purple-500/15 text-purple-400 border-purple-500/30" },
   triset:   { label: "Triset",    color: "bg-orange-500/15 text-orange-400 border-orange-500/30" },
   circuit:  { label: "Circuito",  color: "bg-green-500/15 text-green-400 border-green-500/30" },
@@ -125,6 +126,33 @@ const PdfModal = ({ url, onClose }) => {
   );
 };
 
+
+// Mapeamentos PT-BR para o modal de detalhes
+const MUSCLE_LABELS = {
+  chest:"Peitoral",back:"Costas",shoulders:"Ombros",biceps:"Bíceps",
+  triceps:"Tríceps",forearms:"Antebraço",core:"Core/Abdômen",glutes:"Glúteos",
+  quads:"Quadríceps",hamstrings:"Post. Coxa",adductors:"Adutores",
+  calves:"Panturrilha",full_body:"Corpo Inteiro",cardio:"Cardio",legs:"Pernas",
+};
+const EQUIP_LABELS = {
+  barbell:"Barra",dumbbell:"Halteres",cable:"Cabo/Polia",machine:"Máquina",
+  bodyweight:"Peso Corporal",kettlebell:"Kettlebell",band:"Elástico",
+  smith:"Smith",trap_bar:"Trap Bar",bench:"Banco",other:"Outro",
+};
+const DIFF_LABELS = {
+  beginner:"Iniciante",intermediate:"Intermediário",advanced:"Avançado",
+};
+const CAT_LABELS = {
+  strength:"Força",hypertrophy:"Hipertrofia",endurance:"Resistência",
+  power:"Potência",mobility:"Mobilidade",cardio:"Cardio",
+};
+const MECH_LABELS = { compound:"Composto",isolation:"Isolado" };
+const FORCE_LABELS = {
+  push:"Empurrar",pull:"Puxar",legs:"Pernas",core:"Core",
+  rotation:"Rotação",stabilization:"Estabilização",
+};
+const label = (map, val) => (val ? (map[val] || val) : null);
+
 // ─── Modal de detalhes do exercício ───────────────────────────────────────
 const ExerciseDetailModal = ({ exercise, onClose }) => {
   if (!exercise) return null;
@@ -133,21 +161,24 @@ const ExerciseDetailModal = ({ exercise, onClose }) => {
   // Chip de info pequeno
   const Chip = ({ icon: Icon, label, value, accent }) => (
     <div className={cn(
-      "flex items-center gap-2 rounded-xl p-2.5",
-      accent ? "bg-primary/10 border border-primary/20" : "bg-muted/70 border border-border/50"
+      "flex items-center gap-2 rounded-xl p-3",
+      accent ? "bg-primary/10 border border-primary/20" : "bg-muted/60 border border-border/40"
     )}>
       <Icon className={cn("h-3.5 w-3.5 flex-shrink-0", accent ? "text-primary" : "text-muted-foreground")} />
       <div className="min-w-0">
-        <p className="text-[9px] text-muted-foreground uppercase tracking-wide leading-none mb-0.5">{label}</p>
+        <p className="text-[9px] text-muted-foreground uppercase tracking-wide leading-none mb-1">{label}</p>
         <p className={cn("text-xs font-bold leading-none truncate", accent ? "text-primary" : "text-foreground")}>{value}</p>
       </div>
     </div>
   );
 
   const Section = ({ title, children }) => (
-    <div className="space-y-2">
-      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{title}</p>
-      {children}
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-2">
+        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{title}</p>
+        <div className="flex-1 h-px bg-border/50" />
+      </div>
+      <div>{children}</div>
     </div>
   );
 
@@ -161,18 +192,18 @@ const ExerciseDetailModal = ({ exercise, onClose }) => {
     >
       <div
         className="bg-card border border-border rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md overflow-hidden flex flex-col shadow-2xl"
-        style={{ maxHeight: "94dvh" }}
+        style={{ maxHeight: "92dvh", minHeight: "200px" }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-start justify-between px-4 pt-4 pb-3 flex-shrink-0">
+        <div className="flex items-start justify-between px-5 pt-5 pb-4 flex-shrink-0">
           <div className="flex-1 min-w-0 pr-2">
-            <p className="text-[10px] text-primary font-semibold uppercase tracking-wider mb-0.5">Detalhes do Exercício</p>
-            <h2 className="font-bold text-base text-foreground leading-tight">{exercise.exercise_name}</h2>
+            <p className="text-[10px] text-primary font-bold uppercase tracking-widest mb-1">Detalhes do Exercício</p>
+            <h2 className="font-bold text-lg text-foreground leading-tight">{exercise.exercise_name}</h2>
           </div>
-          <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mt-0.5" onClick={onClose}>
+          <button className="h-8 w-8 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors flex-shrink-0" onClick={onClose}>
             <X className="h-4 w-4" />
-          </Button>
+          </button>
         </div>
 
         {/* Corpo scrollável */}
@@ -190,38 +221,41 @@ const ExerciseDetailModal = ({ exercise, onClose }) => {
             </div>
           )}
 
-          <div className="p-5 space-y-5">
+          <div className="px-5 py-6 flex flex-col gap-5">
 
             {/* PRESCRIÇÃO */}
             {hasPrescricao && (
-              <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4">
-                <p className="text-[9px] font-bold text-primary uppercase tracking-widest mb-3">📋 Prescrição</p>
-                <div className="grid grid-cols-3 gap-3">
+              <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5">
+                <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-4">📋 Prescrição</p>
+                <div className="grid grid-cols-3 gap-2">
                   {exercise.sets && (
-                    <div className="text-center">
+                    <div className="text-center bg-background/40 rounded-xl py-3">
                       <p className="text-3xl font-black text-primary leading-none">{exercise.sets}</p>
-                      <p className="text-[10px] text-muted-foreground mt-1">séries</p>
+                      <p className="text-[10px] text-muted-foreground mt-1.5 uppercase tracking-wide">séries</p>
                     </div>
                   )}
                   {exercise.reps && (
-                    <div className="text-center">
+                    <div className="text-center bg-background/40 rounded-xl py-3">
                       <p className="text-3xl font-black text-foreground leading-none">{exercise.reps}</p>
-                      <p className="text-[10px] text-muted-foreground mt-1">reps</p>
+                      <p className="text-[10px] text-muted-foreground mt-1.5 uppercase tracking-wide">reps</p>
                     </div>
                   )}
                   {exercise.rest_seconds && (
-                    <div className="text-center">
+                    <div className="text-center bg-background/40 rounded-xl py-3">
                       <p className="text-3xl font-black text-foreground leading-none">
                         {exercise.rest_seconds}<span className="text-lg font-bold">s</span>
                       </p>
-                      <p className="text-[10px] text-muted-foreground mt-1">descanso</p>
+                      <p className="text-[10px] text-muted-foreground mt-1.5 uppercase tracking-wide">descanso</p>
                     </div>
                   )}
                 </div>
                 {(exercise.load || exercise.tempo) && (
-                  <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-primary/15">
-                    {exercise.load  && <Chip icon={Weight} label="Carga"  value={exercise.load}  accent />}
-                    {exercise.tempo && <Chip icon={Zap}    label="Tempo"  value={exercise.tempo} accent />}
+                  <div className={cn(
+                    "gap-2 mt-3 pt-3 border-t border-primary/15",
+                    exercise.load && exercise.tempo ? "grid grid-cols-2" : "flex"
+                  )}>
+                    {exercise.load  && <Chip icon={Weight} label="Carga sugerida" value={exercise.load}  accent />}
+                    {exercise.tempo && <Chip icon={Zap}    label="Tempo"          value={exercise.tempo} accent />}
                   </div>
                 )}
               </div>
@@ -229,20 +263,20 @@ const ExerciseDetailModal = ({ exercise, onClose }) => {
 
             {/* Informações do exercício */}
             {(exercise.muscle_group || exercise.equipment || exercise.difficulty) && (
-              <div className="grid grid-cols-3 gap-2.5">
-                {exercise.muscle_group && <Chip icon={Dumbbell} label="Músculo"     value={exercise.muscle_group} />}
-                {exercise.equipment    && <Chip icon={Layers}   label="Equipamento" value={exercise.equipment} />}
-                {exercise.difficulty   && <Chip icon={Zap}      label="Nível"       value={exercise.difficulty} />}
+              <div className="grid grid-cols-3 gap-2">
+                {exercise.muscle_group && <Chip icon={Dumbbell} label="Músculo"     value={label(MUSCLE_LABELS, exercise.muscle_group)} />}
+                {exercise.equipment    && <Chip icon={Layers}   label="Equipamento" value={label(EQUIP_LABELS, exercise.equipment)} />}
+                {exercise.difficulty   && <Chip icon={Zap}      label="Nível"       value={label(DIFF_LABELS, exercise.difficulty)} />}
               </div>
             )}
 
             {/* Músculos secundários */}
             {exercise.secondary_muscles?.length > 0 && (
               <Section title="Músculos secundários">
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 mt-1">
                   {(Array.isArray(exercise.secondary_muscles) ? exercise.secondary_muscles : [exercise.secondary_muscles])
                     .map((m, i) => (
-                      <span key={i} className="text-xs bg-muted/80 border border-border text-muted-foreground px-3 py-1.5 rounded-full">{m}</span>
+                      <span key={i} className="text-xs bg-muted/80 border border-border text-muted-foreground px-3 py-1.5 rounded-full">{label(MUSCLE_LABELS, m) || m}</span>
                     ))}
                 </div>
               </Section>
@@ -250,10 +284,10 @@ const ExerciseDetailModal = ({ exercise, onClose }) => {
 
             {/* Info extra */}
             {(exercise.category || exercise.mechanics || exercise.force) && (
-              <div className="grid grid-cols-3 gap-2.5">
-                {exercise.category  && <Chip icon={Info}   label="Categoria" value={exercise.category} />}
-                {exercise.mechanics && <Chip icon={Repeat} label="Mecânica"  value={exercise.mechanics} />}
-                {exercise.force     && <Chip icon={Weight} label="Força"     value={exercise.force} />}
+              <div className="grid grid-cols-3 gap-2 -mt-1">
+                {exercise.category  && <Chip icon={Info}   label="Categoria" value={label(CAT_LABELS, exercise.category)} />}
+                {exercise.mechanics && <Chip icon={Repeat} label="Mecânica"  value={label(MECH_LABELS, exercise.mechanics)} />}
+                {exercise.force     && <Chip icon={Weight} label="Força"     value={label(FORCE_LABELS, exercise.force)} />}
               </div>
             )}
 
@@ -267,8 +301,8 @@ const ExerciseDetailModal = ({ exercise, onClose }) => {
             {/* Execução */}
             {exercise.instructions && (
               <Section title="Como executar">
-                <div className="bg-muted/30 rounded-2xl p-4">
-                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{exercise.instructions}</p>
+                <div className="bg-muted/30 rounded-2xl p-4 space-y-0">
+                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-line" style={{lineHeight:"1.8"}}>{exercise.instructions}</p>
                 </div>
               </Section>
             )}
@@ -278,7 +312,7 @@ const ExerciseDetailModal = ({ exercise, onClose }) => {
               <Section title="Dicas do treinador">
                 <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 flex gap-3">
                   <StickyNote className="h-4 w-4 text-amber-400 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-foreground leading-relaxed">{exercise.tips}</p>
+                  <p className="text-sm text-foreground leading-relaxed" style={{lineHeight:"1.8"}}>{exercise.tips}</p>
                 </div>
               </Section>
             )}
@@ -310,10 +344,10 @@ const ExerciseDetailModal = ({ exercise, onClose }) => {
 
         {/* Rodapé */}
         {exercise.video_url && (
-          <div className="px-4 py-3 border-t border-border flex-shrink-0 bg-card">
+          <div className="px-5 py-4 border-t border-border flex-shrink-0 bg-card/80">
             <a href={exercise.video_url} target="_blank" rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 text-xs text-primary hover:underline">
-              <Video className="h-3.5 w-3.5" />
+              className="flex items-center justify-center gap-2 text-sm text-primary font-medium hover:underline">
+              <Video className="h-4 w-4" />
               Abrir vídeo em nova aba
             </a>
           </div>
@@ -356,7 +390,18 @@ const StudentWorkoutPage = () => {
         .eq("student_id", user.id)
         .single();
       if (swErr) throw swErr;
-      setWorkout(sw);
+
+      // Busca pdf_url do template se não tiver no student_workout
+      let pdfUrl = sw.pdf_url || null;
+      if (!pdfUrl && sw.template_id) {
+        const { data: tmpl } = await supabase
+          .from("workout_templates")
+          .select("pdf_url")
+          .eq("id", sw.template_id)
+          .maybeSingle();
+        pdfUrl = tmpl?.pdf_url || null;
+      }
+      setWorkout({ ...sw, pdf_url: pdfUrl });
 
       // Verificar expiração pelo campo end_date (não expires_at)
       const todayStr = new Date().toISOString().split("T")[0];
@@ -688,46 +733,47 @@ const StudentWorkoutPage = () => {
           </Card>
 
         ) : (
-          <div className="space-y-4 animate-fade-in pt-2">
+          <div className="space-y-5 animate-fade-in pt-3">
 
             {/* Header do treino */}
             <div className="flex items-start justify-between gap-3">
-              <div>
+              <div className="flex-1 min-w-0">
                 <Badge variant="premium" className="text-xs mb-2">Treino Atual</Badge>
-                <h1 className="text-xl font-display font-bold text-foreground leading-tight">{workout?.title || "Treino"}</h1>
-                <p className="text-sm text-muted-foreground mt-1">{blocks.length} blocos • {totalExercises} exercícios</p>
+                <h1 className="text-2xl font-display font-bold text-foreground leading-tight">{workout?.title || "Treino"}</h1>
+                <p className="text-sm text-muted-foreground mt-1.5">{blocks.length} blocos • {totalExercises} exercícios</p>
               </div>
               {workout?.pdf_url && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 flex-shrink-0 mt-1"
+                <button
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary text-xs font-semibold flex-shrink-0 hover:bg-primary/20 transition-colors"
                   onClick={() => setShowPdfModal(true)}
                 >
-                  <FileText className="h-4 w-4" />
-                  PDF
-                </Button>
+                  <FileText className="h-3.5 w-3.5" />
+                  Ver PDF
+                </button>
               )}
             </div>
 
             {/* Barra de progresso */}
             {activeSession && (
-              <div className="space-y-1.5">
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Progresso da sessão</span>
-                  <span className="font-semibold text-foreground">{completedCount}/{totalExercises}</span>
+              <div className="bg-card border border-border rounded-2xl p-4 space-y-2.5">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground font-medium">Progresso da sessão</span>
+                  <span className="font-bold text-foreground">{completedCount}/{totalExercises}</span>
                 </div>
-                <div className="h-2 rounded-full bg-muted overflow-hidden">
-                  <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${progressPct}%` }} />
+                <div className="h-2.5 rounded-full bg-muted overflow-hidden">
+                  <div className={cn(
+                    "h-full rounded-full transition-all duration-500",
+                    progressPct === 100 ? "bg-green-400" : "bg-primary"
+                  )} style={{ width: `${progressPct}%` }} />
                 </div>
                 {progressPct === 100 && (
-                  <p className="text-xs text-center text-green-400 font-medium pt-0.5">🏆 Todos os exercícios concluídos!</p>
+                  <p className="text-xs text-center text-green-400 font-semibold">🏆 Todos os exercícios concluídos!</p>
                 )}
               </div>
             )}
 
             {/* Blocos */}
-            <div className="space-y-3">
+            <div className="space-y-4">
               {blocks.map(block => {
                 const isExpanded = expandedBlocks.has(block.block_id);
                 const blockDone = isBlockCompleted(block);
@@ -735,17 +781,19 @@ const StudentWorkoutPage = () => {
 
                 return (
                   <Card key={block.block_id} className={cn(
-                    "border transition-all duration-200 overflow-hidden",
-                    blockDone ? "bg-green-500/5 border-green-500/30" : "bg-card border-border"
+                    "border transition-all duration-200 overflow-hidden rounded-2xl",
+                    blockDone
+                      ? "bg-green-500/5 border-green-500/30"
+                      : "bg-card border-border shadow-sm"
                   )}>
                     {/* Header do bloco */}
                     <div
-                      className="flex items-center justify-between px-4 py-3.5 cursor-pointer select-none"
+                      className="flex items-center justify-between px-4 py-4 cursor-pointer select-none"
                       onClick={() => toggleBlock(block.block_id)}
                     >
                       <div className="flex items-center gap-3">
                         <div className={cn(
-                          "h-9 w-9 rounded-lg flex items-center justify-center border flex-shrink-0",
+                          "h-10 w-10 rounded-xl flex items-center justify-center border flex-shrink-0",
                           blockDone ? "bg-green-500/10 border-green-500/30" : "bg-primary/10 border-primary/20"
                         )}>
                           {blockDone
@@ -753,8 +801,8 @@ const StudentWorkoutPage = () => {
                             : <Layers className="h-4 w-4 text-primary" />}
                         </div>
                         <div>
-                          <p className={cn("font-semibold text-sm", blockDone ? "text-green-400" : "text-foreground")}>
-                            {block.block_label}
+                          <p className={cn("font-semibold text-base", blockDone ? "text-green-400" : "text-foreground")}>
+                            {block.block_label || `Bloco ${String.fromCharCode(64 + (blocks.indexOf(block) + 1))}`}
                           </p>
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className={cn("text-[10px] font-medium px-1.5 py-0.5 rounded border", typeCfg.color)}>
@@ -784,25 +832,25 @@ const StudentWorkoutPage = () => {
                               {/* Linha principal do exercício */}
                               <div
                                 className={cn(
-                                  "px-4 py-3 transition-colors duration-150 cursor-pointer",
-                                  done ? "bg-green-500/5" : "hover:bg-muted/30"
+                                  "px-4 py-4 transition-colors duration-150 cursor-pointer",
+                                  done ? "bg-green-500/8" : "hover:bg-muted/20"
                                 )}
                                 onClick={() => toggleExercise(ex.exercise_row_id)}
                               >
                                 <div className="flex items-start gap-3">
                                   {/* Checkbox */}
                                   <div className={cn(
-                                    "h-6 w-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all",
+                                    "h-7 w-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all",
                                     done ? "border-green-400 bg-green-400" : "border-muted-foreground/40"
                                   )}>
-                                    {done && <CheckCircle2 className="h-3.5 w-3.5 text-white" />}
+                                    {done && <CheckCircle2 className="h-4 w-4 text-white" />}
                                   </div>
 
                                   <div className="flex-1 min-w-0">
                                     {/* Nome + botões */}
                                     <div className="flex items-center justify-between gap-2">
                                       <p className={cn(
-                                        "font-semibold text-sm leading-tight",
+                                        "font-semibold text-base leading-tight",
                                         done ? "text-green-400 line-through" : "text-foreground"
                                       )}>
                                         {ex.exercise_name}
@@ -812,7 +860,7 @@ const StudentWorkoutPage = () => {
                                         {ytId && (
                                           <button
                                             className={cn(
-                                              "h-7 w-7 rounded-lg flex items-center justify-center transition-colors",
+                                              "h-8 w-8 rounded-xl flex items-center justify-center transition-colors",
                                               videoOpen
                                                 ? "bg-primary/20 text-primary"
                                                 : "bg-muted text-muted-foreground hover:text-primary hover:bg-primary/10"
@@ -825,7 +873,7 @@ const StudentWorkoutPage = () => {
                                         )}
                                         {/* Botão detalhes */}
                                         <button
-                                          className="h-7 w-7 rounded-lg bg-muted flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                                          className="h-8 w-8 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                                           onClick={e => { e.stopPropagation(); setDetailExercise(ex); }}
                                           title="Ver detalhes"
                                         >
@@ -836,7 +884,7 @@ const StudentWorkoutPage = () => {
                                     </div>
 
                                     {/* Prescrição resumida */}
-                                    <div className="flex flex-wrap gap-2 mt-1.5 text-xs text-muted-foreground">
+                                    <div className="flex flex-wrap gap-2 mt-2 text-xs text-muted-foreground">
                                       {ex.sets && (
                                         <span className="flex items-center gap-1">
                                           <Layers className="h-3 w-3" />{ex.sets} séries
