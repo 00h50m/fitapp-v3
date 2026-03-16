@@ -393,7 +393,7 @@ const StudentWorkoutsPage = () => {
             </div>
             <div className="flex flex-col gap-3 w-full max-w-[260px]">
               <Button variant="premium" className="w-full gap-2 py-6 text-base"
-                onClick={() => window.open(waLink("Olá! Gostaria de renovar meu plano no FitApp. 🏋️"), "_blank")}>
+                onClick={() => window.open(waLink("Olá! Gostaria de renovar meu plano no Santana Method. 🏋️"), "_blank")}>
                 <WhatsAppIcon />Falar com o Personal
               </Button>
               <Button variant="outline" className="w-full"
@@ -434,7 +434,7 @@ const StudentWorkoutsPage = () => {
               </p>
             </div>
             <Button variant="outline" className="gap-2"
-              onClick={() => window.open(waLink("Olá! Estou aguardando meu treino no FitApp. 💪"), "_blank")}>
+              onClick={() => window.open(waLink("Olá! Estou aguardando meu treino no Santana Method. 💪"), "_blank")}>
               <WhatsAppIcon />Avisar o Personal
             </Button>
           </div>

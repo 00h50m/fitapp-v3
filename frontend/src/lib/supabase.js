@@ -8,6 +8,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,      // mantém sessão no localStorage
     detectSessionInUrl: false,
-    storageKey: "fitapp-auth", // chave única no localStorage
+    storageKey: "Santana Method-auth", // chave única no localStorage
   },
 });

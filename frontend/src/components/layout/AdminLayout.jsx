@@ -58,7 +58,7 @@ export const AdminSidebar = ({ isOpen, onToggle, onClose }) => {
               <Zap className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-display font-bold text-foreground text-lg leading-none">FitApp</h1>
+              <h1 className="font-display font-bold text-foreground text-lg leading-none">Santana Method</h1>
               <span className="text-[10px] text-primary font-medium uppercase tracking-wider">Admin</span>
             </div>
           </div>
