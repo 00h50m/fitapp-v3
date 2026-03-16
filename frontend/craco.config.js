@@ -1,7 +1,11 @@
+const path = require('path');
+
 module.exports = {
   webpack: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
     configure: (webpackConfig) => {
-      // Remove fork-ts-checker que causa conflito com Node 24
       webpackConfig.plugins = webpackConfig.plugins.filter(
         (plugin) => plugin.constructor.name !== 'ForkTsCheckerWebpackPlugin'
       );
