@@ -332,7 +332,7 @@ const StudentWorkoutsPage = () => {
         getGrantedJourneyIds(prof.id),
       ]);
       setJourneys(j); setCategories(c); setStudentJourneys(sj); setGrantedIds(new Set(ids));
-    } catch { /* silencioso */ }
+    } catch (err) { console.error("loadJourneys error:", err?.message); }
     finally { setLoadingJourneys(false); }
   }, [user]);
 
