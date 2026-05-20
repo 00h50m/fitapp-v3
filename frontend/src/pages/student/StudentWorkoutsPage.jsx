@@ -337,9 +337,9 @@ const StudentWorkoutsPage = () => {
   }, [user]);
 
   useEffect(() => {
-    if (authLoading) return;
-    loadWorkouts();
-    loadJourneys();
+    if (authLoading || !user?.id) return;
+    const timer = setTimeout(() => { loadWorkouts(); loadJourneys(); }, 150);
+    return () => clearTimeout(timer);
   }, [user?.id, authLoading]); // eslint-disable-line
 
   const handleEnroll = async (journey) => {
