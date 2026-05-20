@@ -314,7 +314,7 @@ const StudentWorkoutsPage = () => {
       }
       setWorkouts(rawWorkouts.map(w => ({ ...w, pdf_url: w.pdf_url || pdfMap[w.template_id] || null })));
       setSessions(sRes.data || []);
-    } catch (err) { if (err?.name !== "AbortError") setError(err.message); }
+    } catch (err) { if (err?.name !== "AbortError" && !err?.message?.includes("aborted")) setError(err.message); }
     finally { setLoadingWorkouts(false); }
   }, [user]);
 
