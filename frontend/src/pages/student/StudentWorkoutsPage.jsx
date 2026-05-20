@@ -333,13 +333,13 @@ const StudentWorkoutsPage = () => {
         getGrantedJourneyIds(user.id),
       ]);
       setJourneys(j); setCategories(c); setStudentJourneys(sj); setGrantedIds(new Set(ids));
-    } catch (err) { console.error("loadJourneys error:", err?.message); }
+    } catch (err) { if (err?.name !== "AbortError" && !err?.message?.includes("aborted")) console.error("loadJourneys error:", err?.message); }
     finally { setLoadingJourneys(false); }
   }, [user]);
 
   useEffect(() => {
     if (authLoading || !user?.id) return;
-    const timer = setTimeout(() => { loadWorkouts(); loadJourneys(); }, 150);
+    const timer = setTimeout(() => { loadWorkouts(); loadJourneys(); }, 500);
     return () => clearTimeout(timer);
   }, [user?.id, authLoading]); // eslint-disable-line
 

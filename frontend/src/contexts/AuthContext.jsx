@@ -11,11 +11,11 @@ export const AuthProvider = ({ children }) => {
   const initDoneRef  = useRef(false);
   const ignoreSIGNIN = useRef(false); // bloqueia SIGNED_IN do signup de aluno
 
-  const loadProfile = useCallback(async (userId) => {
+  const loadProfile = useCallback(async (userId, signal) => {
     if (!userId) return null;
     try {
       let { data } = await supabase
-        .from("profiles").select("*").eq("user_id", userId).maybeSingle();
+        .from("profiles").select("*").eq("user_id", userId).maybeSingle().abortSignal(signal ?? new AbortController().signal);
       if (!data) {
         const r = await supabase
           .from("profiles").select("*").eq("id", userId).maybeSingle();
