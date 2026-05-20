@@ -1,9 +1,14 @@
 #!/bin/bash
 set -e
 
-TOKEN="vcp_4tikKvTGY7FEmoQbq8x69jwp612BgfoG9GU6om1jl18nGUMBQP34vuzw"
+TOKEN="${VERCEL_TOKEN}"
 PROJECT_ID="prj_ogfWvKAq09Gm7r2MBNjsqHraCvAo"
 ORG_ID="team_wYqZ1DdXr5S5hrDiVQfdjxpb"
+
+if [ -z "$TOKEN" ]; then
+  echo "❌ Defina VERCEL_TOKEN antes de rodar: export VERCEL_TOKEN=seu_token"
+  exit 1
+fi
 
 echo "🔨 Buildando..."
 cd /app/frontend
