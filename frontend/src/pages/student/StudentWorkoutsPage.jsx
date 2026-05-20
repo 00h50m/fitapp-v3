@@ -323,13 +323,14 @@ const StudentWorkoutsPage = () => {
     if (!user) { setLoadingJourneys(false); return; }
     setLoadingJourneys(true);
     try {
-      const { data: prof } = await supabase.from("profiles").select("id").eq("user_id", user.id).single();
-      setProfileId(prof.id);
+      setProfileId(user.id);
+
+
       const [j, c, sj, ids] = await Promise.all([
         getJourneys(),
         getCategories(),
-        getStudentJourneys(prof.id),
-        getGrantedJourneyIds(prof.id),
+        getStudentJourneys(user.id),
+        getGrantedJourneyIds(user.id),
       ]);
       setJourneys(j); setCategories(c); setStudentJourneys(sj); setGrantedIds(new Set(ids));
     } catch (err) { console.error("loadJourneys error:", err?.message); }
