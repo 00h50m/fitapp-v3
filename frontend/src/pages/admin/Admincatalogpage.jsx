@@ -330,7 +330,7 @@ const AdminCatalogPage = () => {
       const [j, c, { data: t }] = await Promise.all([
         getJourneys(),
         getCategories(),
-        supabase.from("workout_templates").select("id, title").order("name"),
+        supabase.from("workout_templates").select("id, title").order("title"),
       ]);
       setJourneys(j); setCategories(c); setTemplates(t ?? []);
     } catch (err) { toast.error("Erro ao carregar: " + err.message); }
