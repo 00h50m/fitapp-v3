@@ -10,6 +10,12 @@ if [ -z "$TOKEN" ]; then
   exit 1
 fi
 
+echo "💾 Salvando no git..."
+cd /app
+git add .
+git diff --cached --quiet || git commit -m "deploy: $(date '+%Y-%m-%d %H:%M')"
+git push origin main || echo "⚠️  Push falhou mas continuando deploy..."
+
 echo "🔨 Buildando..."
 cd /app/frontend
 npm run build

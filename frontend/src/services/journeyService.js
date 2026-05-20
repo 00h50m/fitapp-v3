@@ -28,7 +28,7 @@ export async function getJourneys({ categoryId } = {}) {
 }
 
 export async function getJourneyById(id) {
-  const { data, error } = await supabase.from("journeys").select(`*, category:workout_categories(id, name, emoji, color), journey_workouts(id, order_index, workout:workout_templates(id, name))`).eq("id", id).single();
+  const { data, error } = await supabase.from("journeys").select(`*, category:workout_categories(id, name, emoji, color), journey_workouts(id, order_index, workout:workout_templates(id, title))`).eq("id", id).single();
   if (error) throw error;
   if (data?.journey_workouts) data.journey_workouts.sort((a, b) => a.order_index - b.order_index);
   return data;
@@ -68,7 +68,7 @@ export async function getGrantedJourneyIds(studentId) {
 
 export async function getStudentsWithAccessStatus(journeyId) {
   const [{ data: students }, { data: access }] = await Promise.all([
-    supabase.from("profiles").select("id, full_name, email").eq("role", "student").order("full_name"),
+    supabase.from("profiles").select("id, name, email").eq("role", "student").order("name"),
     supabase.from("journey_access").select("student_id").eq("journey_id", journeyId),
   ]);
   const grantedIds = new Set((access ?? []).map(a => a.student_id));

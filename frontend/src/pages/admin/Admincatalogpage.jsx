@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { supabase } from "@/lib/supabase";
 import { getCategories, createCategory, deleteCategory, getJourneys, createJourney, updateJourney, deleteJourney, setJourneyWorkouts, getJourneyById } from "@/services/journeyService";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Pencil, Loader2, FolderOpen, BookOpen, Users, Check } from "lucide-react";
+import { Plus, Trash2, Pencil, Loader2, FolderOpen, BookOpen, Users, Check, Upload, X, Image } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -19,28 +19,73 @@ const DIFFICULTY_LABEL = {
 const COVER_EMOJIS = ["⚡","🔥","💪","🏃","🌟","🎯","⚔️","🏆","🌅","🧗","🥊","🚀"];
 const COVER_COLORS = ["#0F6E56","#1a1a2e","#16213e","#0f3460","#533483","#6b2d5e","#8B1A1A","#1B4332","#7B3F00","#1a1a1a"];
 
+async function uploadCoverImage(file) {
+  const ext = file.name.split(".").pop();
+  const path = `covers/${Date.now()}.${ext}`;
+  const { error } = await supabase.storage.from("journey-covers").upload(path, file, { upsert: true });
+  if (error) throw error;
+  const { data } = supabase.storage.from("journey-covers").getPublicUrl(path);
+  return data.publicUrl;
+}
+
 const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
   const isEdit = !!journey;
-  const [form, setForm] = useState({ title: journey?.title ?? "", description: journey?.description ?? "", cover_emoji: journey?.cover_emoji ?? "⚡", cover_color: journey?.cover_color ?? "#0F6E56", duration_days: journey?.duration_days ?? "", difficulty: journey?.difficulty ?? "intermediario", category_id: journey?.category_id ?? "" });
+  const fileInputRef = useRef(null);
+  const [form, setForm] = useState({
+    title: journey?.title ?? "",
+    description: journey?.description ?? "",
+    cover_emoji: journey?.cover_emoji ?? "⚡",
+    cover_color: journey?.cover_color ?? "#0F6E56",
+    cover_image_url: journey?.cover_image_url ?? "",
+    duration_days: journey?.duration_days ?? "",
+    difficulty: journey?.difficulty ?? "intermediario",
+    category_id: journey?.category_id ?? "",
+  });
   const [selectedWorkouts, setSelectedWorkouts] = useState([]);
   const [saving, setSaving] = useState(false);
   const [loadingWorkouts, setLoadingWorkouts] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [coverMode, setCoverMode] = useState(journey?.cover_image_url ? "image" : "emoji");
 
   useEffect(() => {
     if (isEdit && journey?.id) {
       setLoadingWorkouts(true);
-      getJourneyById(journey.id).then(data => setSelectedWorkouts((data?.journey_workouts ?? []).map(jw => jw.workout_template_id))).finally(() => setLoadingWorkouts(false));
+      getJourneyById(journey.id)
+        .then(data => setSelectedWorkouts((data?.journey_workouts ?? []).map(jw => jw.workout_template_id)))
+        .finally(() => setLoadingWorkouts(false));
     }
   }, [isEdit, journey?.id]);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const toggleWorkout = (id) => setSelectedWorkouts(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error("Imagem deve ter menos de 5MB"); return; }
+    setUploadingImage(true);
+    try {
+      const url = await uploadCoverImage(file);
+      set("cover_image_url", url);
+      setCoverMode("image");
+      toast.success("Imagem enviada!");
+    } catch (err) {
+      toast.error("Erro ao fazer upload: " + err.message);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!form.title.trim()) { toast.error("Nome obrigatório"); return; }
     setSaving(true);
     try {
-      const payload = { ...form, duration_days: form.duration_days ? Number(form.duration_days) : null, category_id: form.category_id || null };
+      const payload = {
+        ...form,
+        duration_days: form.duration_days ? Number(form.duration_days) : null,
+        category_id: form.category_id || null,
+        cover_image_url: coverMode === "image" ? form.cover_image_url : null,
+      };
       const saved = isEdit ? await updateJourney(journey.id, payload) : await createJourney(payload);
       await setJourneyWorkouts(saved.id, selectedWorkouts);
       toast.success(isEdit ? "Jornada atualizada!" : "Jornada criada!");
@@ -57,19 +102,68 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
           <DialogDescription>Configure a jornada e vincule os treinos.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 pt-2">
-          <div className="h-24 rounded-xl flex items-center justify-center text-5xl transition-all" style={{ background: form.cover_color }}>{form.cover_emoji}</div>
-          <div>
-            <p className="text-xs text-muted-foreground mb-2">Ícone</p>
-            <div className="flex flex-wrap gap-2">
-              {COVER_EMOJIS.map(e => <button key={e} onClick={() => set("cover_emoji", e)} className={cn("w-9 h-9 rounded-lg text-xl transition-all", form.cover_emoji === e ? "bg-primary/20 ring-1 ring-primary" : "bg-secondary hover:bg-secondary/80")}>{e}</button>)}
-            </div>
+
+          {/* Preview da capa */}
+          <div
+            className="h-32 rounded-xl flex items-center justify-center relative overflow-hidden cursor-pointer group"
+            style={{ background: coverMode === "image" && form.cover_image_url ? "transparent" : form.cover_color }}
+            onClick={() => coverMode === "emoji" && fileInputRef.current?.click()}
+          >
+            {coverMode === "image" && form.cover_image_url ? (
+              <>
+                <img src={form.cover_image_url} alt="capa" className="absolute inset-0 w-full h-full object-cover" />
+                <button
+                  className="absolute top-2 right-2 bg-black/60 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                  onClick={e => { e.stopPropagation(); set("cover_image_url", ""); setCoverMode("emoji"); }}
+                >
+                  <X className="h-3.5 w-3.5 text-white" />
+                </button>
+              </>
+            ) : (
+              <span className="text-5xl">{form.cover_emoji}</span>
+            )}
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground mb-2">Cor de fundo</p>
-            <div className="flex gap-2 flex-wrap">
-              {COVER_COLORS.map(c => <button key={c} onClick={() => set("cover_color", c)} className={cn("w-8 h-8 rounded-lg transition-all", form.cover_color === c && "ring-2 ring-primary ring-offset-2 ring-offset-card")} style={{ background: c }} />)}
-            </div>
+
+          {/* Tabs: Emoji vs Foto */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCoverMode("emoji")}
+              className={cn("flex-1 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2", coverMode === "emoji" ? "bg-primary/15 text-primary border border-primary/30" : "bg-secondary text-muted-foreground hover:text-foreground")}
+            >
+              😀 Emoji
+            </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className={cn("flex-1 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2", coverMode === "image" ? "bg-primary/15 text-primary border border-primary/30" : "bg-secondary text-muted-foreground hover:text-foreground")}
+            >
+              {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
+              {uploadingImage ? "Enviando..." : "Foto"}
+            </button>
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
           </div>
+
+          {/* Emoji picker — só aparece no modo emoji */}
+          {coverMode === "emoji" && (
+            <>
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Ícone</p>
+                <div className="flex flex-wrap gap-2">
+                  {COVER_EMOJIS.map(e => (
+                    <button key={e} onClick={() => set("cover_emoji", e)} className={cn("w-9 h-9 rounded-lg text-xl transition-all", form.cover_emoji === e ? "bg-primary/20 ring-1 ring-primary" : "bg-secondary hover:bg-secondary/80")}>{e}</button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Cor de fundo</p>
+                <div className="flex gap-2 flex-wrap">
+                  {COVER_COLORS.map(c => (
+                    <button key={c} onClick={() => set("cover_color", c)} className={cn("w-8 h-8 rounded-lg transition-all", form.cover_color === c && "ring-2 ring-primary ring-offset-2 ring-offset-card")} style={{ background: c }} />
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
           <div>
             <p className="text-xs text-muted-foreground mb-1">Nome *</p>
             <Input value={form.title} onChange={e => set("title", e.target.value)} placeholder="ex: Definição 45 dias" className="bg-secondary border-border" />
@@ -104,7 +198,9 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
           </div>
           <div>
             <p className="text-xs text-muted-foreground mb-2">Treinos da jornada ({selectedWorkouts.length} selecionados)</p>
-            {loadingWorkouts ? <div className="flex items-center gap-2 text-muted-foreground text-sm py-4"><Loader2 className="h-4 w-4 animate-spin" /> Carregando...</div> : (
+            {loadingWorkouts ? (
+              <div className="flex items-center gap-2 text-muted-foreground text-sm py-4"><Loader2 className="h-4 w-4 animate-spin" /> Carregando...</div>
+            ) : (
               <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
                 {templates.length === 0 && <p className="text-sm text-muted-foreground py-2">Nenhum template criado ainda.</p>}
                 {templates.map(t => {
@@ -113,7 +209,7 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
                   return (
                     <button key={t.id} onClick={() => toggleWorkout(t.id)} className={cn("w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all text-left", selected ? "bg-primary/15 text-primary" : "bg-secondary hover:bg-secondary/80 text-foreground")}>
                       <div className={cn("w-5 h-5 rounded flex items-center justify-center text-xs font-bold flex-shrink-0", selected ? "bg-primary text-primary-foreground" : "bg-border")}>{selected ? idx + 1 : ""}</div>
-                      <span className="flex-1">{t.name}</span>
+                      <span className="flex-1">{t.title}</span>
                       {selected && <Check className="h-3.5 w-3.5 text-primary" />}
                     </button>
                   );
@@ -186,9 +282,17 @@ const CategoriesModal = ({ onClose, onUpdate }) => {
 const JourneyCard = ({ journey, onEdit, onDelete, onManageAccess }) => {
   const diff = DIFFICULTY_LABEL[journey.difficulty] ?? DIFFICULTY_LABEL.intermediario;
   const count = journey.journey_workouts?.[0]?.count ?? 0;
+  const hasCover = !!journey.cover_image_url;
+
   return (
     <div className="bg-card border border-border rounded-xl overflow-hidden hover:border-primary/40 transition-all group">
-      <div className="h-28 flex items-center justify-center text-5xl" style={{ background: journey.cover_color }}>{journey.cover_emoji}</div>
+      <div className="h-28 flex items-center justify-center relative overflow-hidden" style={{ background: hasCover ? "transparent" : journey.cover_color }}>
+        {hasCover ? (
+          <img src={journey.cover_image_url} alt={journey.title} className="absolute inset-0 w-full h-full object-cover" />
+        ) : (
+          <span className="text-5xl">{journey.cover_emoji}</span>
+        )}
+      </div>
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-1">
           <h3 className="font-medium text-sm leading-tight">{journey.title}</h3>
@@ -223,8 +327,12 @@ const AdminCatalogPage = () => {
   const loadAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [j, c, t] = await Promise.all([getJourneys(), getCategories(), supabase.from("workout_templates").select("id, name").order("name").then(r => r.data ?? [])]);
-      setJourneys(j); setCategories(c); setTemplates(t);
+      const [j, c, { data: t }] = await Promise.all([
+        getJourneys(),
+        getCategories(),
+        supabase.from("workout_templates").select("id, title").order("name"),
+      ]);
+      setJourneys(j); setCategories(c); setTemplates(t ?? []);
     } catch (err) { toast.error("Erro ao carregar: " + err.message); }
     finally { setLoading(false); }
   }, []);

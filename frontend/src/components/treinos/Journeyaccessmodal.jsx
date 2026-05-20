@@ -34,10 +34,10 @@ const JourneyAccessModal = ({ journey, onClose }) => {
     try {
       if (student.hasAccess) {
         await revokeJourneyAccess(journey.id, student.id);
-        toast.success(`Acesso de ${student.full_name} revogado.`);
+        toast.success(`Acesso de ${student.name} revogado.`);
       } else {
         await grantJourneyAccess(journey.id, student.id);
-        toast.success(`${student.full_name} agora tem acesso! ✅`);
+        toast.success(`${student.name} agora tem acesso! ✅`);
       }
       setStudents(prev => prev.map(s => s.id === student.id ? { ...s, hasAccess: !s.hasAccess } : s));
     } catch (err) {
@@ -57,7 +57,7 @@ const JourneyAccessModal = ({ journey, onClose }) => {
   };
 
   const filtered = students.filter(s =>
-    s.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+    s.name?.toLowerCase().includes(search.toLowerCase()) ||
     s.email?.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -100,10 +100,10 @@ const JourneyAccessModal = ({ journey, onClose }) => {
           {!loading && filtered.map(student => (
             <div key={student.id} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all", student.hasAccess ? "bg-green-500/8" : "bg-secondary")}>
               <div className="w-8 h-8 rounded-full bg-secondary border border-border flex items-center justify-center text-xs font-medium flex-shrink-0">
-                {(student.full_name?.[0] ?? "?").toUpperCase()}
+                {(student.name?.[0] ?? "?").toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{student.full_name ?? "Sem nome"}</p>
+                <p className="text-sm font-medium truncate">{student.name ?? "Sem nome"}</p>
                 <p className="text-xs text-muted-foreground truncate">{student.email}</p>
               </div>
               <div className="flex-shrink-0 mr-1">
