@@ -87,8 +87,13 @@ export const AuthProvider = ({ children }) => {
   }, []); // eslint-disable-line
 
   const login = async (email, password) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      if (error.message?.includes('Invalid login credentials') || error.status === 400) {
+        throw new Error('Email ou senha incorretos. Verifique seus dados e tente novamente.');
+      }
+      throw new Error(error.message || 'Erro ao fazer login. Tente novamente.');
+    }
   };
 
   const logout = async () => {
