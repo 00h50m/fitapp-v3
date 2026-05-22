@@ -6,12 +6,11 @@ import { MobileContainer, MobileHeader, MobileContent, MobileFooter } from "@/co
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  User, Dumbbell, LogOut, Loader2, RefreshCw, ChevronRight, Bookmark,
+  User, Dumbbell, LogOut, Loader2, RefreshCw, ChevronRight,
   AlertCircle, Trophy, Calendar, Play, CheckCircle2, Lock,
   FileText, ArrowRight, Star, Clock, ChevronDown, ChevronUp,
-  X, MessageCircle, Zap, BookOpen, Crown,
+  X, MessageCircle, Zap, BookOpen, Crown, Bookmark, BookmarkCheck,
 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { getJourneys, getCategories, getStudentJourneys, getGrantedJourneyIds, enrollStudentInJourney, PERSONAL_WHATSAPP } from "@/services/journeyService";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -22,14 +21,10 @@ const waLink = (msg) => `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(ms
 const todayStr = () => new Date().toISOString().split("T")[0];
 
 const DIFFICULTY_LABEL = {
-  iniciante: { label: "Iniciante", color: "text-green-400" },
+  iniciante:     { label: "Iniciante",     color: "text-green-400" },
   intermediario: { label: "Intermediário", color: "text-yellow-400" },
-  avancado: { label: "Avançado", color: "text-red-400" },
+  avancado:      { label: "Avançado",      color: "text-red-400" },
 };
-
-function openWhatsApp(msg) {
-  window.open(`https://wa.me/${PERSONAL_WHATSAPP}?text=${encodeURIComponent(msg)}`, "_blank");
-}
 
 // ── Helpers ────────────────────────────────────────────────────
 function getNextWorkoutIndex(workouts, sessions) {
@@ -43,7 +38,7 @@ function trainedToday(sessions) { return sessions.some(s => s.session_date === t
 function activeSessionToday(sessions) { return sessions.find(s => s.session_date === todayStr() && !s.finished) || null; }
 function isExpiredWorkout(w) { if (!w.end_date) return false; return new Date(w.end_date + "T23:59:59") < new Date(); }
 
-// ── Icons ──────────────────────────────────────────────────────
+// ── WhatsApp Icon ──────────────────────────────────────────────
 const WhatsAppIcon = () => (
   <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
@@ -93,14 +88,14 @@ const PdfModal = ({ url, onClose }) => {
         <div className="flex items-center justify-between px-4 py-3 border-b border-border flex-shrink-0">
           <div className="flex items-center gap-2"><FileText className="h-4 w-4 text-primary" /><span className="font-semibold text-sm">PDF do Treino</span></div>
           <div className="flex items-center gap-3">
-            {total > 1 && <div className="flex items-center gap-2 text-xs text-muted-foreground"><button onClick={() => setPage(p => Math.max(1, p-1))} disabled={page<=1} className="px-2 py-1 rounded bg-muted disabled:opacity-40">‹</button>{page}/{total}<button onClick={() => setPage(p => Math.min(total, p+1))} disabled={page>=total} className="px-2 py-1 rounded bg-muted disabled:opacity-40">›</button></div>}
+            {total > 1 && <div className="flex items-center gap-2 text-xs text-muted-foreground"><button onClick={() => setPage(p => Math.max(1,p-1))} disabled={page<=1} className="px-2 py-1 rounded bg-muted disabled:opacity-40">‹</button>{page}/{total}<button onClick={() => setPage(p => Math.min(total,p+1))} disabled={page>=total} className="px-2 py-1 rounded bg-muted disabled:opacity-40">›</button></div>}
             <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">Abrir</a>
             <button className="h-7 w-7 rounded-lg bg-muted flex items-center justify-center" onClick={onClose}><X className="h-4 w-4" /></button>
           </div>
         </div>
         <div className="flex-1 overflow-auto flex items-start justify-center p-3 bg-muted/20">
           {pdfLoading && <div className="flex items-center justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}
-          {pdfError && <div className="flex flex-col items-center py-16 gap-3"><p className="text-sm text-muted-foreground">Não foi possível carregar o PDF.</p><a href={url} target="_blank" rel="noopener noreferrer"><button className="px-4 py-2 rounded-xl border border-border text-sm">Abrir em nova aba</button></a></div>}
+          {pdfError && <div className="flex flex-col items-center py-16 gap-3"><p className="text-sm text-muted-foreground">Não foi possível carregar.</p><a href={url} target="_blank" rel="noopener noreferrer"><Button variant="outline" size="sm">Abrir em nova aba</Button></a></div>}
           {!pdfLoading && !pdfError && <canvas ref={canvasRef} className="shadow-lg max-w-full rounded" />}
         </div>
       </div>
@@ -117,14 +112,14 @@ const SectionLabel = ({ children, icon: Icon }) => (
   </div>
 );
 
-// ── Journey Card (Netflix style) ───────────────────────────────
+// ── Journey Card (Netflix) ─────────────────────────────────────
 const JourneyCard = ({ journey, studentJourney, hasAccess, onSelect }) => {
   const total = journey.journey_workouts?.[0]?.count ?? 0;
   const completed = studentJourney?.completed_workouts ?? 0;
   const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
   const isActive = studentJourney?.status === "active";
-  const isDone = studentJourney?.status === "completed";
-  const locked = !hasAccess;
+  const isDone   = studentJourney?.status === "completed";
+  const locked   = !hasAccess;
   const hasCover = !!journey.cover_image_url;
 
   return (
@@ -136,7 +131,6 @@ const JourneyCard = ({ journey, studentJourney, hasAccess, onSelect }) => {
             ? <img src={journey.cover_image_url} alt={journey.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
             : <span>{journey.cover_emoji}</span>}
         </div>
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300" />
         {locked && <div className="absolute inset-0 bg-black/50 flex items-center justify-center"><Lock className="h-6 w-6 text-white/80" /></div>}
         {!locked && isDone && <div className="absolute top-1.5 left-1.5 bg-green-500/90 rounded-full px-1.5 py-0.5 flex items-center gap-1"><CheckCircle2 className="h-2.5 w-2.5 text-white" /><span className="text-[9px] text-white font-medium">Concluída</span></div>}
         {!locked && isActive && <div className="absolute top-1.5 left-1.5 bg-primary/90 rounded-full px-1.5 py-0.5 flex items-center gap-1"><Zap className="h-2.5 w-2.5 text-white" /><span className="text-[9px] text-white font-medium">Ativa</span></div>}
@@ -146,78 +140,15 @@ const JourneyCard = ({ journey, studentJourney, hasAccess, onSelect }) => {
           </div>
         )}
         <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/60 to-transparent" />
+        <div className="absolute bottom-2 right-2">
+          <span className={cn("text-[10px] font-medium", DIFFICULTY_LABEL[journey.difficulty]?.color ?? "text-white/60")}>
+            {DIFFICULTY_LABEL[journey.difficulty]?.label}
+          </span>
+        </div>
       </div>
       <p className="text-xs font-medium text-foreground leading-tight truncate">{journey.title}</p>
-      <p className="text-[10px] text-muted-foreground mt-0.5">{journey.duration_days ? `${journey.duration_days}d` : ""} {total} treinos</p>
+      <p className="text-[10px] text-muted-foreground mt-0.5">{journey.duration_days ? `${journey.duration_days}d · ` : ""}{total} treinos</p>
     </div>
-  );
-};
-
-// ── Journey Detail Modal ───────────────────────────────────────
-const JourneyDetailModal = ({ journey, studentJourney, hasAccess, onClose, onStart, starting }) => {
-  const total = journey.journey_workouts?.[0]?.count ?? 0;
-  const isActive = studentJourney?.status === "active";
-  const isDone = studentJourney?.status === "completed";
-  const locked = !hasAccess;
-  const hasCover = !!journey.cover_image_url;
-  const completed = studentJourney?.completed_workouts ?? 0;
-  const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
-
-  return (
-    <Dialog open onOpenChange={onClose}>
-      <DialogContent className="bg-card border-border max-w-sm p-0 overflow-hidden">
-        <div className="h-44 flex items-center justify-center relative overflow-hidden"
-          style={{ background: hasCover ? "transparent" : journey.cover_color, filter: locked ? "grayscale(60%)" : "none" }}>
-          {hasCover
-            ? <img src={journey.cover_image_url} alt={journey.title} className="absolute inset-0 w-full h-full object-cover" />
-            : <span className="text-7xl">{journey.cover_emoji}</span>}
-          <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-          {locked && <div className="absolute inset-0 bg-black/40 flex items-center justify-center"><Lock className="h-10 w-10 text-white/80" /></div>}
-        </div>
-        <div className="p-5 space-y-4">
-          <div>
-            <h2 className="text-lg font-bold">{journey.title}</h2>
-            {journey.description && <p className="text-sm text-muted-foreground mt-1">{journey.description}</p>}
-          </div>
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="bg-secondary rounded-lg p-2"><p className="text-sm font-medium">{journey.duration_days ?? "—"}d</p><p className="text-xs text-muted-foreground">Duração</p></div>
-            <div className="bg-secondary rounded-lg p-2"><p className="text-sm font-medium">{total}</p><p className="text-xs text-muted-foreground">Treinos</p></div>
-            <div className="bg-secondary rounded-lg p-2"><p className={cn("text-sm font-medium", DIFFICULTY_LABEL[journey.difficulty]?.color)}>{DIFFICULTY_LABEL[journey.difficulty]?.label ?? "—"}</p><p className="text-xs text-muted-foreground">Nível</p></div>
-          </div>
-          {!locked && isActive && (
-            <div>
-              <div className="flex justify-between text-xs text-muted-foreground mb-1"><span>Progresso</span><span>{progress}%</span></div>
-              <div className="h-2 bg-secondary rounded-full overflow-hidden"><div className="h-full bg-primary rounded-full" style={{ width: `${progress}%` }} /></div>
-              <p className="text-xs text-muted-foreground mt-1">Dia {completed} de {total}</p>
-            </div>
-          )}
-          {locked && (
-            <div className="bg-secondary/60 rounded-xl p-4 text-center space-y-3">
-              <Lock className="h-8 w-8 text-muted-foreground mx-auto" />
-              <p className="text-sm font-medium">Jornada bloqueada</p>
-              <p className="text-xs text-muted-foreground">Fale com seu personal para liberar.</p>
-              <Button className="w-full bg-green-600 hover:bg-green-500 text-white" onClick={() => openWhatsApp(`Olá! Tenho interesse em liberar acesso à jornada "${journey.title}". Poderia me ajudar?`)}>
-                <MessageCircle className="h-4 w-4 mr-2" />Falar com o personal
-              </Button>
-            </div>
-          )}
-          {!locked && !isDone && (
-            <Button className="w-full" onClick={onStart} disabled={starting}>
-              {starting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Iniciando...</> : isActive ? "Continuar jornada" : "Iniciar jornada"}
-            </Button>
-          )}
-          {!locked && isDone && (
-            <div className="text-center space-y-3">
-              <div className="flex items-center justify-center gap-2 text-green-400"><CheckCircle2 className="h-5 w-5" /><p className="font-medium">Jornada concluída!</p></div>
-              <Button variant="outline" className="w-full" onClick={() => openWhatsApp(`Olá! Concluí a jornada "${journey.title}" e gostaria de saber qual é o próximo passo!`)}>
-                <MessageCircle className="h-4 w-4 mr-2" />Falar com o personal
-              </Button>
-            </div>
-          )}
-          <Button variant="ghost" className="w-full" onClick={onClose}>Fechar</Button>
-        </div>
-      </DialogContent>
-    </Dialog>
   );
 };
 
@@ -232,7 +163,8 @@ const WorkoutCard = ({ workout, isNext, isOngoing, alreadyToday, sessions, navig
       : isOngoing ? "bg-blue-500/5 border-blue-500/25"
       : isNext && !alreadyToday ? "bg-primary/5 border-primary/30 shadow-[0_0_24px_-6px_hsl(var(--primary)/0.3)]"
       : "bg-card border-border")}>
-      <div className="flex items-center gap-4 p-4 cursor-pointer active:scale-[0.98] transition-transform" onClick={() => !expired && navigate(`/student/workout/${workout.id}`)}>
+      <div className="flex items-center gap-4 p-4 cursor-pointer active:scale-[0.98] transition-transform"
+        onClick={() => !expired && navigate(`/student/workout/${workout.id}`)}>
         <div className={cn("h-12 w-12 rounded-xl flex items-center justify-center border flex-shrink-0",
           expired ? "bg-muted/40 border-border/40"
           : isOngoing ? "bg-blue-500/15 border-blue-500/30"
@@ -259,7 +191,8 @@ const WorkoutCard = ({ workout, isNext, isOngoing, alreadyToday, sessions, navig
         <ChevronRight className="h-4 w-4 text-muted-foreground/40 flex-shrink-0" />
       </div>
       {workout.pdf_url && !expired && (
-        <button className="w-full flex items-center gap-2 px-4 py-3 border-t border-border/50 bg-primary/5 hover:bg-primary/10 transition-colors" onClick={e => { e.stopPropagation(); onPdfClick(workout.pdf_url); }}>
+        <button className="w-full flex items-center gap-2 px-4 py-3 border-t border-border/50 bg-primary/5 hover:bg-primary/10 transition-colors"
+          onClick={e => { e.stopPropagation(); onPdfClick(workout.pdf_url); }}>
           <FileText className="h-3.5 w-3.5 text-primary flex-shrink-0" />
           <span className="text-xs text-primary font-semibold flex-1 text-left">Ver PDF do Treino</span>
           <ArrowRight className="h-3 w-3 text-primary" />
@@ -275,27 +208,26 @@ const StudentWorkoutsPage = () => {
   const { user, profile, logout, loading: authLoading } = useAuth();
 
   // Treinos personalizados
-  const [workouts, setWorkouts] = useState([]);
-  const [sessions, setSessions] = useState([]);
+  const [workouts, setWorkouts]   = useState([]);
+  const [sessions, setSessions]   = useState([]);
   const [loadingWorkouts, setLoadingWorkouts] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError]         = useState(null);
   const [showExpired, setShowExpired] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState(null);
+  const [pdfUrl, setPdfUrl]       = useState(null);
 
   // Jornadas
-  const [journeys, setJourneys] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [journeys, setJourneys]             = useState([]);
+  const [categories, setCategories]         = useState([]);
   const [studentJourneys, setStudentJourneys] = useState([]);
-  const [grantedIds, setGrantedIds] = useState(new Set());
+  const [grantedIds, setGrantedIds]         = useState(new Set());
   const [loadingJourneys, setLoadingJourneys] = useState(true);
-  const [selectedJourney, setSelectedJourney] = useState(null);
-  const [starting, setStarting] = useState(false);
-  const [profileId, setProfileId] = useState(null);
-  const [savedWorkouts, setSavedWorkouts] = useState([]);
+
+  // Salvos
+  const [savedWorkouts, setSavedWorkouts]   = useState([]);
+  const [savedJourneys, setSavedJourneys]   = useState([]);
 
   const isExpired = profile?.access_end ? new Date(profile.access_end + "T23:59") < new Date() : false;
 
-  // Carrega treinos personalizados
   const loadWorkouts = useCallback(async () => {
     if (!user) { setLoadingWorkouts(false); return; }
     setLoadingWorkouts(true); setError(null);
@@ -315,18 +247,15 @@ const StudentWorkoutsPage = () => {
       }
       setWorkouts(rawWorkouts.map(w => ({ ...w, pdf_url: w.pdf_url || pdfMap[w.template_id] || null })));
       setSessions(sRes.data || []);
-    } catch (err) { console.log("loadWorkouts error:", err?.name, err?.message); if (err?.name !== "AbortError" && !err?.message?.includes("aborted")) setError(err.message); }
-    finally { setLoadingWorkouts(false); }
+    } catch (err) {
+      if (err?.name !== "AbortError" && !err?.message?.includes("aborted")) setError(err.message);
+    } finally { setLoadingWorkouts(false); }
   }, [user]);
 
-  // Carrega jornadas
   const loadJourneys = useCallback(async () => {
     if (!user) { setLoadingJourneys(false); return; }
     setLoadingJourneys(true);
     try {
-      setProfileId(user.id);
-
-
       const [j, c, sj, ids] = await Promise.all([
         getJourneys(),
         getCategories(),
@@ -334,37 +263,32 @@ const StudentWorkoutsPage = () => {
         getGrantedJourneyIds(user.id),
       ]);
       setJourneys(j); setCategories(c); setStudentJourneys(sj); setGrantedIds(new Set(ids));
-      const { data: saved } = await supabase.from("saved_workouts").select("*, template:workout_templates(id, title)").eq("student_id", user.id).order("saved_at", { ascending: false });
-      setSavedWorkouts(saved ?? []);
-    } catch (err) { if (err?.name !== "AbortError" && !err?.message?.includes("aborted")) console.error("loadJourneys error:", err?.message); }
-    finally { setLoadingJourneys(false); }
+
+      // Salvos
+      const [{ data: sw }, { data: sj2 }] = await Promise.all([
+        supabase.from("saved_workouts").select("*, template:workout_templates(id, title)").eq("student_id", user.id).order("saved_at", { ascending: false }),
+        supabase.from("saved_journeys").select("*, journey:journeys(id, title, cover_emoji, cover_color, cover_image_url)").eq("student_id", user.id).order("saved_at", { ascending: false }),
+      ]);
+      setSavedWorkouts(sw ?? []);
+      setSavedJourneys(sj2 ?? []);
+    } catch (err) {
+      if (err?.name !== "AbortError" && !err?.message?.includes("aborted")) console.error("loadJourneys:", err?.message);
+    } finally { setLoadingJourneys(false); }
   }, [user]);
 
   useEffect(() => {
     if (authLoading || !user?.id) return;
-    const timer = setTimeout(() => { loadWorkouts(); loadJourneys(); }, 500);
-    return () => clearTimeout(timer);
+    const t = setTimeout(() => { loadWorkouts(); loadJourneys(); }, 300);
+    return () => clearTimeout(t);
   }, [user?.id, authLoading]); // eslint-disable-line
 
-  const handleEnroll = async (journey) => {
-    if (!profileId) return;
-    setStarting(true);
-    try {
-      await enrollStudentInJourney(profileId, journey.id);
-      toast.success(`Jornada "${journey.title}" iniciada! 🚀`);
-      await loadJourneys();
-      setSelectedJourney(null);
-    } catch { toast.error("Erro ao iniciar jornada"); }
-    finally { setStarting(false); }
-  };
-
-  // Derived state — treinos
-  const activeWorkouts = workouts.filter(w => !isExpiredWorkout(w));
-  const expiredWorkouts = workouts.filter(w => isExpiredWorkout(w));
+  // Derived — treinos
+  const activeWorkouts  = workouts.filter(w => !isExpiredWorkout(w));
+  const expiredWorkouts = workouts.filter(w =>  isExpiredWorkout(w));
   const hasPersonalWorkouts = activeWorkouts.length > 0;
-  const nextIdx = getNextWorkoutIndex(activeWorkouts, sessions);
+  const nextIdx      = getNextWorkoutIndex(activeWorkouts, sessions);
   const alreadyToday = trainedToday(sessions);
-  const ongoing = activeSessionToday(sessions);
+  const ongoing      = activeSessionToday(sessions);
   const todayWorkout = activeWorkouts[nextIdx] || null;
 
   const weekCount = sessions.filter(s => {
@@ -381,18 +305,26 @@ const StudentWorkoutsPage = () => {
     return count;
   })();
 
-  // Derived state — jornadas
+  // Derived — jornadas
   const getStudentJourney = (id) => studentJourneys.find(sj => sj.journey_id === id) ?? null;
-  const myJourneys = journeys.filter(j => studentJourneys.some(sj => sj.journey_id === j.id));
+  const myJourneys        = journeys.filter(j => studentJourneys.some(sj => sj.journey_id === j.id));
   const availableJourneys = journeys.filter(j => grantedIds.has(j.id) && !studentJourneys.some(sj => sj.journey_id === j.id));
-  const lockedJourneys = journeys.filter(j => !grantedIds.has(j.id));
+  const lockedJourneys    = journeys.filter(j => !grantedIds.has(j.id));
 
-  const selectedStudentJourney = selectedJourney ? getStudentJourney(selectedJourney.id) : null;
-  const selectedHasAccess = selectedJourney ? grantedIds.has(selectedJourney.id) : false;
+  const handleJourneySelect = (journey) => {
+    const sj = getStudentJourney(journey.id);
+    const hasAccess = grantedIds.has(journey.id);
+    if (!hasAccess) {
+      const msg = encodeURIComponent(`Olá! Tenho interesse em liberar acesso à jornada "${journey.title}". Poderia me ajudar?`);
+      window.open(`https://wa.me/${PERSONAL_WHATSAPP}?text=${msg}`, "_blank");
+      return;
+    }
+    navigate(`/student/journey/${journey.id}`);
+  };
 
   const loading = loadingWorkouts || loadingJourneys;
 
-  // ── Tela de acesso expirado ─────────────────────────────────
+  // ── Tela expirada ──────────────────────────────────────────
   if (!loading && isExpired) {
     return (
       <MobileContainer>
@@ -425,7 +357,7 @@ const StudentWorkoutsPage = () => {
     );
   }
 
-  // ── Tela principal ──────────────────────────────────────────
+  // ── Tela principal ─────────────────────────────────────────
   return (
     <MobileContainer>
       <MobileHeader>
@@ -434,9 +366,7 @@ const StudentWorkoutsPage = () => {
             <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0"><User className="h-4 w-4 text-primary" /></div>
             <div className="min-w-0">
               <p className="font-semibold text-sm truncate">{profile?.name || "Aluno"}</p>
-              <p className="text-[11px] text-muted-foreground truncate">
-                {profile?.access_end ? `Ativo até ${new Date(profile.access_end+"T12:00").toLocaleDateString("pt-BR")}` : "Aluno ativo"}
-              </p>
+              <p className="text-[11px] text-muted-foreground truncate">{profile?.access_end ? `Ativo até ${new Date(profile.access_end+"T12:00").toLocaleDateString("pt-BR")}` : "Aluno ativo"}</p>
             </div>
           </div>
           <div className="flex items-center gap-1">
@@ -458,11 +388,11 @@ const StudentWorkoutsPage = () => {
         ) : (
           <div className="flex flex-col gap-6 pt-3">
 
-            {/* ── Stats ── */}
+            {/* Stats */}
             <div className="grid grid-cols-3 gap-2.5">
               {[
-                { label: "Treinos", value: activeWorkouts.length, color: "text-primary" },
-                { label: "Essa semana", value: weekCount, color: "text-foreground" },
+                { label: "Treinos",     value: activeWorkouts.length, color: "text-primary" },
+                { label: "Essa semana", value: weekCount,             color: "text-foreground" },
                 { label: streak >= 2 ? "🔥 Streak" : "Sequência", value: streak, color: "text-foreground" },
               ].map(({ label, value, color }) => (
                 <div key={label} className="bg-card border border-border rounded-2xl p-4 text-center">
@@ -472,17 +402,13 @@ const StudentWorkoutsPage = () => {
               ))}
             </div>
 
-            {/* ── CONSULTORIA PERSONALIZADA ── */}
+            {/* ── MEU PROGRAMA (consultoria personalizada) ── */}
             {hasPersonalWorkouts ? (
               <div className="space-y-3">
                 <SectionLabel icon={Crown}>Meu Programa Personalizado</SectionLabel>
-
-                {/* Treino de hoje */}
                 {todayWorkout && (
-                  <WorkoutCard workout={todayWorkout} isNext={true} isOngoing={ongoing?.workout_id === todayWorkout.id} alreadyToday={alreadyToday} sessions={sessions} navigate={navigate} onPdfClick={setPdfUrl} />
+                  <WorkoutCard workout={todayWorkout} isNext={true} isOngoing={ongoing?.workout_id===todayWorkout.id} alreadyToday={alreadyToday} sessions={sessions} navigate={navigate} onPdfClick={setPdfUrl} />
                 )}
-
-                {/* Concluído hoje */}
                 {alreadyToday && (
                   <div className="flex items-center gap-3.5 bg-green-500/8 border border-green-500/20 rounded-2xl px-4 py-4">
                     <div className="h-10 w-10 rounded-full bg-green-500/15 flex items-center justify-center flex-shrink-0"><CheckCircle2 className="h-5 w-5 text-green-400" /></div>
@@ -492,8 +418,6 @@ const StudentWorkoutsPage = () => {
                     </div>
                   </div>
                 )}
-
-                {/* Todos os treinos se > 1 */}
                 {activeWorkouts.length > 1 && (
                   <div className="flex flex-col gap-2.5">
                     {activeWorkouts.map((w, idx) => (
@@ -501,8 +425,6 @@ const StudentWorkoutsPage = () => {
                     ))}
                   </div>
                 )}
-
-                {/* Expirados */}
                 {expiredWorkouts.length > 0 && (
                   <div>
                     <button className="flex items-center gap-2 w-full mb-2" onClick={() => setShowExpired(p => !p)}>
@@ -510,16 +432,11 @@ const StudentWorkoutsPage = () => {
                       <div className="flex-1 h-px bg-border/40" />
                       {showExpired ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
                     </button>
-                    {showExpired && (
-                      <div className="flex flex-col gap-2.5">
-                        {expiredWorkouts.map(w => <WorkoutCard key={w.id} workout={w} isNext={false} isOngoing={false} alreadyToday={alreadyToday} sessions={sessions} navigate={navigate} onPdfClick={setPdfUrl} />)}
-                      </div>
-                    )}
+                    {showExpired && <div className="flex flex-col gap-2.5">{expiredWorkouts.map(w => <WorkoutCard key={w.id} workout={w} isNext={false} isOngoing={false} alreadyToday={alreadyToday} sessions={sessions} navigate={navigate} onPdfClick={setPdfUrl} />)}</div>}
                   </div>
                 )}
               </div>
             ) : (
-              /* ── SEM CONSULTORIA — CTA ── */
               <div className="bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 rounded-2xl p-5">
                 <div className="flex items-start gap-3 mb-4">
                   <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0"><Crown className="h-5 w-5 text-primary" /></div>
@@ -534,27 +451,23 @@ const StudentWorkoutsPage = () => {
               </div>
             )}
 
-            {/* ── CATÁLOGO DE JORNADAS ── */}
+            {/* ── JORNADAS ── */}
             {journeys.length > 0 && (
-              <div className="space-y-1">
+              <div>
                 <SectionLabel icon={BookOpen}>Jornadas de Treino</SectionLabel>
-                <p className="text-xs text-muted-foreground mb-4">
-                  {hasPersonalWorkouts
-                    ? "Explore programas para complementar seu treino"
-                    : "Escolha uma jornada e comece seu programa"}
+                <p className="text-xs text-muted-foreground mb-4 -mt-2">
+                  {hasPersonalWorkouts ? "Explore programas para complementar seu treino" : "Escolha uma jornada e comece seu programa"}
                 </p>
 
-                {/* Minhas jornadas ativas */}
                 {myJourneys.length > 0 && (
                   <div className="mb-5">
                     <p className="text-xs font-medium text-primary mb-2">Em andamento</p>
                     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
-                      {myJourneys.map(j => <JourneyCard key={j.id} journey={j} studentJourney={getStudentJourney(j.id)} hasAccess={grantedIds.has(j.id)} onSelect={setSelectedJourney} />)}
+                      {myJourneys.map(j => <JourneyCard key={j.id} journey={j} studentJourney={getStudentJourney(j.id)} hasAccess={grantedIds.has(j.id)} onSelect={handleJourneySelect} />)}
                     </div>
                   </div>
                 )}
 
-                {/* Por categoria */}
                 {categories.map(cat => {
                   const catJourneys = availableJourneys.filter(j => j.category_id === cat.id);
                   if (!catJourneys.length) return null;
@@ -562,60 +475,94 @@ const StudentWorkoutsPage = () => {
                     <div key={cat.id} className="mb-5">
                       <p className="text-xs font-medium text-muted-foreground mb-2">{cat.emoji} {cat.name}</p>
                       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
-                        {catJourneys.map(j => <JourneyCard key={j.id} journey={j} studentJourney={getStudentJourney(j.id)} hasAccess={true} onSelect={setSelectedJourney} />)}
+                        {catJourneys.map(j => <JourneyCard key={j.id} journey={j} studentJourney={getStudentJourney(j.id)} hasAccess={true} onSelect={handleJourneySelect} />)}
                       </div>
                     </div>
                   );
                 })}
 
-                {/* Sem categoria */}
                 {availableJourneys.filter(j => !j.category_id).length > 0 && (
                   <div className="mb-5">
                     <p className="text-xs font-medium text-muted-foreground mb-2">Disponíveis</p>
                     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
-                      {availableJourneys.filter(j => !j.category_id).map(j => <JourneyCard key={j.id} journey={j} studentJourney={getStudentJourney(j.id)} hasAccess={true} onSelect={setSelectedJourney} />)}
+                      {availableJourneys.filter(j => !j.category_id).map(j => <JourneyCard key={j.id} journey={j} studentJourney={getStudentJourney(j.id)} hasAccess={true} onSelect={handleJourneySelect} />)}
                     </div>
                   </div>
                 )}
 
-                {/* Bloqueadas */}
                 {lockedJourneys.length > 0 && (
                   <div className="mb-3">
                     <p className="text-xs font-medium text-muted-foreground mb-2">🔒 Em breve</p>
                     <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
-                      {lockedJourneys.map(j => <JourneyCard key={j.id} journey={j} studentJourney={null} hasAccess={false} onSelect={setSelectedJourney} />)}
+                      {lockedJourneys.map(j => <JourneyCard key={j.id} journey={j} studentJourney={null} hasAccess={false} onSelect={handleJourneySelect} />)}
                     </div>
                   </div>
                 )}
               </div>
             )}
+
             {/* ── SALVOS ── */}
-            {savedWorkouts.length > 0 && (
-              <div className="space-y-3">
-                <SectionLabel icon={Bookmark}>Treinos Salvos</SectionLabel>
-                <div className="space-y-2">
-                  {savedWorkouts.map(sw => (
-                    <div key={sw.id} className="bg-card border border-border rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:border-primary/40 transition-all" onClick={() => navigate(`/student/workout-preview/${sw.workout_template_id}`)}
-                    >
-                      <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0"><Bookmark className="h-4 w-4 text-primary" /></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{sw.template?.title ?? "Treino"}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">Salvo em {new Date(sw.saved_at).toLocaleDateString("pt-BR")}</p>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            {(savedWorkouts.length > 0 || savedJourneys.length > 0) && (
+              <div>
+                <SectionLabel icon={Bookmark}>Salvos</SectionLabel>
+
+                {savedJourneys.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-xs text-muted-foreground mb-2">Jornadas</p>
+                    <div className="space-y-2">
+                      {savedJourneys.map(sv => (
+                        <div key={sv.id}
+                          className="bg-card border border-border rounded-xl overflow-hidden flex cursor-pointer hover:border-primary/40 transition-all"
+                          onClick={() => navigate(`/student/journey/${sv.journey_id}`)}
+                        >
+                          <div className="w-16 h-16 flex-shrink-0 flex items-center justify-center text-2xl"
+                            style={{ background: sv.journey?.cover_image_url ? "transparent" : (sv.journey?.cover_color ?? "#0F6E56") }}>
+                            {sv.journey?.cover_image_url
+                              ? <img src={sv.journey.cover_image_url} alt="" className="w-full h-full object-cover" />
+                              : sv.journey?.cover_emoji ?? "⚡"}
+                          </div>
+                          <div className="flex-1 min-w-0 p-3 flex items-center justify-between">
+                            <p className="font-medium text-sm truncate">{sv.journey?.title ?? "Jornada"}</p>
+                            <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 ml-2" />
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
+
+                {savedWorkouts.length > 0 && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2">Treinos</p>
+                    <div className="space-y-2">
+                      {savedWorkouts.map(sw => (
+                        <div key={sw.id}
+                          className="bg-card border border-border rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:border-primary/40 transition-all"
+                          onClick={() => navigate(`/student/workout-preview/${sw.workout_template_id}`)}
+                        >
+                          <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+                            <Dumbbell className="h-4 w-4 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">{sw.template?.title ?? "Treino"}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">Salvo em {new Date(sw.saved_at).toLocaleDateString("pt-BR")}</p>
+                          </div>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Estado vazio — sem treinos e sem jornadas */}
+            {/* Estado vazio */}
             {!hasPersonalWorkouts && journeys.length === 0 && (
               <div className="flex flex-col items-center justify-center min-h-[40vh] text-center gap-4">
                 <div className="h-20 w-20 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center"><Dumbbell className="h-9 w-9 text-primary" /></div>
                 <div>
                   <h2 className="text-xl font-bold">Nenhum treino ainda</h2>
-                  <p className="text-sm text-muted-foreground mt-1 max-w-[240px]">Seu personal ainda não configurou seus treinos. Aguarde ou entre em contato.</p>
+                  <p className="text-sm text-muted-foreground mt-1 max-w-[240px]">Seu personal ainda não configurou seus treinos.</p>
                 </div>
                 <Button variant="outline" className="gap-2" onClick={() => window.open(waLink("Olá! Estou aguardando meu treino no Santana Method. 💪"), "_blank")}><WhatsAppIcon />Avisar o Personal</Button>
               </div>
@@ -625,7 +572,7 @@ const StudentWorkoutsPage = () => {
         )}
       </MobileContent>
 
-      {/* Footer CTA — só se tem treino personalizado */}
+      {/* Footer CTA */}
       {!loading && !error && !isExpired && hasPersonalWorkouts && todayWorkout && (
         <MobileFooter>
           <Button variant="premium" size="xl" className="w-full gap-2" onClick={() => {
@@ -637,20 +584,6 @@ const StudentWorkoutsPage = () => {
             : <><Dumbbell className="h-5 w-5" />Iniciar Treino de Hoje</>}
           </Button>
         </MobileFooter>
-      )}
-
-      {selectedJourney && (
-        <JourneyDetailModal
-          journey={selectedJourney}
-          studentJourney={selectedStudentJourney}
-          hasAccess={selectedHasAccess}
-          onClose={() => setSelectedJourney(null)}
-          onStart={() => {
-            if (selectedStudentJourney?.status === "active") { setSelectedJourney(null); }
-            else handleEnroll(selectedJourney);
-          }}
-          starting={starting}
-        />
       )}
 
       {pdfUrl && <PdfModal url={pdfUrl} onClose={() => setPdfUrl(null)} />}

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   ChevronLeft, Loader2, Play, Bookmark, BookmarkCheck,
   Layers, Repeat, Clock, Weight, Zap, FileText, X,
+  ChevronDown, ChevronUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -83,12 +84,13 @@ const WorkoutPreviewPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [template, setTemplate] = useState(null);
-  const [blocks, setBlocks]     = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [saved, setSaved]       = useState(false);
-  const [saving, setSaving]     = useState(false);
-  const [showPdf, setShowPdf]   = useState(false);
+  const [template, setTemplate]       = useState(null);
+  const [blocks, setBlocks]           = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [saved, setSaved]             = useState(false);
+  const [saving, setSaving]           = useState(false);
+  const [showPdf, setShowPdf]         = useState(false);
+  const [expandedBlocks, setExpandedBlocks] = useState(new Set());
 
   const load = useCallback(async () => {
     if (!user || !templateId) return;
@@ -104,13 +106,16 @@ const WorkoutPreviewPage = () => {
 
       const { data: exData } = await supabase
         .from("workout_template_exercises")
-        .select("*, exercise:exercises(id, name, video_url, muscle_group, equipment, default_description, instructions, tips)")
+        .select("*, exercise:exercises(id, name, video_url, muscle_group, equipment)")
         .eq("template_id", templateId).order("order_index");
 
       const blockMap = {};
       for (const b of blockData || []) blockMap[b.id] = { ...b, exercises: [] };
       for (const ex of exData || []) { if (blockMap[ex.block_id]) blockMap[ex.block_id].exercises.push(ex); }
-      setBlocks(Object.values(blockMap).sort((a, b) => a.order_index - b.order_index));
+      const sorted = Object.values(blockMap).sort((a, b) => a.order_index - b.order_index);
+      setBlocks(sorted);
+      // Expande todos os blocos por padrão
+      setExpandedBlocks(new Set(sorted.map(b => b.id)));
 
       const { data: savedData } = await supabase
         .from("saved_workouts").select("id").eq("student_id", user.id).eq("workout_template_id", templateId).maybeSingle();
@@ -143,11 +148,23 @@ const WorkoutPreviewPage = () => {
   const handleStartWorkout = async () => {
     try {
       const { data: sw } = await supabase
-        .from("student_workouts").select("id").eq("student_id", user.id)
-        .eq("template_id", templateId).eq("status", "active").maybeSingle();
-      if (sw?.id) navigate(`/student/workout/${sw.id}`);
-      else toast("Este treino não está atribuído a você. Fale com seu personal.");
+        .from("student_workouts").select("id")
+        .eq("student_id", user.id).eq("template_id", templateId).eq("status", "active")
+        .maybeSingle();
+      if (sw?.id) {
+        navigate(`/student/workout/${sw.id}`);
+      } else {
+        toast("Este treino não está atribuído a você. Fale com seu personal.");
+      }
     } catch { toast.error("Erro ao abrir treino"); }
+  };
+
+  const toggleBlock = (id) => {
+    setExpandedBlocks(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
   };
 
   if (loading) return (
@@ -166,50 +183,78 @@ const WorkoutPreviewPage = () => {
   const totalExercises = blocks.reduce((s, b) => s + b.exercises.length, 0);
 
   return (
-    <div className="min-h-screen bg-background pb-32">
-      <div className="sticky top-0 z-10 bg-background/90 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="text-muted-foreground hover:text-foreground transition-colors">
+    <div className="min-h-screen bg-background pb-28">
+      {/* Header fixo */}
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center gap-3">
+        <button onClick={() => navigate(-1)} className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0">
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <h1 className="text-base font-semibold flex-1 truncate">{template.title}</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-sm font-semibold truncate">{template.title}</h1>
+          <p className="text-xs text-muted-foreground">{blocks.length} blocos · {totalExercises} exercícios</p>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
           {template.pdf_url && (
             <button onClick={() => setShowPdf(true)} className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary transition-colors">
               <FileText className="h-4 w-4" />
             </button>
           )}
-          <button onClick={handleSave} disabled={saving} className={cn("h-8 w-8 rounded-lg flex items-center justify-center transition-all", saved ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground hover:text-primary")}>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className={cn("h-8 w-8 rounded-lg flex items-center justify-center transition-all", saved ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground hover:text-primary")}
+          >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : saved ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
           </button>
         </div>
       </div>
 
-      <div className="px-4 py-5 space-y-5 max-w-2xl mx-auto">
-        <div className="space-y-2">
-          {template.description && <p className="text-sm text-muted-foreground">{template.description}</p>}
-          <div className="flex gap-3 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1"><Layers className="h-3.5 w-3.5" />{blocks.length} blocos</span>
-            <span className="flex items-center gap-1"><Repeat className="h-3.5 w-3.5" />{totalExercises} exercícios</span>
-          </div>
-          {saved && <div className="flex items-center gap-1.5 text-xs text-primary"><BookmarkCheck className="h-3.5 w-3.5" /><span>Salvo na sua biblioteca</span></div>}
-        </div>
+      {/* Conteúdo */}
+      <div className="px-4 py-4 space-y-3 max-w-2xl mx-auto">
+        {template.description && (
+          <p className="text-sm text-muted-foreground">{template.description}</p>
+        )}
 
-        <div className="space-y-4">
-          {blocks.map((block, bIdx) => {
-            const typeCfg = blockTypeConfig[block.block_type] || blockTypeConfig.normal;
-            return (
-              <div key={block.id} className="bg-card border border-border rounded-2xl overflow-hidden">
-                <div className="px-4 py-3 border-b border-border/50 flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
-                    <Layers className="h-4 w-4 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{block.block_label || `Bloco ${String.fromCharCode(65+bIdx)}`}</p>
-                    <span className={cn("text-[10px] font-medium px-1.5 py-0.5 rounded border", typeCfg.color)}>{typeCfg.label}</span>
-                  </div>
-                  {block.rest_after_block_seconds && <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" />{block.rest_after_block_seconds}s</span>}
+        {saved && (
+          <div className="flex items-center gap-1.5 text-xs text-primary">
+            <BookmarkCheck className="h-3.5 w-3.5" />
+            <span>Salvo na sua biblioteca</span>
+          </div>
+        )}
+
+        {/* Blocos */}
+        {blocks.map((block, bIdx) => {
+          const typeCfg = blockTypeConfig[block.block_type] || blockTypeConfig.normal;
+          const isExpanded = expandedBlocks.has(block.id);
+
+          return (
+            <div key={block.id} className="bg-card border border-border rounded-2xl overflow-hidden">
+              {/* Header bloco */}
+              <button
+                className="w-full px-4 py-3 flex items-center gap-3 text-left"
+                onClick={() => toggleBlock(block.id)}
+              >
+                <div className="h-8 w-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+                  <Layers className="h-4 w-4 text-primary" />
                 </div>
-                <div className="divide-y divide-border/50">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm">{block.block_label || `Bloco ${String.fromCharCode(65+bIdx)}`}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className={cn("text-[10px] font-medium px-1.5 py-0.5 rounded border", typeCfg.color)}>{typeCfg.label}</span>
+                    <span className="text-[10px] text-muted-foreground">{block.exercises.length} exerc.</span>
+                    {block.rest_after_block_seconds && (
+                      <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                        <Clock className="h-2.5 w-2.5" />{block.rest_after_block_seconds}s
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+              </button>
+
+              {/* Exercícios */}
+              {isExpanded && (
+                <div className="divide-y divide-border/50 border-t border-border">
                   {block.exercises.map((ex, exIdx) => (
                     <div key={ex.id} className="px-4 py-3">
                       <div className="flex items-start justify-between gap-2">
@@ -224,20 +269,26 @@ const WorkoutPreviewPage = () => {
                           </div>
                           {ex.notes && <p className="text-xs text-muted-foreground mt-1 italic">{ex.notes}</p>}
                         </div>
-                        <span className="text-[10px] text-muted-foreground flex-shrink-0">#{exIdx+1}</span>
+                        <span className="text-[10px] text-muted-foreground flex-shrink-0 mt-0.5">#{exIdx+1}</span>
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
+      {/* Footer fixo */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t border-border">
         <div className="max-w-2xl mx-auto flex gap-3">
-          <Button variant="outline" className={cn("gap-2", saved ? "border-primary/30 text-primary" : "")} onClick={handleSave} disabled={saving}>
+          <Button
+            variant="outline"
+            className={cn("gap-2 flex-shrink-0", saved ? "border-primary/30 text-primary" : "")}
+            onClick={handleSave}
+            disabled={saving}
+          >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : saved ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
             {saved ? "Salvo" : "Salvar"}
           </Button>
