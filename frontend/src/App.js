@@ -8,7 +8,9 @@ import { Loader2 } from "lucide-react";
 import LoginPage from "@/pages/LoginPage";
 import StudentWorkoutsPage from "@/pages/student/StudentWorkoutsPage";
 import StudentWorkoutPage from "@/pages/student/StudentWorkoutPage";
-import StudentCatalogPage from "@/pages/student/Studentcatalogpage";
+import StudentCatalogPage   from "@/pages/student/Studentcatalogpage";
+import JourneyDetailPage   from "@/pages/student/JourneyDetailPage";
+import WorkoutPreviewPage  from "@/pages/student/WorkoutPreviewPage";
 import DashboardPage from "@/pages/admin/DashboardPage";
 import AdminAlunosPage from "@/pages/admin/AdminAlunosPage";
 import AdminAlunoDetailPage from "@/pages/admin/AdminAlunoDetailPage.jsx";
@@ -42,7 +44,9 @@ function AppRoutes() {
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
       <Route path="/student" element={<ProtectedRoute><StudentWorkoutsPage /></ProtectedRoute>} />
       <Route path="/student/workout/:id" element={<ProtectedRoute><StudentWorkoutPage /></ProtectedRoute>} />
-      <Route path="/student/catalog" element={<ProtectedRoute><StudentCatalogPage /></ProtectedRoute>} />
+      <Route path="/student/catalog"      element={<ProtectedRoute><StudentCatalogPage /></ProtectedRoute>} />
+      <Route path="/student/journey/:id"   element={<ProtectedRoute><JourneyDetailPage /></ProtectedRoute>} />
+      <Route path="/student/workout-preview/:id" element={<ProtectedRoute><WorkoutPreviewPage /></ProtectedRoute>} />
       <Route path="/app" element={<Navigate to="/student" replace />} />
       <Route path="/student/workouts" element={<Navigate to="/student" replace />} />
       <Route path="/admin" element={<AdminRoute><DashboardPage /></AdminRoute>} />

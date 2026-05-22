@@ -6,7 +6,7 @@ import { MobileContainer, MobileHeader, MobileContent, MobileFooter } from "@/co
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  User, Dumbbell, LogOut, Loader2, RefreshCw, ChevronRight,
+  User, Dumbbell, LogOut, Loader2, RefreshCw, ChevronRight, Bookmark,
   AlertCircle, Trophy, Calendar, Play, CheckCircle2, Lock,
   FileText, ArrowRight, Star, Clock, ChevronDown, ChevronUp,
   X, MessageCircle, Zap, BookOpen, Crown,
@@ -291,6 +291,7 @@ const StudentWorkoutsPage = () => {
   const [selectedJourney, setSelectedJourney] = useState(null);
   const [starting, setStarting] = useState(false);
   const [profileId, setProfileId] = useState(null);
+  const [savedWorkouts, setSavedWorkouts] = useState([]);
 
   const isExpired = profile?.access_end ? new Date(profile.access_end + "T23:59") < new Date() : false;
 
@@ -334,6 +335,8 @@ const StudentWorkoutsPage = () => {
       ]);
       setJourneys(j); setCategories(c); setStudentJourneys(sj); setGrantedIds(new Set(ids));
     } catch (err) { if (err?.name !== "AbortError" && !err?.message?.includes("aborted")) console.error("loadJourneys error:", err?.message); }
+      const { data: saved } = await supabase.from("saved_workouts").select("*, template:workout_templates(id, title)").eq("student_id", user.id).order("saved_at", { ascending: false });
+      setSavedWorkouts(saved ?? []);
     finally { setLoadingJourneys(false); }
   }, [user]);
 
@@ -584,6 +587,25 @@ const StudentWorkoutsPage = () => {
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+            {/* ── SALVOS ── */}
+            {savedWorkouts.length > 0 && (
+              <div className="space-y-3">
+                <SectionLabel icon={Bookmark}>Treinos Salvos</SectionLabel>
+                <div className="space-y-2">
+                  {savedWorkouts.map(sw => (
+                    <div key={sw.id} className="bg-card border border-border rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:border-primary/40 transition-all" onClick={() => navigate(`/student/workout-preview/${sw.workout_template_id}`)}
+                    >
+                      <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0"><Bookmark className="h-4 w-4 text-primary" /></div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{sw.template?.title ?? "Treino"}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Salvo em {new Date(sw.saved_at).toLocaleDateString("pt-BR")}</p>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
