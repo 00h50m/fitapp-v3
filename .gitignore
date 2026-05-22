@@ -89,3 +89,4 @@ frontend/node_modules/.cache/default-development/1.pack
 .env*.local
 .env.local
 frontend/node_modules/.cache/default-development/6.pack
+frontend/node_modules/.cache/default-development/9.pack

@@ -320,7 +320,7 @@ const StudentCatalogPage = () => {
           hasAccess={selectedHasAccess}
           onClose={() => setSelectedJourney(null)}
           onStart={() => {
-            if (selectedStudentJourney?.status === "active") navigate("/student");
+            if (selectedStudentJourney?.status === "active") navigate(`/student/journey/${selectedJourney.id}`);
             else handleEnroll(selectedJourney);
           }}
           starting={starting}
