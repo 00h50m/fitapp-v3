@@ -99,7 +99,7 @@ const JourneyDetailPage = () => {
   const isDone = studentJourney?.status === "completed";
 
   return (
-    <div className="min-h-screen bg-background pb-8">
+    <div className="min-h-screen bg-background pb-8 max-w-md mx-auto">
       {/* Hero */}
       <div className="relative h-56 overflow-hidden" style={{ background: hasCover ? "transparent" : journey.cover_color }}>
         {hasCover
