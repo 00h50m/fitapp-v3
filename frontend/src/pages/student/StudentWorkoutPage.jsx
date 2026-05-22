@@ -2,25 +2,21 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
-import {
-  MobileContainer, MobileHeader, MobileContent, MobileFooter,
-} from "@/components/layout/MobileContainer";
+import { MobileContainer, MobileHeader, MobileContent, MobileFooter } from "@/components/layout/MobileContainer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
-  User, Dumbbell, LogOut, Loader2, ChevronLeft,
-  ChevronDown, ChevronUp, CheckCircle2, Clock, Repeat,
-  Layers, Video, Play, RefreshCw, Trophy, AlertCircle,
-  Lock, FileText, X, HelpCircle, Zap, Weight, StickyNote,
-  Timer, History,
+  User, Dumbbell, LogOut, Loader2, ChevronLeft, ChevronDown, ChevronUp,
+  CheckCircle2, Clock, Repeat, Layers, Video, Play, RefreshCw, Trophy,
+  AlertCircle, Lock, FileText, X, HelpCircle, Zap, Weight, StickyNote,
+  Timer, History, BarChart2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { incrementJourneyProgress, getStudentJourneys } from "@/services/journeyService";
 
-// ── Config ─────────────────────────────────────────────────────
 const blockTypeConfig = {
   normal:   { label: "Normal",    color: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
   single:   { label: "Simples",   color: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
@@ -100,10 +96,7 @@ const RestTimer = ({ seconds, onDone, onSkip }) => {
   const [remaining, setRemaining] = useState(seconds);
   useEffect(() => {
     const interval = setInterval(() => {
-      setRemaining(prev => {
-        if (prev <= 1) { clearInterval(interval); onDone?.(); return 0; }
-        return prev - 1;
-      });
+      setRemaining(prev => { if (prev <= 1) { clearInterval(interval); onDone?.(); return 0; } return prev - 1; });
     }, 1000);
     return () => clearInterval(interval);
   }, []);
@@ -111,24 +104,23 @@ const RestTimer = ({ seconds, onDone, onSkip }) => {
   const mins = Math.floor(remaining / 60);
   const secs = remaining % 60;
   return (
-    <div className="bg-card border border-primary/30 rounded-2xl p-4 flex items-center gap-4">
-      <div className="relative w-12 h-12 flex-shrink-0">
-        <svg className="w-12 h-12 -rotate-90" viewBox="0 0 48 48">
-          <circle cx="24" cy="24" r="20" fill="none" stroke="hsl(var(--border))" strokeWidth="3" />
-          <circle cx="24" cy="24" r="20" fill="none" stroke="hsl(var(--primary))" strokeWidth="3"
-            strokeDasharray={`${2 * Math.PI * 20}`}
-            strokeDashoffset={`${2 * Math.PI * 20 * (1 - pct / 100)}`}
+    <div className="bg-primary/5 border border-primary/30 rounded-xl p-3 flex items-center gap-3 mb-3">
+      <div className="relative w-10 h-10 flex-shrink-0">
+        <svg className="w-10 h-10 -rotate-90" viewBox="0 0 40 40">
+          <circle cx="20" cy="20" r="16" fill="none" stroke="hsl(var(--border))" strokeWidth="3" />
+          <circle cx="20" cy="20" r="16" fill="none" stroke="hsl(var(--primary))" strokeWidth="3"
+            strokeDasharray={`${2*Math.PI*16}`} strokeDashoffset={`${2*Math.PI*16*(1-pct/100)}`}
             strokeLinecap="round" className="transition-all duration-1000" />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-[10px] font-bold text-primary">{mins > 0 ? `${mins}:${String(secs).padStart(2,"0")}` : `${remaining}s`}</span>
+          <span className="text-[9px] font-bold text-primary">{mins>0?`${mins}:${String(secs).padStart(2,"0")}`:remaining}</span>
         </div>
       </div>
-      <div className="flex-1">
-        <p className="text-sm font-semibold flex items-center gap-1.5"><Timer className="h-3.5 w-3.5 text-primary" />Descanso</p>
-        <p className="text-xs text-muted-foreground mt-0.5">Próxima série em {remaining}s</p>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-semibold flex items-center gap-1"><Timer className="h-3 w-3 text-primary" />Descanso ativo</p>
+        <p className="text-[10px] text-muted-foreground">Próxima série em {remaining}s</p>
       </div>
-      <Button variant="ghost" size="sm" className="text-xs h-8 flex-shrink-0" onClick={onSkip}>Pular</Button>
+      <Button variant="ghost" size="sm" className="h-7 text-xs flex-shrink-0" onClick={onSkip}>Pular</Button>
     </div>
   );
 };
@@ -138,63 +130,45 @@ const LoadHistoryModal = ({ exerciseName, exerciseRowId, onClose }) => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
-
   useEffect(() => {
     const load = async () => {
       try {
         const { data } = await supabase
           .from("workout_exercise_logs")
           .select("actual_load, actual_reps, set_number, completed_at, session:workout_sessions(session_date)")
-          .eq("exercise_row_id", exerciseRowId)
-          .eq("student_id", user.id)
-          .order("completed_at", { ascending: false })
-          .limit(20);
+          .eq("exercise_row_id", exerciseRowId).eq("student_id", user.id)
+          .order("completed_at", { ascending: false }).limit(30);
         setLogs(data ?? []);
-      } catch { /* silencioso */ }
-      finally { setLoading(false); }
+      } catch { } finally { setLoading(false); }
     };
     load();
   }, [exerciseRowId, user.id]);
-
-  // Agrupa por sessão
   const bySession = logs.reduce((acc, log) => {
     const date = log.session?.session_date ?? log.completed_at?.split("T")[0] ?? "—";
     if (!acc[date]) acc[date] = [];
     acc[date].push(log);
     return acc;
   }, {});
-
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-card border border-border rounded-t-2xl w-full max-w-sm flex flex-col overflow-hidden" style={{ maxHeight: "70dvh" }} onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-4 py-3 border-b border-border flex-shrink-0">
-          <div>
-            <p className="font-semibold text-sm">{exerciseName}</p>
-            <p className="text-xs text-muted-foreground">Histórico de cargas</p>
-          </div>
+          <div><p className="font-semibold text-sm">{exerciseName}</p><p className="text-xs text-muted-foreground">Histórico de cargas</p></div>
           <button className="h-7 w-7 rounded-lg bg-muted flex items-center justify-center" onClick={onClose}><X className="h-4 w-4" /></button>
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {loading && <div className="flex items-center justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>}
           {!loading && Object.keys(bySession).length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              <History className="h-8 w-8 mx-auto mb-2 opacity-30" />
-              <p className="text-sm">Nenhum registro ainda</p>
-            </div>
+            <div className="text-center py-8 text-muted-foreground"><History className="h-8 w-8 mx-auto mb-2 opacity-30" /><p className="text-sm">Nenhum registro ainda</p></div>
           )}
           {!loading && Object.entries(bySession).map(([date, entries]) => (
             <div key={date}>
-              <p className="text-xs font-medium text-muted-foreground mb-2">
-                {new Date(date + "T12:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
-              </p>
+              <p className="text-xs font-medium text-muted-foreground mb-2">{new Date(date+"T12:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})}</p>
               <div className="space-y-1">
                 {entries.map((e, i) => (
                   <div key={i} className="flex items-center justify-between bg-secondary rounded-lg px-3 py-2">
                     <span className="text-xs text-muted-foreground">Série {e.set_number ?? i+1}</span>
-                    <span className="text-sm font-medium">
-                      {e.actual_load ? `${e.actual_load} kg` : "—"}
-                      {e.actual_reps ? ` × ${e.actual_reps} reps` : ""}
-                    </span>
+                    <span className="text-sm font-medium">{e.actual_load ? `${e.actual_load}kg` : "—"}{e.actual_reps ? ` × ${e.actual_reps}` : ""}</span>
                   </div>
                 ))}
               </div>
@@ -206,108 +180,131 @@ const LoadHistoryModal = ({ exerciseName, exerciseRowId, onClose }) => {
   );
 };
 
-// ── Linha de série ─────────────────────────────────────────────
-const SetRow = ({ setNum, exerciseRowId, sessionId, studentId, workoutId, restSeconds, onComplete, lastLoad, lastReps, disabled }) => {
-  const [kg, setKg]         = useState("");
-  const [reps, setReps]     = useState("");
-  const [done, setDone]     = useState(false);
-  const [saving, setSaving] = useState(false);
+// ── Modal de registro de cargas ────────────────────────────────
+const LoadTrackingModal = ({ exercise, sessionId, studentId, workoutId, restSeconds, onClose, onComplete }) => {
+  const numSets = Number(exercise.sets) || 1;
+  const [sets, setSets] = useState(Array.from({ length: numSets }, (_, i) => ({ num: i+1, kg: "", reps: "", done: false })));
+  const [saving, setSaving] = useState(null);
   const [showTimer, setShowTimer] = useState(false);
+  const [timerSeconds, setTimerSeconds] = useState(restSeconds || 60);
 
-  const handleDone = async () => {
-    if (disabled) { toast("Inicie o treino primeiro ⚡"); return; }
-    setSaving(true);
+  const handleSetDone = async (idx) => {
+    if (!sessionId) { toast("Inicie o treino primeiro ⚡"); return; }
+    setSaving(idx);
     try {
+      const s = sets[idx];
       await supabase.from("workout_exercise_logs").upsert({
         session_id: sessionId,
         student_workout_id: workoutId,
         student_id: studentId,
-        exercise_row_id: exerciseRowId,
-        set_number: setNum,
-        actual_load: kg ? String(kg) : null,
-        actual_reps: reps ? Number(reps) : null,
+        exercise_row_id: exercise.exercise_row_id,
+        set_number: s.num,
+        actual_load: s.kg ? String(s.kg) : null,
+        actual_reps: s.reps ? Number(s.reps) : null,
         completed_at: new Date().toISOString(),
       }, { onConflict: "session_id,exercise_row_id,set_number" });
-      setDone(true);
-      onComplete?.();
-    } catch (err) {
-      toast.error("Erro ao salvar série");
-      console.error(err);
-    } finally { setSaving(false); }
+      setSets(prev => prev.map((x, i) => i === idx ? { ...x, done: true } : x));
+      onComplete?.(exercise.exercise_row_id, s.num);
+    } catch (err) { toast.error("Erro ao salvar"); console.error(err); }
+    finally { setSaving(null); }
   };
 
-  if (showTimer) {
-    return <RestTimer seconds={restSeconds || 60} onDone={() => setShowTimer(false)} onSkip={() => setShowTimer(false)} />;
-  }
+  const allDone = sets.every(s => s.done);
 
   return (
-    <div className={cn("flex items-center gap-2 py-1.5 px-1", done && "opacity-50")}>
-      {/* Número da série */}
-      <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 border", done ? "bg-green-400 border-green-400 text-black" : "bg-muted border-border text-muted-foreground")}>
-        {done ? "✓" : setNum}
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-card border border-border rounded-t-2xl w-full max-w-sm flex flex-col overflow-hidden" style={{ maxHeight: "85dvh" }} onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-start justify-between px-4 py-3 border-b border-border flex-shrink-0">
+          <div>
+            <p className="font-semibold text-sm">{exercise.exercise_name}</p>
+            <div className="flex gap-2 mt-0.5 text-xs text-muted-foreground">
+              {exercise.sets && <span>{exercise.sets} séries</span>}
+              {exercise.reps && <span>· {exercise.reps} reps</span>}
+              {exercise.load && <span>· {exercise.load}</span>}
+            </div>
+          </div>
+          <button className="h-7 w-7 rounded-lg bg-muted flex items-center justify-center flex-shrink-0" onClick={onClose}><X className="h-4 w-4" /></button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {/* Timer no topo se ativo */}
+          {showTimer && (
+            <RestTimer
+              seconds={timerSeconds}
+              onDone={() => setShowTimer(false)}
+              onSkip={() => setShowTimer(false)}
+            />
+          )}
+
+          {/* Botão iniciar timer manual */}
+          {!showTimer && (
+            <button
+              className="w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-border text-xs text-muted-foreground hover:text-primary hover:border-primary/40 transition-all"
+              onClick={() => { setTimerSeconds(exercise.rest_seconds || restSeconds || 60); setShowTimer(true); }}
+            >
+              <Timer className="h-3.5 w-3.5" />
+              Iniciar descanso ({exercise.rest_seconds || restSeconds || 60}s)
+            </button>
+          )}
+
+          {/* Header colunas */}
+          <div className="flex items-center gap-2 px-1">
+            <span className="text-[10px] text-muted-foreground w-6 text-center">#</span>
+            <span className="text-[10px] text-muted-foreground flex-1 text-center">Carga (kg)</span>
+            <span className="text-[10px] text-muted-foreground flex-1 text-center">Reps</span>
+            <span className="text-[10px] text-muted-foreground w-9 text-center">✓</span>
+          </div>
+
+          {/* Séries */}
+          {sets.map((s, idx) => (
+            <div key={idx} className={cn("flex items-center gap-2 py-1 px-1 rounded-xl transition-all", s.done && "opacity-50 bg-green-500/5")}>
+              <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 border", s.done ? "bg-green-400 border-green-400 text-black" : "bg-muted border-border text-muted-foreground")}>
+                {s.done ? "✓" : s.num}
+              </div>
+              <Input
+                type="number"
+                placeholder="kg"
+                value={s.kg}
+                onChange={e => setSets(prev => prev.map((x,i) => i===idx ? {...x, kg: e.target.value} : x))}
+                disabled={s.done}
+                className="h-8 text-sm text-center bg-secondary border-border flex-1 min-w-0"
+              />
+              <Input
+                type="number"
+                placeholder={exercise.reps ?? "reps"}
+                value={s.reps}
+                onChange={e => setSets(prev => prev.map((x,i) => i===idx ? {...x, reps: e.target.value} : x))}
+                disabled={s.done}
+                className="h-8 text-sm text-center bg-secondary border-border flex-1 min-w-0"
+              />
+              <Button
+                size="sm"
+                variant={s.done ? "ghost" : "outline"}
+                className={cn("h-8 w-9 p-0 flex-shrink-0", s.done && "text-green-400")}
+                onClick={() => handleSetDone(idx)}
+                disabled={s.done || saving === idx}
+              >
+                {saving === idx ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+              </Button>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-border flex-shrink-0">
+          {allDone ? (
+            <Button className="w-full gap-2 bg-green-500 hover:bg-green-600" onClick={onClose}>
+              <CheckCircle2 className="h-4 w-4" />Exercício concluído!
+            </Button>
+          ) : (
+            <Button variant="ghost" className="w-full text-muted-foreground" onClick={onClose}>Fechar</Button>
+          )}
+        </div>
       </div>
-
-      {/* Referência da sessão anterior */}
-      {(lastLoad || lastReps) && !done && (
-        <span className="text-[10px] text-muted-foreground flex-shrink-0 hidden sm:block">
-          ant: {lastLoad ?? "—"}kg/{lastReps ?? "—"}
-        </span>
-      )}
-
-      {/* kg */}
-      <Input
-        type="number"
-        placeholder={lastLoad ?? "kg"}
-        value={kg}
-        onChange={e => setKg(e.target.value)}
-        disabled={done}
-        className="h-8 text-sm text-center bg-secondary border-border flex-1 min-w-0"
-      />
-      <span className="text-xs text-muted-foreground flex-shrink-0">kg</span>
-
-      {/* reps */}
-      <Input
-        type="number"
-        placeholder={lastReps ?? "reps"}
-        value={reps}
-        onChange={e => setReps(e.target.value)}
-        disabled={done}
-        className="h-8 text-sm text-center bg-secondary border-border flex-1 min-w-0"
-      />
-      <span className="text-xs text-muted-foreground flex-shrink-0">reps</span>
-
-      {/* Confirmar série */}
-      <Button
-        size="sm"
-        variant={done ? "ghost" : "outline"}
-        className={cn("h-8 w-8 p-0 flex-shrink-0", done && "text-green-400 border-green-400/30")}
-        onClick={handleDone}
-        disabled={done || saving}
-      >
-        {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-      </Button>
-
-      {/* Timer opcional — só aparece depois de marcar */}
-      {done && restSeconds && (
-        <Button
-          size="sm"
-          variant="ghost"
-          className="h-8 w-8 p-0 flex-shrink-0 text-primary"
-          onClick={() => setShowTimer(true)}
-          title="Iniciar descanso"
-        >
-          <Timer className="h-3.5 w-3.5" />
-        </Button>
-      )}
     </div>
   );
 };
-
-// ── Labels PT-BR ───────────────────────────────────────────────
-const MUSCLE_LABELS = { chest:"Peitoral",back:"Costas",shoulders:"Ombros",biceps:"Bíceps",triceps:"Tríceps",forearms:"Antebraço",core:"Core/Abdômen",glutes:"Glúteos",quads:"Quadríceps",hamstrings:"Post. Coxa",adductors:"Adutores",calves:"Panturrilha",full_body:"Corpo Inteiro",cardio:"Cardio",legs:"Pernas" };
-const EQUIP_LABELS  = { barbell:"Barra",dumbbell:"Halteres",cable:"Cabo/Polia",machine:"Máquina",bodyweight:"Peso Corporal",kettlebell:"Kettlebell",band:"Elástico",smith:"Smith",trap_bar:"Trap Bar",bench:"Banco",other:"Outro" };
-const DIFF_LABELS   = { beginner:"Iniciante",intermediate:"Intermediário",advanced:"Avançado" };
-const label = (map, val) => val ? (map[val] || val) : null;
 
 // ── Modal detalhes exercício ───────────────────────────────────
 const ExerciseDetailModal = ({ exercise, onClose }) => {
@@ -317,10 +314,7 @@ const ExerciseDetailModal = ({ exercise, onClose }) => {
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-background/80 backdrop-blur-md p-0 sm:p-4" onClick={onClose}>
       <div className="bg-card border border-border rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md overflow-hidden flex flex-col shadow-2xl" style={{ maxHeight: "92dvh" }} onClick={e => e.stopPropagation()}>
         <div className="flex items-start justify-between px-5 pt-5 pb-4 flex-shrink-0">
-          <div className="flex-1 min-w-0 pr-2">
-            <p className="text-[10px] text-primary font-bold uppercase tracking-widest mb-1">Detalhes</p>
-            <h2 className="font-bold text-lg leading-tight">{exercise.exercise_name}</h2>
-          </div>
+          <div className="flex-1 min-w-0 pr-2"><p className="text-[10px] text-primary font-bold uppercase tracking-widest mb-1">Detalhes</p><h2 className="font-bold text-lg leading-tight">{exercise.exercise_name}</h2></div>
           <button className="h-8 w-8 rounded-xl bg-muted flex items-center justify-center" onClick={onClose}><X className="h-4 w-4" /></button>
         </div>
         <div className="flex-1 overflow-y-auto">
@@ -337,24 +331,9 @@ const ExerciseDetailModal = ({ exercise, onClose }) => {
               </div>
             )}
             {exercise.default_description && <p className="text-sm text-muted-foreground leading-relaxed">{exercise.default_description}</p>}
-            {exercise.instructions && (
-              <div>
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Como executar</p>
-                <div className="bg-muted/30 rounded-2xl p-4"><p className="text-sm leading-relaxed whitespace-pre-line">{exercise.instructions}</p></div>
-              </div>
-            )}
-            {exercise.tips && (
-              <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 flex gap-3">
-                <StickyNote className="h-4 w-4 text-amber-400 flex-shrink-0 mt-0.5" />
-                <p className="text-sm leading-relaxed">{exercise.tips}</p>
-              </div>
-            )}
-            {exercise.obs && (
-              <div className="bg-blue-500/5 border border-blue-500/20 rounded-2xl p-4 flex gap-3">
-                <StickyNote className="h-4 w-4 text-blue-400 flex-shrink-0 mt-0.5" />
-                <p className="text-sm">{exercise.obs}</p>
-              </div>
-            )}
+            {exercise.instructions && <div><p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Como executar</p><div className="bg-muted/30 rounded-2xl p-4"><p className="text-sm leading-relaxed whitespace-pre-line">{exercise.instructions}</p></div></div>}
+            {exercise.tips && <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 flex gap-3"><StickyNote className="h-4 w-4 text-amber-400 flex-shrink-0 mt-0.5" /><p className="text-sm leading-relaxed">{exercise.tips}</p></div>}
+            {exercise.obs && <div className="bg-blue-500/5 border border-blue-500/20 rounded-2xl p-4 flex gap-3"><StickyNote className="h-4 w-4 text-blue-400 flex-shrink-0 mt-0.5" /><p className="text-sm">{exercise.obs}</p></div>}
           </div>
         </div>
         {exercise.video_url && <div className="px-5 py-4 border-t border-border flex-shrink-0"><a href={exercise.video_url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 text-sm text-primary font-medium hover:underline"><Video className="h-4 w-4" />Abrir vídeo</a></div>}
@@ -369,60 +348,47 @@ const StudentWorkoutPage = () => {
   const navigate = useNavigate();
   const { user, profile, logout, loading: authLoading } = useAuth();
 
-  const [workout, setWorkout]         = useState(null);
-  const [blocks, setBlocks]           = useState([]);
-  const [loading, setLoading]         = useState(false);
-  const [error, setError]             = useState(null);
-  const [completedSets, setCompletedSets] = useState({});
-  const [expandedBlocks, setExpandedBlocks] = useState(new Set());
-  const [expandedVideos, setExpandedVideos] = useState(new Set());
-  const [activeSession, setActiveSession]   = useState(null);
-  const [starting, setStarting]       = useState(false);
-  const [finishing, setFinishing]     = useState(false);
+  const [workout, setWorkout]       = useState(null);
+  const [blocks, setBlocks]         = useState([]);
+  const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState(null);
+  const [completedExercises, setCompletedExercises] = useState(new Set()); // exercícios marcados como "feito"
+  const [completedSets, setCompletedSets]           = useState({});        // séries detalhadas
+  const [expandedBlocks, setExpandedBlocks]         = useState(new Set());
+  const [expandedVideos, setExpandedVideos]         = useState(new Set());
+  const [activeSession, setActiveSession]           = useState(null);
+  const [starting, setStarting]     = useState(false);
+  const [finishing, setFinishing]   = useState(false);
   const [showFinishModal, setShowFinishModal] = useState(false);
-  const [isExpired, setIsExpired]     = useState(false);
+  const [isExpired, setIsExpired]   = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [detailExercise, setDetailExercise] = useState(null);
   const [historyExercise, setHistoryExercise] = useState(null);
-  const [lastLogs, setLastLogs]       = useState({});
+  const [trackingExercise, setTrackingExercise] = useState(null); // modal de registro de carga
+  const [lastLogs, setLastLogs]     = useState({});
 
   const loadWorkout = useCallback(async () => {
     if (!user || !workoutId) { setLoading(false); return; }
     setLoading(true); setError(null);
     try {
-      const { data: sw, error: swErr } = await supabase
-        .from("student_workouts").select("*").eq("id", workoutId).eq("student_id", user.id).single();
+      const { data: sw, error: swErr } = await supabase.from("student_workouts").select("*").eq("id", workoutId).eq("student_id", user.id).single();
       if (swErr) throw swErr;
-
       let pdfUrl = sw.pdf_url || null;
       if (!pdfUrl && sw.template_id) {
         const { data: tmpl } = await supabase.from("workout_templates").select("pdf_url").eq("id", sw.template_id).maybeSingle();
         pdfUrl = tmpl?.pdf_url || null;
       }
       setWorkout({ ...sw, pdf_url: pdfUrl });
-
       const todayStr = new Date().toISOString().split("T")[0];
       if (sw.end_date && sw.end_date < todayStr) { setIsExpired(true); setLoading(false); return; }
 
-      const { data: rows, error: viewErr } = await supabase
-        .from("v_student_workout").select("*").eq("workout_id", workoutId).eq("student_id", user.id)
-        .order("block_order", { ascending: true }).order("exercise_order", { ascending: true });
+      const { data: rows, error: viewErr } = await supabase.from("v_student_workout").select("*").eq("workout_id", workoutId).eq("student_id", user.id).order("block_order", { ascending: true }).order("exercise_order", { ascending: true });
       if (viewErr) throw viewErr;
-
-      const { data: blockData } = await supabase
-        .from("student_workout_blocks").select("id, block_type, order_index, rest_after_block_seconds").eq("student_workout_id", workoutId);
+      const { data: blockData } = await supabase.from("student_workout_blocks").select("id, block_type, order_index, rest_after_block_seconds").eq("student_workout_id", workoutId);
       const blockTypeMap = Object.fromEntries((blockData || []).map(b => [b.id, { type: b.block_type, rest: b.rest_after_block_seconds }]));
-
       const blockMap = {};
       for (const row of rows || []) {
-        if (!blockMap[row.block_id]) {
-          blockMap[row.block_id] = {
-            block_id: row.block_id, block_label: row.block_label,
-            block_type: blockTypeMap[row.block_id]?.type || "normal",
-            rest_seconds: blockTypeMap[row.block_id]?.rest || 60,
-            block_order: row.block_order, exercises: [],
-          };
-        }
+        if (!blockMap[row.block_id]) blockMap[row.block_id] = { block_id: row.block_id, block_label: row.block_label, block_type: blockTypeMap[row.block_id]?.type || "normal", rest_seconds: blockTypeMap[row.block_id]?.rest || 60, block_order: row.block_order, exercises: [] };
         blockMap[row.block_id].exercises.push(row);
       }
       const sortedBlocks = Object.values(blockMap).sort((a, b) => a.block_order - b.block_order);
@@ -430,17 +396,13 @@ const StudentWorkoutPage = () => {
       if (sortedBlocks.length > 0) setExpandedBlocks(new Set([sortedBlocks[0].block_id]));
 
       const today = new Date().toISOString().split("T")[0];
-      const { data: session } = await supabase
-        .from("workout_sessions").select("*").eq("student_id", user.id).eq("workout_id", workoutId)
-        .eq("session_date", today).eq("finished", false).maybeSingle();
-
+      const { data: session } = await supabase.from("workout_sessions").select("*").eq("student_id", user.id).eq("workout_id", workoutId).eq("session_date", today).eq("finished", false).maybeSingle();
       if (session) {
         setActiveSession(session);
-        const { data: logs } = await supabase
-          .from("workout_exercise_logs").select("exercise_row_id, set_number, actual_load, actual_reps")
-          .eq("session_id", session.id);
+        const { data: logs } = await supabase.from("workout_exercise_logs").select("exercise_row_id, set_number, actual_load, actual_reps").eq("session_id", session.id);
         if (logs?.length) {
           const setsMap = {};
+          const doneEx = new Set();
           const logsMap = {};
           for (const log of logs) {
             if (!setsMap[log.exercise_row_id]) setsMap[log.exercise_row_id] = new Set();
@@ -452,19 +414,12 @@ const StudentWorkoutPage = () => {
         }
       }
 
-      // Histórico da última sessão
-      const { data: lastSession } = await supabase
-        .from("workout_sessions").select("id").eq("student_id", user.id).eq("workout_id", workoutId)
-        .eq("finished", true).order("session_date", { ascending: false }).limit(1).maybeSingle();
+      const { data: lastSession } = await supabase.from("workout_sessions").select("id").eq("student_id", user.id).eq("workout_id", workoutId).eq("finished", true).order("session_date", { ascending: false }).limit(1).maybeSingle();
       if (lastSession) {
-        const { data: prevLogs } = await supabase
-          .from("workout_exercise_logs").select("exercise_row_id, actual_load, actual_reps")
-          .eq("session_id", lastSession.id);
+        const { data: prevLogs } = await supabase.from("workout_exercise_logs").select("exercise_row_id, actual_load, actual_reps").eq("session_id", lastSession.id);
         if (prevLogs?.length) {
           const prev = {};
-          for (const log of prevLogs) {
-            if (!prev[log.exercise_row_id]) prev[log.exercise_row_id] = { kg: log.actual_load, reps: log.actual_reps };
-          }
+          for (const log of prevLogs) { if (!prev[log.exercise_row_id]) prev[log.exercise_row_id] = { kg: log.actual_load, reps: log.actual_reps }; }
           setLastLogs(prev);
         }
       }
@@ -478,13 +433,32 @@ const StudentWorkoutPage = () => {
     else setLoading(false);
   }, [user?.id, workoutId, authLoading]); // eslint-disable-line
 
-  const toggleBlock = blockId => {
-    setExpandedBlocks(prev => { const next = new Set(prev); next.has(blockId) ? next.delete(blockId) : next.add(blockId); return next; });
+  const toggleBlock = blockId => { setExpandedBlocks(prev => { const next = new Set(prev); next.has(blockId) ? next.delete(blockId) : next.add(blockId); return next; }); };
+
+  // Marcar exercício inteiro como feito (sem carga)
+  const handleMarkExerciseDone = async (ex) => {
+    if (!activeSession) { toast("Inicie o treino primeiro ⚡"); return; }
+    const numSets = Number(ex.sets) || 1;
+    try {
+      const rows = Array.from({ length: numSets }, (_, i) => ({
+        session_id: activeSession.id,
+        student_workout_id: workoutId,
+        student_id: user.id,
+        exercise_row_id: ex.exercise_row_id,
+        set_number: i + 1,
+        completed_at: new Date().toISOString(),
+      }));
+      await supabase.from("workout_exercise_logs").upsert(rows, { onConflict: "session_id,exercise_row_id,set_number" });
+      setCompletedExercises(prev => new Set([...prev, ex.exercise_row_id]));
+      setCompletedSets(prev => {
+        const next = { ...prev };
+        next[ex.exercise_row_id] = new Set(Array.from({ length: numSets }, (_, i) => i + 1));
+        return next;
+      });
+      toast.success("Exercício marcado! ✓");
+    } catch (err) { toast.error("Erro: " + err.message); }
   };
-  const toggleVideo = (key, e) => {
-    e.stopPropagation();
-    setExpandedVideos(prev => { const next = new Set(prev); next.has(key) ? next.delete(key) : next.add(key); return next; });
-  };
+
   const handleSetComplete = (exerciseRowId, setNum) => {
     setCompletedSets(prev => {
       const next = { ...prev };
@@ -498,23 +472,18 @@ const StudentWorkoutPage = () => {
     setStarting(true);
     try {
       const today = new Date().toISOString().split("T")[0];
-      const { data: todaySession } = await supabase
-        .from("workout_sessions").select("*").eq("student_id", user.id).eq("workout_id", workoutId).eq("session_date", today).maybeSingle();
+      const { data: todaySession } = await supabase.from("workout_sessions").select("*").eq("student_id", user.id).eq("workout_id", workoutId).eq("session_date", today).maybeSingle();
       if (todaySession) {
-        if (todaySession.finished) {
-          await supabase.from("workout_sessions").update({ status: "active", finished: false, started_at: new Date().toISOString() }).eq("id", todaySession.id);
-          setActiveSession({ ...todaySession, status: "active", finished: false });
-          setCompletedSets({});
-          toast.success("Novo ciclo iniciado! 💪");
-        } else { setActiveSession(todaySession); toast.success("Treino retomado! 💪"); }
+        if (todaySession.finished) { await supabase.from("workout_sessions").update({ status: "active", finished: false, started_at: new Date().toISOString() }).eq("id", todaySession.id); setActiveSession({ ...todaySession, status: "active", finished: false }); setCompletedSets({}); setCompletedExercises(new Set()); toast.success("Novo ciclo! 💪"); }
+        else { setActiveSession(todaySession); toast.success("Treino retomado! 💪"); }
         return;
       }
       const { data: otherActive } = await supabase.from("workout_sessions").select("id").eq("student_id", user.id).eq("status", "active").maybeSingle();
       if (otherActive) await supabase.from("workout_sessions").update({ status: "finished", finished: true, finished_at: new Date().toISOString() }).eq("id", otherActive.id);
       await supabase.from("workout_sessions").insert({ student_id: user.id, workout_id: workoutId, session_date: today, started_at: new Date().toISOString(), status: "active", finished: false });
       const { data: newSession } = await supabase.from("workout_sessions").select("*").eq("student_id", user.id).eq("workout_id", workoutId).eq("session_date", today).maybeSingle();
-      if (newSession) { setActiveSession(newSession); setCompletedSets({}); toast.success("Treino iniciado! 💪"); }
-      else throw new Error("Sessão não encontrada após criar.");
+      if (newSession) { setActiveSession(newSession); setCompletedSets({}); setCompletedExercises(new Set()); toast.success("Treino iniciado! 💪"); }
+      else throw new Error("Sessão não encontrada.");
     } catch (err) { toast.error("Erro ao iniciar: " + err.message); }
     finally { setStarting(false); }
   };
@@ -524,11 +493,7 @@ const StudentWorkoutPage = () => {
     setFinishing(true);
     try {
       await supabase.from("workout_sessions").update({ finished: true, status: "finished", finished_at: new Date().toISOString(), completed_at: new Date().toISOString() }).eq("id", activeSession.id);
-      try {
-        const sjs = await getStudentJourneys(user.id);
-        const activeJourney = sjs?.find(sj => sj.status === "active");
-        if (activeJourney) await incrementJourneyProgress(user.id, activeJourney.journey_id);
-      } catch { /* silencioso */ }
+      try { const sjs = await getStudentJourneys(user.id); const aj = sjs?.find(sj => sj.status === "active"); if (aj) await incrementJourneyProgress(user.id, aj.journey_id); } catch { }
       setActiveSession(null); setShowFinishModal(false);
       toast.success("Treino concluído! 🏆");
       navigate("/student");
@@ -536,10 +501,14 @@ const StudentWorkoutPage = () => {
     finally { setFinishing(false); }
   };
 
-  const totalSets = blocks.reduce((sum, b) => sum + b.exercises.reduce((s, ex) => s + (Number(ex.sets) || 1), 0), 0);
-  const doneSets  = Object.values(completedSets).reduce((sum, s) => sum + s.size, 0);
-  const progressPct = totalSets > 0 ? Math.round((doneSets / totalSets) * 100) : 0;
-  const isBlockCompleted = b => b.exercises.every(ex => (completedSets[ex.exercise_row_id]?.size ?? 0) >= (Number(ex.sets) || 1));
+  const isExerciseDone = (ex) => {
+    const numSets = Number(ex.sets) || 1;
+    return completedExercises.has(ex.exercise_row_id) || (completedSets[ex.exercise_row_id]?.size ?? 0) >= numSets;
+  };
+  const totalExercises = blocks.reduce((sum, b) => sum + b.exercises.length, 0);
+  const doneExercises  = blocks.reduce((sum, b) => sum + b.exercises.filter(ex => isExerciseDone(ex)).length, 0);
+  const progressPct    = totalExercises > 0 ? Math.round((doneExercises / totalExercises) * 100) : 0;
+  const isBlockCompleted = b => b.exercises.every(ex => isExerciseDone(ex));
 
   return (
     <MobileContainer>
@@ -556,11 +525,7 @@ const StudentWorkoutPage = () => {
             </div>
           </div>
           <div className="flex items-center gap-1">
-            {workout?.pdf_url && (
-              <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setShowPdfModal(true)}>
-                <FileText className="h-4 w-4 text-primary" />
-              </Button>
-            )}
+            {workout?.pdf_url && <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setShowPdfModal(true)}><FileText className="h-4 w-4 text-primary" /></Button>}
             <Button variant="ghost" size="icon" className="h-9 w-9" onClick={loadWorkout}><RefreshCw className="h-4 w-4 text-muted-foreground" /></Button>
             <Button variant="ghost" size="icon" className="h-9 w-9" onClick={async () => { try { await logout(); } catch {} }}><LogOut className="h-4 w-4 text-muted-foreground" /></Button>
           </div>
@@ -568,41 +533,32 @@ const StudentWorkoutPage = () => {
       </MobileHeader>
 
       <MobileContent className="pb-32">
-        {loading ? (
-          <div className="flex items-center justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-        ) : isExpired ? (
+        {loading ? <div className="flex items-center justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+        : isExpired ? (
           <div className="flex flex-col items-center justify-center py-16 px-6 text-center space-y-5">
             <div className="h-24 w-24 rounded-full bg-destructive/10 border border-destructive/20 flex items-center justify-center"><Lock className="h-11 w-11 text-destructive/70" /></div>
-            <div className="space-y-2">
-              <h2 className="text-2xl font-bold">Treino Expirado</h2>
-              <p className="text-sm text-muted-foreground">{workout?.end_date ? `Expirou em ${new Date(workout.end_date+"T12:00:00").toLocaleDateString("pt-BR")}.` : "Não disponível."}</p>
-            </div>
-            <Button variant="premium" className="w-full max-w-[260px] gap-2 py-6" onClick={() => window.open(`https://wa.me/5511949997913?text=${encodeURIComponent("Olá! Meu treino expirou e gostaria de renovar. 🏋️")}`, "_blank")}>Falar com o Personal</Button>
+            <div className="space-y-2"><h2 className="text-2xl font-bold">Treino Expirado</h2><p className="text-sm text-muted-foreground">{workout?.end_date ? `Expirou em ${new Date(workout.end_date+"T12:00:00").toLocaleDateString("pt-BR")}.` : "Não disponível."}</p></div>
+            <Button variant="premium" className="w-full max-w-[260px] gap-2 py-6" onClick={() => window.open(`https://wa.me/5511949997913?text=${encodeURIComponent("Olá! Meu treino expirou. 🏋️")}`, "_blank")}>Falar com o Personal</Button>
             <Button variant="outline" onClick={() => navigate("/student")} className="w-full max-w-[260px]"><ChevronLeft className="h-4 w-4 mr-1" />Voltar</Button>
           </div>
         ) : error ? (
           <Card className="bg-card border-destructive/30 mt-4"><CardContent className="py-10 text-center"><AlertCircle className="h-10 w-10 mx-auto text-destructive mb-3" /><p className="text-destructive font-medium mb-4">{error}</p><Button variant="outline" size="sm" onClick={loadWorkout}><RefreshCw className="h-4 w-4 mr-2" />Tentar novamente</Button></CardContent></Card>
         ) : (
           <div className="space-y-4 pt-3">
-            {/* Header */}
             <div>
               <Badge variant="premium" className="text-xs mb-2">Treino Atual</Badge>
               <h1 className="text-2xl font-bold leading-tight">{workout?.title || "Treino"}</h1>
-              <p className="text-sm text-muted-foreground mt-1">{blocks.length} blocos · {totalSets} séries</p>
+              <p className="text-sm text-muted-foreground mt-1">{blocks.length} blocos · {totalExercises} exercícios</p>
             </div>
 
-            {/* Barra de progresso */}
             {activeSession && (
               <div className="bg-card border border-border rounded-2xl p-4 space-y-2">
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Progresso</span><span className="font-bold">{doneSets}/{totalSets} séries</span></div>
-                <div className="h-2.5 rounded-full bg-muted overflow-hidden">
-                  <div className={cn("h-full rounded-full transition-all", progressPct===100 ? "bg-green-400" : "bg-primary")} style={{ width: `${progressPct}%` }} />
-                </div>
-                {progressPct===100 && <p className="text-xs text-center text-green-400 font-semibold">🏆 Todas as séries concluídas!</p>}
+                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Progresso</span><span className="font-bold">{doneExercises}/{totalExercises} exercícios</span></div>
+                <div className="h-2.5 rounded-full bg-muted overflow-hidden"><div className={cn("h-full rounded-full transition-all", progressPct===100?"bg-green-400":"bg-primary")} style={{ width: `${progressPct}%` }} /></div>
+                {progressPct===100 && <p className="text-xs text-center text-green-400 font-semibold">🏆 Todos os exercícios concluídos!</p>}
               </div>
             )}
 
-            {/* Blocos */}
             <div className="space-y-3">
               {blocks.map(block => {
                 const isExpanded = expandedBlocks.has(block.block_id);
@@ -620,7 +576,6 @@ const StudentWorkoutPage = () => {
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className={cn("text-[10px] font-medium px-1.5 py-0.5 rounded border", typeCfg.color)}>{typeCfg.label}</span>
                             <span className="text-[10px] text-muted-foreground">{block.exercises.length} exerc.</span>
-                            {block.rest_seconds && <span className="text-[10px] text-muted-foreground flex items-center gap-0.5"><Timer className="h-2.5 w-2.5" />{block.rest_seconds}s</span>}
                           </div>
                         </div>
                       </div>
@@ -630,94 +585,69 @@ const StudentWorkoutPage = () => {
                     {isExpanded && (
                       <div className="border-t border-border divide-y divide-border/50">
                         {block.exercises.map((ex, idx) => {
-                          const ytId = getYoutubeId(ex.video_url);
-                          const videoKey = ex.exercise_row_id || `${block.block_id}-${idx}`;
-                          const videoOpen = expandedVideos.has(videoKey);
-                          const numSets = Number(ex.sets) || 1;
+                          const exDone = isExerciseDone(ex);
                           const prevLog = lastLogs[ex.exercise_row_id];
-
+                          const ytId = getYoutubeId(ex.video_url);
                           return (
-                            <div key={videoKey} className="px-4 py-4">
-                              {/* Nome + botões */}
-                              <div className="flex items-start justify-between gap-2 mb-3">
+                            <div key={ex.exercise_row_id || idx} className={cn("px-4 py-4 transition-colors", exDone && "bg-green-500/5")}>
+                              {/* Nome + status */}
+                              <div className="flex items-start gap-3">
+                                {/* Check circular */}
+                                <div className={cn("w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all cursor-pointer", exDone ? "border-green-400 bg-green-400" : "border-muted-foreground/40 hover:border-primary/60")}
+                                  onClick={() => !exDone && handleMarkExerciseDone(ex)}>
+                                  {exDone && <CheckCircle2 className="h-4 w-4 text-white" />}
+                                </div>
+
                                 <div className="flex-1 min-w-0">
-                                  <p className="font-semibold text-sm leading-tight">{ex.exercise_name}</p>
+                                  <p className={cn("font-semibold text-sm leading-tight", exDone ? "text-green-400 line-through" : "text-foreground")}>{ex.exercise_name}</p>
                                   <div className="flex flex-wrap gap-2 mt-1 text-xs text-muted-foreground">
-                                    {ex.sets && <span className="flex items-center gap-1"><Layers className="h-3 w-3" />{ex.sets} séries</span>}
-                                    {ex.reps && <span className="flex items-center gap-1"><Repeat className="h-3 w-3" />{ex.reps} reps</span>}
-                                    {ex.rest_seconds && <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{ex.rest_seconds}s</span>}
-                                    {ex.load && <span>💪 {ex.load}</span>}
+                                    {ex.sets && <span>{ex.sets} séries</span>}
+                                    {ex.reps && <span>· {ex.reps} reps</span>}
+                                    {ex.rest_seconds && <span>· {ex.rest_seconds}s descanso</span>}
+                                    {ex.load && <span>· {ex.load}</span>}
                                   </div>
                                   {prevLog?.kg && (
-                                    <button
-                                      className="flex items-center gap-1 mt-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
-                                      onClick={() => setHistoryExercise({ name: ex.exercise_name, rowId: ex.exercise_row_id })}
-                                    >
-                                      <History className="h-3 w-3" />
-                                      Última: {prevLog.kg}kg × {prevLog.reps || "?"} reps
-                                    </button>
-                                  )}
-                                  {!prevLog?.kg && (
-                                    <button
-                                      className="flex items-center gap-1 mt-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
-                                      onClick={() => setHistoryExercise({ name: ex.exercise_name, rowId: ex.exercise_row_id })}
-                                    >
-                                      <History className="h-3 w-3" />
-                                      Ver histórico
-                                    </button>
+                                    <p className="text-[10px] text-muted-foreground mt-1">Última: {prevLog.kg}kg × {prevLog.reps || "?"}</p>
                                   )}
                                 </div>
+
+                                {/* Botões de ação */}
                                 <div className="flex items-center gap-1 flex-shrink-0">
                                   {ytId && (
-                                    <button className={cn("h-8 w-8 rounded-xl flex items-center justify-center transition-colors", videoOpen ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground")} onClick={e => toggleVideo(videoKey, e)}>
+                                    <button className="h-8 w-8 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
+                                      onClick={() => setExpandedVideos(prev => { const next = new Set(prev); next.has(ex.exercise_row_id) ? next.delete(ex.exercise_row_id) : next.add(ex.exercise_row_id); return next; })}>
                                       <Play className="h-3.5 w-3.5" />
                                     </button>
                                   )}
-                                  <button className="h-8 w-8 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-colors" onClick={e => { e.stopPropagation(); setDetailExercise(ex); }}>
+                                  <button className="h-8 w-8 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
+                                    onClick={() => setHistoryExercise({ name: ex.exercise_name, rowId: ex.exercise_row_id })}>
+                                    <History className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button className="h-8 w-8 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
+                                    onClick={() => setDetailExercise(ex)}>
                                     <HelpCircle className="h-3.5 w-3.5" />
                                   </button>
                                 </div>
                               </div>
 
                               {/* Obs */}
-                              {ex.obs && (
-                                <div className="flex items-start gap-1.5 mb-3">
-                                  <StickyNote className="h-3 w-3 text-primary flex-shrink-0 mt-0.5" />
-                                  <p className="text-xs text-muted-foreground">{ex.obs}</p>
+                              {ex.obs && <div className="flex items-start gap-1.5 mt-2 ml-10"><StickyNote className="h-3 w-3 text-primary flex-shrink-0 mt-0.5" /><p className="text-xs text-muted-foreground">{ex.obs}</p></div>}
+
+                              {/* Botão registrar carga */}
+                              {!exDone && (
+                                <div className="mt-3 ml-10">
+                                  <button
+                                    className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors font-medium"
+                                    onClick={() => setTrackingExercise(ex)}
+                                  >
+                                    <BarChart2 className="h-3.5 w-3.5" />
+                                    Registrar cargas por série
+                                  </button>
                                 </div>
                               )}
 
-                              {/* Header colunas séries */}
-                              <div className="flex items-center gap-2 mb-1 px-1">
-                                <span className="text-[10px] text-muted-foreground w-6 text-center">#</span>
-                                <span className="text-[10px] text-muted-foreground flex-1 text-center">Carga</span>
-                                <span className="text-[10px] text-muted-foreground flex-shrink-0 w-6"></span>
-                                <span className="text-[10px] text-muted-foreground flex-1 text-center">Reps</span>
-                                <span className="text-[10px] text-muted-foreground flex-shrink-0 w-6"></span>
-                                <span className="text-[10px] text-muted-foreground w-8 text-center">✓</span>
-                              </div>
-
-                              {/* Séries */}
-                              <div className="space-y-1">
-                                {Array.from({ length: numSets }, (_, i) => i + 1).map(setNum => (
-                                  <SetRow
-                                    key={setNum}
-                                    setNum={setNum}
-                                    exerciseRowId={ex.exercise_row_id}
-                                    sessionId={activeSession?.id}
-                                    studentId={user?.id}
-                                    workoutId={workoutId}
-                                    restSeconds={ex.rest_seconds || block.rest_seconds || 60}
-                                    onComplete={() => handleSetComplete(ex.exercise_row_id, setNum)}
-                                    lastLoad={prevLog?.kg}
-                                    lastReps={prevLog?.reps}
-                                    disabled={!activeSession}
-                                  />
-                                ))}
-                              </div>
-
                               {/* Vídeo inline */}
-                              {videoOpen && ytId && (
+                              {expandedVideos.has(ex.exercise_row_id) && ytId && (
                                 <div className="mt-3 rounded-xl overflow-hidden aspect-video bg-black">
                                   <iframe src={`https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1&autoplay=1`} className="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen title={ex.exercise_name} />
                                 </div>
@@ -731,10 +661,7 @@ const StudentWorkoutPage = () => {
                 );
               })}
             </div>
-
-            {blocks.length === 0 && (
-              <Card className="bg-card border-border"><CardContent className="py-12 text-center"><Dumbbell className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" /><p className="text-muted-foreground">Nenhum exercício cadastrado</p></CardContent></Card>
-            )}
+            {blocks.length === 0 && <Card className="bg-card border-border"><CardContent className="py-12 text-center"><Dumbbell className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" /><p className="text-muted-foreground">Nenhum exercício cadastrado</p></CardContent></Card>}
           </div>
         )}
       </MobileContent>
@@ -748,17 +675,15 @@ const StudentWorkoutPage = () => {
             </Button>
           ) : (
             <div className="flex flex-col gap-2 w-full">
-              {totalSets > 0 && (
+              {totalExercises > 0 && (
                 <div className="flex items-center gap-2 px-1">
-                  <div className="flex-1 bg-muted rounded-full h-1.5 overflow-hidden">
-                    <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${progressPct}%` }} />
-                  </div>
-                  <span className="text-xs text-muted-foreground tabular-nums">{doneSets}/{totalSets}</span>
+                  <div className="flex-1 bg-muted rounded-full h-1.5 overflow-hidden"><div className="h-full bg-primary rounded-full transition-all" style={{ width: `${progressPct}%` }} /></div>
+                  <span className="text-xs text-muted-foreground tabular-nums">{doneExercises}/{totalExercises}</span>
                 </div>
               )}
-              <Button variant="premium" size="xl" className="w-full gap-2" onClick={() => setShowFinishModal(true)} disabled={doneSets===0}>
+              <Button variant="premium" size="xl" className="w-full gap-2" onClick={() => setShowFinishModal(true)} disabled={doneExercises===0}>
                 <CheckCircle2 className="h-5 w-5" />
-                {doneSets===0 ? "Marque séries para finalizar" : progressPct===100 ? "Finalizar Treino ✓" : `Finalizar (${doneSets}/${totalSets})`}
+                {doneExercises===0 ? "Marque exercícios para finalizar" : progressPct===100 ? "Finalizar Treino ✓" : `Finalizar (${doneExercises}/${totalExercises})`}
               </Button>
             </div>
           )}
@@ -769,24 +694,44 @@ const StudentWorkoutPage = () => {
       {detailExercise && <ExerciseDetailModal exercise={detailExercise} onClose={() => setDetailExercise(null)} />}
       {showPdfModal && workout?.pdf_url && <PdfModal url={workout.pdf_url} onClose={() => setShowPdfModal(false)} />}
       {historyExercise && <LoadHistoryModal exerciseName={historyExercise.name} exerciseRowId={historyExercise.rowId} onClose={() => setHistoryExercise(null)} />}
+      {trackingExercise && (
+        <LoadTrackingModal
+          exercise={trackingExercise}
+          sessionId={activeSession?.id}
+          studentId={user?.id}
+          workoutId={workoutId}
+          restSeconds={trackingExercise.rest_seconds || 60}
+          onClose={() => setTrackingExercise(null)}
+          onComplete={(rowId, setNum) => {
+            handleSetComplete(rowId, setNum);
+            const numSets = Number(trackingExercise.sets) || 1;
+            setCompletedSets(prev => {
+              const next = { ...prev };
+              if (!next[rowId]) next[rowId] = new Set();
+              const updated = new Set([...next[rowId], setNum]);
+              if (updated.size >= numSets) setCompletedExercises(p => new Set([...p, rowId]));
+              next[rowId] = updated;
+              return next;
+            });
+          }}
+        />
+      )}
 
       {showFinishModal && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 backdrop-blur-sm p-4">
           <Card className="bg-card border-border w-full max-w-sm"><CardContent className="p-6 space-y-4">
             <div className="text-center">
-              <div className={cn("h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-3 border", progressPct===100 ? "bg-green-500/10 border-green-500/20" : "bg-primary/10 border-primary/20")}>
-                <Trophy className={cn("h-8 w-8", progressPct===100 ? "text-green-400" : "text-primary")} />
+              <div className={cn("h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-3 border", progressPct===100?"bg-green-500/10 border-green-500/20":"bg-primary/10 border-primary/20")}>
+                <Trophy className={cn("h-8 w-8", progressPct===100?"text-green-400":"text-primary")} />
               </div>
-              <h3 className="text-lg font-bold">{progressPct===100 ? "Treino Concluído! 🏆" : "Finalizar Treino?"}</h3>
-              <p className="text-sm text-muted-foreground mt-1">{progressPct===100 ? "Parabéns! Todas as séries concluídas." : `${doneSets} de ${totalSets} séries (${progressPct}%).`}</p>
+              <h3 className="text-lg font-bold">{progressPct===100?"Treino Concluído! 🏆":"Finalizar Treino?"}</h3>
+              <p className="text-sm text-muted-foreground mt-1">{progressPct===100?"Parabéns! Todos os exercícios concluídos.":`${doneExercises} de ${totalExercises} exercícios (${progressPct}%).`}</p>
             </div>
-            <div className="h-2.5 rounded-full bg-muted overflow-hidden">
-              <div className={cn("h-full rounded-full", progressPct===100 ? "bg-green-400" : "bg-primary")} style={{ width: `${progressPct}%` }} />
-            </div>
-            {progressPct < 100 && <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl px-3 py-2.5 text-xs text-orange-400 text-center">⚠️ {totalSets-doneSets} série{totalSets-doneSets>1?"s":""} ainda não concluída{totalSets-doneSets>1?"s":""}.</div>}
+            <div className="h-2.5 rounded-full bg-muted overflow-hidden"><div className={cn("h-full rounded-full", progressPct===100?"bg-green-400":"bg-primary")} style={{ width: `${progressPct}%` }} /></div>
+            {progressPct < 100 && <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl px-3 py-2.5 text-xs text-orange-400 text-center">⚠️ {totalExercises-doneExercises} exercício{totalExercises-doneExercises>1?"s":""} ainda não concluído{totalExercises-doneExercises>1?"s":""}.</div>}
             <div className="space-y-2">
-              <Button variant="premium" className={cn("w-full", progressPct===100 && "bg-green-500 hover:bg-green-600 border-green-500")} onClick={handleFinish} disabled={finishing}>
-                {finishing ? <><Loader2 className="h-4 w-4 animate-spin" />Finalizando...</> : <><CheckCircle2 className="h-4 w-4" />{progressPct===100 ? "Concluir Treino" : "Finalizar Mesmo Assim"}</>}
+              <Button variant="premium" className={cn("w-full", progressPct===100&&"bg-green-500 hover:bg-green-600 border-green-500")} onClick={handleFinish} disabled={finishing}>
+                {finishing?<><Loader2 className="h-4 w-4 animate-spin" />Finalizando...</>:<><CheckCircle2 className="h-4 w-4" />{progressPct===100?"Concluir Treino":"Finalizar Mesmo Assim"}</>}
               </Button>
               <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => setShowFinishModal(false)}>Continuar Treinando</Button>
             </div>
