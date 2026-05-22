@@ -334,9 +334,9 @@ const StudentWorkoutsPage = () => {
         getGrantedJourneyIds(user.id),
       ]);
       setJourneys(j); setCategories(c); setStudentJourneys(sj); setGrantedIds(new Set(ids));
-    } catch (err) { if (err?.name !== "AbortError" && !err?.message?.includes("aborted")) console.error("loadJourneys error:", err?.message); }
       const { data: saved } = await supabase.from("saved_workouts").select("*, template:workout_templates(id, title)").eq("student_id", user.id).order("saved_at", { ascending: false });
       setSavedWorkouts(saved ?? []);
+    } catch (err) { if (err?.name !== "AbortError" && !err?.message?.includes("aborted")) console.error("loadJourneys error:", err?.message); }
     finally { setLoadingJourneys(false); }
   }, [user]);
 
