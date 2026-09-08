@@ -369,7 +369,10 @@ const WorkoutEditorPage = () => {
           });
           const eText = await eRes.text();
           if (!eRes.ok) {
+            // Antes: erro só ia pro console e o usuário via "Treino salvo!" mesmo
+            // com 0 exercícios gravados. Agora interrompe o fluxo e mostra o erro real.
             console.error("[save] exercises error:", eRes.status, eText);
+            throw new Error(`Os blocos foram salvos, mas os exercícios não (${eRes.status}): ${eText}`);
           } else {
             console.log("[save] exercises saved OK");
           }
