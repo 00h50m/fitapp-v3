@@ -181,9 +181,16 @@ const LoadHistoryModal = ({ exerciseName, exerciseRowId, onClose }) => {
 };
 
 // ── Modal de registro de cargas ────────────────────────────────
-const LoadTrackingModal = ({ exercise, sessionId, studentId, workoutId, restSeconds, onClose, onComplete }) => {
+const LoadTrackingModal = ({ exercise, sessionId, studentId, workoutId, restSeconds, lastLog, onClose, onComplete }) => {
   const numSets = Number(exercise.sets) || 1;
-  const [sets, setSets] = useState(Array.from({ length: numSets }, (_, i) => ({ num: i+1, kg: "", reps: "", done: false })));
+  // Pré-preenche com a carga/reps da última sessão desse exercício, assim o
+  // aluno só confirma (ou ajusta) em vez de digitar tudo de novo toda vez.
+  const [sets, setSets] = useState(Array.from({ length: numSets }, (_, i) => ({
+    num: i + 1,
+    kg: lastLog?.kg ?? "",
+    reps: lastLog?.reps ?? "",
+    done: false,
+  })));
   const [saving, setSaving] = useState(null);
   const [showTimer, setShowTimer] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(restSeconds || 60);
@@ -393,7 +400,9 @@ const StudentWorkoutPage = () => {
       }
       const sortedBlocks = Object.values(blockMap).sort((a, b) => a.block_order - b.block_order);
       setBlocks(sortedBlocks);
-      if (sortedBlocks.length > 0) setExpandedBlocks(new Set([sortedBlocks[0].block_id]));
+      // Antes: só o primeiro bloco abria automaticamente, exigindo um clique
+      // extra por bloco só pra ver os exercícios. Agora todos já abrem prontos.
+      setExpandedBlocks(new Set(sortedBlocks.map(b => b.block_id)));
 
       const today = new Date().toISOString().split("T")[0];
       const { data: session } = await supabase.from("workout_sessions").select("*").eq("student_id", user.id).eq("workout_id", workoutId).eq("session_date", today).eq("finished", false).maybeSingle();
@@ -701,6 +710,7 @@ const StudentWorkoutPage = () => {
           studentId={user?.id}
           workoutId={workoutId}
           restSeconds={trackingExercise.rest_seconds || 60}
+          lastLog={lastLogs[trackingExercise.exercise_row_id]}
           onClose={() => setTrackingExercise(null)}
           onComplete={(rowId, setNum) => {
             handleSetComplete(rowId, setNum);
