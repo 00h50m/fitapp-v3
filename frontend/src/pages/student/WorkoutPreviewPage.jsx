@@ -156,9 +156,19 @@ const WorkoutPreviewPage = () => {
         .maybeSingle();
       if (sw?.id) {
         navigate(`/student/workout/${sw.id}`);
-      } else {
-        toast("Este treino não está atribuído a você. Fale com seu personal.");
+        return;
       }
+
+      // Sem atribuição direta: se o treino faz parte de uma jornada em que o
+      // aluno está matriculado, a matrícula já é a autorização — libera na hora.
+      const { data: newId, error: rpcErr } = await supabase.rpc("start_journey_workout", {
+        p_template_id: templateId,
+      });
+      if (rpcErr || !newId) {
+        toast("Este treino não está atribuído a você. Fale com seu personal.");
+        return;
+      }
+      navigate(`/student/workout/${newId}`);
     } catch { toast.error("Erro ao abrir treino"); }
   };
 
