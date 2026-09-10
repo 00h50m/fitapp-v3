@@ -104,10 +104,13 @@ const WorkoutPreviewPage = () => {
       const { data: blockData } = await supabase
         .from("workout_template_blocks").select("*").eq("template_id", templateId).order("order_index");
 
-      const { data: exData } = await supabase
-        .from("workout_template_exercises")
-        .select("*, exercise:exercises(id, name, video_url, muscle_group, equipment)")
-        .eq("template_id", templateId).order("order_index");
+      const blockIds = (blockData || []).map(b => b.id);
+      const { data: exData } = blockIds.length
+        ? await supabase
+            .from("workout_template_exercises")
+            .select("*, exercise:exercises(id, title, video_url, muscle_group, equipment)")
+            .in("block_id", blockIds).order("order_index")
+        : { data: [] };
 
       const blockMap = {};
       for (const b of blockData || []) blockMap[b.id] = { ...b, exercises: [] };
@@ -259,7 +262,7 @@ const WorkoutPreviewPage = () => {
                     <div key={ex.id} className="px-4 py-3">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm">{ex.exercise?.name ?? "Exercício"}</p>
+                          <p className="font-medium text-sm">{ex.exercise?.title ?? "Exercício"}</p>
                           <div className="flex flex-wrap gap-2 mt-1 text-xs text-muted-foreground">
                             {ex.sets && <span className="flex items-center gap-1"><Layers className="h-3 w-3" />{ex.sets} séries</span>}
                             {ex.reps && <span className="flex items-center gap-1"><Repeat className="h-3 w-3" />{ex.reps} reps</span>}
