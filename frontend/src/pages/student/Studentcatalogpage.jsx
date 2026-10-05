@@ -9,12 +9,7 @@ import { JourneyCard } from "@/components/student/JourneyCard";
 import { Loader2, BookOpen, ChevronRight, CheckCircle2, Clock, Lock, MessageCircle, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-
-const DIFFICULTY_LABEL = {
-  iniciante: { label: "Iniciante", color: "text-green-400" },
-  intermediario: { label: "Intermediário", color: "text-yellow-400" },
-  avancado: { label: "Avançado", color: "text-red-400" },
-};
+import { DIFFICULTY_LABEL } from "@/lib/difficultyLabels";
 
 function openWhatsApp(journeyTitle) {
   const msg = encodeURIComponent(`Olá! Tenho interesse em liberar acesso à jornada "${journeyTitle}". Poderia me ajudar?`);

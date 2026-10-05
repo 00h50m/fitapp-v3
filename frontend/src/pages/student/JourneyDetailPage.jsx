@@ -7,12 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Bookmark, BookmarkCheck, ChevronLeft, ChevronRight, CheckCircle2, Clock, Loader2, Lock, Play, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-const DIFFICULTY_LABEL = {
-  iniciante:     { label: "Iniciante",     color: "text-green-400" },
-  intermediario: { label: "Intermediário", color: "text-yellow-400" },
-  avancado:      { label: "Avançado",      color: "text-red-400" },
-};
+import { DIFFICULTY_LABEL } from "@/lib/difficultyLabels";
 
 const JourneyDetailPage = () => {
   const { id: journeyId } = useParams();

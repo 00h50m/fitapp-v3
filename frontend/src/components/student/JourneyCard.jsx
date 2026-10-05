@@ -1,12 +1,7 @@
 import React from "react";
 import { CheckCircle2, Zap, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const DIFFICULTY_LABEL = {
-  iniciante: { label: "Iniciante", color: "text-green-400" },
-  intermediario: { label: "Intermediário", color: "text-yellow-400" },
-  avancado: { label: "Avançado", color: "text-red-400" },
-};
+import { DIFFICULTY_LABEL } from "@/lib/difficultyLabels";
 
 const SIZE_CLASSES = {
   sm: { card: "w-32", cover: "h-48" },
