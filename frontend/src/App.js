@@ -19,7 +19,6 @@ import DashboardPage from "@/pages/admin/DashboardPage";
 import AdminAlunosPage from "@/pages/admin/AdminAlunosPage";
 import AdminAlunoDetailPage from "@/pages/admin/AdminAlunoDetailPage.jsx";
 import CreateStudentPage from "@/pages/admin/CreateStudentPage";
-import ExerciciosPage from "@/pages/admin/ExerciciosPage";
 import AdminCatalogPage from "@/pages/admin/Admincatalogpage";
 import {
   ExercisesPage as TreinosExercisesPage,
@@ -59,8 +58,8 @@ function AppRoutes() {
       <Route path="/admin/alunos" element={<AdminRoute><AdminAlunosPage /></AdminRoute>} />
       <Route path="/admin/alunos/novo" element={<AdminRoute><CreateStudentPage /></AdminRoute>} />
       <Route path="/admin/alunos/:id" element={<AdminRoute><AdminAlunoDetailPage /></AdminRoute>} />
-      <Route path="/admin/exercicios" element={<AdminRoute><ExerciciosPage /></AdminRoute>} />
       <Route path="/admin/treinos/exercicios" element={<AdminRoute><TreinosExercisesPage /></AdminRoute>} />
+      <Route path="/admin/exercicios" element={<Navigate to="/admin/treinos/exercicios" replace />} />
       <Route path="/admin/treinos/templates" element={<AdminRoute><WorkoutsPage /></AdminRoute>} />
       <Route path="/admin/treinos/editor/:id" element={<AdminRoute><WorkoutEditorPage /></AdminRoute>} />
       <Route path="/admin/treinos/personalizados" element={<AdminRoute><CustomWorkoutsPage /></AdminRoute>} />
