@@ -6,67 +6,116 @@
 
 @layer base {
     :root {
-        /* Premium Dark Fitness Theme */
-        --background: 220 20% 6%;
-        --foreground: 210 20% 98%;
-        
-        --card: 220 18% 10%;
-        --card-foreground: 210 20% 98%;
-        --card-elevated: 220 16% 14%;
-        
-        --popover: 220 18% 10%;
-        --popover-foreground: 210 20% 98%;
-        
-        /* ── AMARELO/ÂMBAR — substituiu o verde ── */
+        /* Light Editorial Theme */
+        --background: 48 20% 96%;
+        --foreground: 150 3% 9%;
+
+        --card: 0 0% 100%;
+        --card-foreground: 150 3% 9%;
+        --card-elevated: 48 15% 93%;
+
+        --popover: 0 0% 100%;
+        --popover-foreground: 150 3% 9%;
+
+        /* ── AMARELO/ÂMBAR — cor de marca, igual nos dois temas ── */
         --primary: 47 96% 53%;           /* #F5C518 — amarelo vibrante */
         --primary-foreground: 220 20% 6%; /* texto escuro sobre amarelo */
         --primary-glow: 47 100% 65%;
-        --primary-muted: 47 70% 25%;
-        
-        /* Cool Gray Secondary */
-        --secondary: 220 14% 18%;
-        --secondary-foreground: 210 15% 85%;
-        
-        --muted: 220 14% 16%;
-        --muted-foreground: 215 15% 55%;
-        
-        --accent: 220 14% 22%;
-        --accent-foreground: 210 20% 98%;
-        
+        --primary-muted: 47 70% 88%;
+
+        --secondary: 48 15% 93%;
+        --secondary-foreground: 150 3% 15%;
+
+        --muted: 48 15% 93%;
+        --muted-foreground: 150 3% 43%;
+
+        --accent: 48 15% 91%;
+        --accent-foreground: 150 3% 15%;
+
         /* Success Green — mantido só para badges de status */
-        --success: 142 70% 45%;
+        --success: 155 76% 33%;
         --success-foreground: 142 80% 95%;
-        
+
         /* Warning Orange */
         --warning: 38 92% 50%;
         --warning-foreground: 38 92% 10%;
-        
+
         /* Error Red */
+        --destructive: 355 68% 57%;
+        --destructive-foreground: 0 0% 98%;
+
+        --border: 48 12% 87%;
+        --input: 48 12% 87%;
+        --ring: 47 96% 53%;
+
+        --radius: 0.75rem;
+
+        /* Custom Shadows */
+        --shadow-sm: 0 2px 8px -2px hsl(220 20% 20% / 0.08);
+        --shadow-md: 0 4px 16px -4px hsl(220 20% 20% / 0.10);
+        --shadow-lg: 0 8px 32px -8px hsl(220 20% 20% / 0.14);
+        --shadow-glow: 0 0 24px -6px hsl(47 96% 53% / 0.22);
+        --shadow-glow-lg: 0 0 40px -8px hsl(47 96% 53% / 0.28);
+
+        /* Gradients */
+        --gradient-primary: linear-gradient(135deg, hsl(47 96% 53%), hsl(47 100% 65%));
+        --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(48 20% 97%));
+        --gradient-body: linear-gradient(180deg, hsl(48 20% 97%), hsl(48 18% 94%));
+
+        /* Transitions */
+        --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .dark {
+        /* Premium Dark Fitness Theme */
+        --background: 220 20% 6%;
+        --foreground: 210 20% 98%;
+
+        --card: 220 18% 10%;
+        --card-foreground: 210 20% 98%;
+        --card-elevated: 220 16% 14%;
+
+        --popover: 220 18% 10%;
+        --popover-foreground: 210 20% 98%;
+
+        --primary: 47 96% 53%;
+        --primary-foreground: 220 20% 6%;
+        --primary-glow: 47 100% 65%;
+        --primary-muted: 47 70% 25%;
+
+        --secondary: 220 14% 18%;
+        --secondary-foreground: 210 15% 85%;
+
+        --muted: 220 14% 16%;
+        --muted-foreground: 215 15% 55%;
+
+        --accent: 220 14% 22%;
+        --accent-foreground: 210 20% 98%;
+
+        --success: 142 70% 45%;
+        --success-foreground: 142 80% 95%;
+
+        --warning: 38 92% 50%;
+        --warning-foreground: 38 92% 10%;
+
         --destructive: 0 72% 51%;
         --destructive-foreground: 0 0% 98%;
-        
+
         --border: 220 14% 20%;
         --input: 220 14% 16%;
         --ring: 47 96% 53%;
-        
-        --radius: 0.75rem;
-        
-        /* Custom Shadows */
+
         --shadow-sm: 0 2px 8px -2px hsl(0 0% 0% / 0.4);
         --shadow-md: 0 4px 16px -4px hsl(0 0% 0% / 0.5);
         --shadow-lg: 0 8px 32px -8px hsl(0 0% 0% / 0.6);
         --shadow-glow: 0 0 30px -5px hsl(47 96% 53% / 0.25);
         --shadow-glow-lg: 0 0 50px -10px hsl(47 96% 53% / 0.35);
-        
-        /* Gradients */
+
         --gradient-primary: linear-gradient(135deg, hsl(47 96% 53%), hsl(47 100% 65%));
         --gradient-card: linear-gradient(180deg, hsl(220 16% 14%), hsl(220 18% 10%));
-        --gradient-dark: linear-gradient(180deg, hsl(220 20% 8%), hsl(220 20% 4%));
-        
-        /* Transitions */
-        --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-        --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        --gradient-body: linear-gradient(180deg, hsl(220 20% 8%), hsl(220 20% 4%));
     }
 }
 
@@ -83,11 +132,12 @@
     
     body {
         @apply bg-background text-foreground;
-        background: var(--gradient-dark);
+        background: var(--gradient-body);
         min-height: 100vh;
+        transition: background-color var(--transition-normal), color var(--transition-normal);
     }
-    
-    /* Custom scrollbar for dark theme */
+
+    /* Custom scrollbar */
     ::-webkit-scrollbar {
         width: 6px;
         height: 6px;

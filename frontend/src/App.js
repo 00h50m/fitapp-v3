@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ProtectedRoute, AdminRoute, PublicRoute } from "@/components/auth/ProtectedRoutes";
+import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Loader2 } from "lucide-react";
 
 import LoginPage from "@/pages/LoginPage";
@@ -67,14 +69,17 @@ function AppRoutes() {
 
 function App() {
   return (
-    <div className="App">
-      <BrowserRouter>
-        <AuthProvider>
-          <AppRoutes />
-        </AuthProvider>
-      </BrowserRouter>
-      <Toaster position="top-center" richColors closeButton />
-    </div>
+    <ThemeProvider>
+      <div className="App">
+        <BrowserRouter>
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
+        </BrowserRouter>
+        <ThemeToggle className="fixed bottom-20 right-4 z-50 shadow-lg md:bottom-4" />
+        <Toaster position="top-center" richColors closeButton />
+      </div>
+    </ThemeProvider>
   );
 }
 
