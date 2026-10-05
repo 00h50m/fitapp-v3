@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { MobileContainer, MobileHeader, MobileContent } from "@/components/layout/MobileContainer";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Library, Bookmark, MessageCircle, LogOut } from "lucide-react";
+import { ChevronRight, Library, Bookmark, ChartNoAxesColumnIncreasing, MessageCircle, LogOut } from "lucide-react";
 import { PERSONAL_WHATSAPP } from "@/services/journeyService";
 
 const PLAN_LABEL = { basic: "Basic", premium: "Premium", vip: "VIP" };
@@ -47,6 +47,7 @@ const StudentProfilePage = () => {
 
         <SettingRow icon={Library} label="Jornadas e programas" onClick={() => navigate("/student/catalog")} />
         <SettingRow icon={Bookmark} label="Treinos ativos" onClick={() => navigate("/student")} />
+        <SettingRow icon={ChartNoAxesColumnIncreasing} label="Minha evolução" onClick={() => navigate("/student/evolution")} />
         <SettingRow
           icon={MessageCircle}
           label="Falar com o personal"
