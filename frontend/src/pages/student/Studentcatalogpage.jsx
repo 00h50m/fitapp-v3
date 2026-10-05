@@ -5,7 +5,8 @@ import { getJourneys, getCategories, getStudentJourneys, getGrantedJourneyIds, e
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { BottomNav } from "@/components/layout/BottomNav";
-import { Loader2, BookOpen, ChevronRight, CheckCircle2, Clock, Zap, Lock, MessageCircle, ArrowLeft } from "lucide-react";
+import { JourneyCard } from "@/components/student/JourneyCard";
+import { Loader2, BookOpen, ChevronRight, CheckCircle2, Clock, Lock, MessageCircle, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -19,89 +20,6 @@ function openWhatsApp(journeyTitle) {
   const msg = encodeURIComponent(`Olá! Tenho interesse em liberar acesso à jornada "${journeyTitle}". Poderia me ajudar?`);
   window.open(`https://wa.me/${PERSONAL_WHATSAPP}?text=${msg}`, "_blank");
 }
-
-// ── Card estilo Netflix ────────────────────────────────────────
-const JourneyCard = ({ journey, studentJourney, hasAccess, onSelect }) => {
-  const total = journey.journey_workouts?.[0]?.count ?? 0;
-  const completed = studentJourney?.completed_workouts ?? 0;
-  const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
-  const isActive = studentJourney?.status === "active";
-  const isDone = studentJourney?.status === "completed";
-  const locked = !hasAccess;
-  const hasCover = !!journey.cover_image_url;
-
-  return (
-    <div
-      className="flex-shrink-0 w-36 sm:w-44 cursor-pointer group"
-      onClick={() => onSelect(journey)}
-    >
-      {/* Capa */}
-      <div className="relative h-52 sm:h-64 rounded-xl overflow-hidden mb-2">
-        {/* Background */}
-        <div
-          className="absolute inset-0 flex items-center justify-center text-6xl transition-transform duration-300 group-hover:scale-105"
-          style={{ background: hasCover ? "transparent" : journey.cover_color, filter: locked ? "grayscale(70%)" : "none" }}
-        >
-          {hasCover ? (
-            <img src={journey.cover_image_url} alt={journey.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-          ) : (
-            <span>{journey.cover_emoji}</span>
-          )}
-        </div>
-
-        {/* Overlay escuro no hover */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300" />
-
-        {/* Cadeado */}
-        {locked && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <div className="bg-black/70 rounded-full p-3">
-              <Lock className="h-6 w-6 text-white/80" />
-            </div>
-          </div>
-        )}
-
-        {/* Badge status */}
-        {!locked && isDone && (
-          <div className="absolute top-2 left-2 bg-green-500/90 rounded-full px-2 py-0.5 flex items-center gap-1">
-            <CheckCircle2 className="h-3 w-3 text-white" />
-            <span className="text-[10px] text-white font-medium">Concluída</span>
-          </div>
-        )}
-        {!locked && isActive && (
-          <div className="absolute top-2 left-2 bg-primary/90 rounded-full px-2 py-0.5 flex items-center gap-1">
-            <Zap className="h-3 w-3 text-white" />
-            <span className="text-[10px] text-white font-medium">Ativa</span>
-          </div>
-        )}
-
-        {/* Barra de progresso na base */}
-        {!locked && (isActive || isDone) && (
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/40">
-            <div className="h-full bg-primary transition-all duration-500" style={{ width: `${isDone ? 100 : progress}%` }} />
-          </div>
-        )}
-
-        {/* Gradiente inferior */}
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/60 to-transparent" />
-
-        {/* Dificuldade */}
-        <div className="absolute bottom-2 right-2">
-          <span className={cn("text-[10px] font-medium", DIFFICULTY_LABEL[journey.difficulty]?.color ?? "text-white/60")}>
-            {DIFFICULTY_LABEL[journey.difficulty]?.label}
-          </span>
-        </div>
-      </div>
-
-      {/* Info */}
-      <p className="text-sm font-medium text-foreground leading-tight truncate">{journey.title}</p>
-      <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
-        {journey.duration_days && <span>{journey.duration_days}d</span>}
-        <span>{total} treino{total !== 1 ? "s" : ""}</span>
-      </div>
-    </div>
-  );
-};
 
 // ── Modal de detalhe ───────────────────────────────────────────
 const JourneyDetailModal = ({ journey, studentJourney, hasAccess, onClose, onStart, starting }) => {
@@ -209,6 +127,7 @@ const CategoryRow = ({ title, journeys, studentJourneys, grantedIds, onSelect })
             studentJourney={studentJourneys.find(sj => sj.journey_id === j.id) ?? null}
             hasAccess={grantedIds.has(j.id)}
             onSelect={onSelect}
+            size="md"
           />
         ))}
       </div>

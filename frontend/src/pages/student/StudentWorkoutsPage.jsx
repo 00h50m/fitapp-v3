@@ -4,13 +4,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { MobileContainer, MobileHeader, MobileContent } from "@/components/layout/MobileContainer";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { JourneyCard } from "@/components/student/JourneyCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   User, Dumbbell, LogOut, Loader2, RefreshCw, ChevronRight,
   AlertCircle, Trophy, Calendar, Play, CheckCircle2, Lock,
   FileText, ArrowRight, Star, Clock, ChevronDown, ChevronUp,
-  X, MessageCircle, Zap, BookOpen, Crown, Bookmark, BookmarkCheck,
+  X, MessageCircle, BookOpen, Crown, Bookmark, BookmarkCheck,
 } from "lucide-react";
 import { getJourneys, getCategories, getStudentJourneys, getGrantedJourneyIds, enrollStudentInJourney, PERSONAL_WHATSAPP } from "@/services/journeyService";
 import { cn } from "@/lib/utils";
@@ -20,12 +21,6 @@ import { toast } from "sonner";
 const WA_NUMBER = "5511949997913";
 const waLink = (msg) => `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
 const todayStr = () => new Date().toISOString().split("T")[0];
-
-const DIFFICULTY_LABEL = {
-  iniciante:     { label: "Iniciante",     color: "text-green-400" },
-  intermediario: { label: "Intermediário", color: "text-yellow-400" },
-  avancado:      { label: "Avançado",      color: "text-red-400" },
-};
 
 // ── Helpers ────────────────────────────────────────────────────
 function getNextWorkoutIndex(workouts, sessions) {
@@ -112,46 +107,6 @@ const SectionLabel = ({ children, icon: Icon }) => (
     <div className="flex-1 h-px bg-border/50" />
   </div>
 );
-
-// ── Journey Card (Netflix) ─────────────────────────────────────
-const JourneyCard = ({ journey, studentJourney, hasAccess, onSelect }) => {
-  const total = journey.journey_workouts?.[0]?.count ?? 0;
-  const completed = studentJourney?.completed_workouts ?? 0;
-  const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
-  const isActive = studentJourney?.status === "active";
-  const isDone   = studentJourney?.status === "completed";
-  const locked   = !hasAccess;
-  const hasCover = !!journey.cover_image_url;
-
-  return (
-    <div className="flex-shrink-0 w-32 cursor-pointer group" onClick={() => onSelect(journey)}>
-      <div className="relative h-48 rounded-xl overflow-hidden mb-2">
-        <div className="absolute inset-0 flex items-center justify-center text-5xl transition-transform duration-300 group-hover:scale-105"
-          style={{ background: hasCover ? "transparent" : journey.cover_color, filter: locked ? "grayscale(70%)" : "none" }}>
-          {hasCover
-            ? <img src={journey.cover_image_url} alt={journey.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-            : <span>{journey.cover_emoji}</span>}
-        </div>
-        {locked && <div className="absolute inset-0 bg-black/50 flex items-center justify-center"><Lock className="h-6 w-6 text-white/80" /></div>}
-        {!locked && isDone && <div className="absolute top-1.5 left-1.5 bg-green-500/90 rounded-full px-1.5 py-0.5 flex items-center gap-1"><CheckCircle2 className="h-2.5 w-2.5 text-white" /><span className="text-[9px] text-white font-medium">Concluída</span></div>}
-        {!locked && isActive && <div className="absolute top-1.5 left-1.5 bg-primary/90 rounded-full px-1.5 py-0.5 flex items-center gap-1"><Zap className="h-2.5 w-2.5 text-white" /><span className="text-[9px] text-white font-medium">Ativa</span></div>}
-        {!locked && (isActive || isDone) && (
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/40">
-            <div className="h-full bg-primary" style={{ width: `${isDone ? 100 : progress}%` }} />
-          </div>
-        )}
-        <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/60 to-transparent" />
-        <div className="absolute bottom-2 right-2">
-          <span className={cn("text-[10px] font-medium", DIFFICULTY_LABEL[journey.difficulty]?.color ?? "text-white/60")}>
-            {DIFFICULTY_LABEL[journey.difficulty]?.label}
-          </span>
-        </div>
-      </div>
-      <p className="text-xs font-medium text-foreground leading-tight truncate">{journey.title}</p>
-      <p className="text-[10px] text-muted-foreground mt-0.5">{journey.duration_days ? `${journey.duration_days}d · ` : ""}{total} treinos</p>
-    </div>
-  );
-};
 
 // ── Workout Card ───────────────────────────────────────────────
 const WorkoutCard = ({ workout, isNext, isOngoing, alreadyToday, sessions, navigate, onPdfClick }) => {
