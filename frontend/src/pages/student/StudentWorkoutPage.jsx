@@ -326,6 +326,12 @@ const ExerciseDetailModal = ({ exercise, onClose }) => {
         </div>
         <div className="flex-1 overflow-y-auto">
           {ytId && <div className="aspect-video bg-black w-full"><iframe src={`https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1`} className="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen title={exercise.exercise_name} /></div>}
+          {!ytId && exercise.gif_url && (
+            <div className="w-full bg-black">
+              <img src={exercise.gif_url} alt={exercise.exercise_name} className="w-full" />
+              <p className="text-[10px] text-muted-foreground/70 text-center py-1">© Gym visual — gymvisual.com</p>
+            </div>
+          )}
           <div className="px-5 py-5 flex flex-col gap-4">
             {(exercise.sets || exercise.reps || exercise.rest_seconds) && (
               <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4">
@@ -622,7 +628,7 @@ const StudentWorkoutPage = () => {
 
                                 {/* Botões de ação */}
                                 <div className="flex items-center gap-1 flex-shrink-0">
-                                  {ytId && (
+                                  {(ytId || ex.gif_url) && (
                                     <button className="h-8 w-8 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
                                       onClick={() => setExpandedVideos(prev => { const next = new Set(prev); next.has(ex.exercise_row_id) ? next.delete(ex.exercise_row_id) : next.add(ex.exercise_row_id); return next; })}>
                                       <Play className="h-3.5 w-3.5" />
@@ -659,6 +665,12 @@ const StudentWorkoutPage = () => {
                               {expandedVideos.has(ex.exercise_row_id) && ytId && (
                                 <div className="mt-3 rounded-xl overflow-hidden aspect-video bg-black">
                                   <iframe src={`https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1&autoplay=1`} className="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen title={ex.exercise_name} />
+                                </div>
+                              )}
+                              {expandedVideos.has(ex.exercise_row_id) && !ytId && ex.gif_url && (
+                                <div className="mt-3 rounded-xl overflow-hidden bg-black">
+                                  <img src={ex.gif_url} alt={ex.exercise_name} className="w-full" />
+                                  <p className="text-[10px] text-muted-foreground/70 text-center py-1 bg-card">© Gym visual — gymvisual.com</p>
                                 </div>
                               )}
                             </div>

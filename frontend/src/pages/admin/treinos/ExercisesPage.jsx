@@ -121,6 +121,7 @@ const ExercisesPage = () => {
             title: exerciseData.title.trim(),
             default_description: exerciseData.description || null,
             video_url: exerciseData.video_url || null,
+            gif_url: exerciseData.gif_url || null,
             muscle_group: exerciseData.muscle_group || null,
             secondary_muscles: exerciseData.secondary_muscles?.length ? exerciseData.secondary_muscles : null,
             equipment: exerciseData.equipment || null,
@@ -147,6 +148,7 @@ const ExercisesPage = () => {
             title: exerciseData.title.trim(),
             default_description: exerciseData.description || null,
             video_url: exerciseData.video_url || null,
+            gif_url: exerciseData.gif_url || null,
             muscle_group: exerciseData.muscle_group || null,
             secondary_muscles: exerciseData.secondary_muscles?.length ? exerciseData.secondary_muscles : null,
             equipment: exerciseData.equipment || null,
@@ -230,7 +232,7 @@ const ExercisesPage = () => {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             { label: "Total", value: exercises.length, color: "text-foreground" },
-            { label: "Com Vídeo", value: exercises.filter(e => e.video_url).length, color: "text-primary" },
+            { label: "Com Mídia", value: exercises.filter(e => e.video_url || e.gif_url).length, color: "text-primary" },
             { label: "Grupos Musc.", value: new Set(exercises.map(e => e.muscle_group).filter(Boolean)).size, color: "text-foreground" },
             { label: "Equipamentos", value: new Set(exercises.map(e => e.equipment).filter(Boolean)).size, color: "text-foreground" },
           ].map(s => (
@@ -285,7 +287,7 @@ const ExercisesPage = () => {
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-primary/10 text-primary flex-shrink-0">
-                                {exercise.video_url ? <Video className="h-5 w-5" /> : <Dumbbell className="h-5 w-5" />}
+                                {(exercise.video_url || exercise.gif_url) ? <Video className="h-5 w-5" /> : <Dumbbell className="h-5 w-5" />}
                               </div>
                               <div className="min-w-0">
                                 <p className="font-medium text-foreground truncate max-w-[200px]">{exercise.title}</p>
@@ -344,7 +346,7 @@ const ExercisesPage = () => {
                   {filteredExercises.map((exercise) => (
                     <div key={exercise.id} className="p-4 flex items-center gap-3">
                       <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                        {exercise.video_url ? <Video className="h-5 w-5" /> : <Dumbbell className="h-5 w-5" />}
+                        {(exercise.video_url || exercise.gif_url) ? <Video className="h-5 w-5" /> : <Dumbbell className="h-5 w-5" />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-foreground truncate">{exercise.title}</p>

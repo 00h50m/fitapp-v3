@@ -108,7 +108,7 @@ const WorkoutPreviewPage = () => {
       const { data: exData } = blockIds.length
         ? await supabase
             .from("workout_template_exercises")
-            .select("*, exercise:exercises(id, title, video_url, muscle_group, equipment)")
+            .select("*, exercise:exercises(id, title, video_url, gif_url, muscle_group, equipment)")
             .in("block_id", blockIds).order("order_index")
         : { data: [] };
 

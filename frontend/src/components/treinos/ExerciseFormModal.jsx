@@ -93,7 +93,7 @@ const getYoutubeId = (url) => {
 };
 
 const EMPTY = {
-  title: "", description: "", video_url: "",
+  title: "", description: "", video_url: "", gif_url: "",
   muscle_group: "", secondary_muscles: [],
   equipment: "", difficulty: "", category: "",
   mechanics: "", force: "", instructions: "", tips: "",
@@ -111,6 +111,7 @@ const ExerciseFormModal = ({ isOpen, onClose, onSave, exercise }) => {
           title:             exercise.title || "",
           description:       exercise.default_description || exercise.description || "",
           video_url:         exercise.video_url || "",
+          gif_url:           exercise.gif_url || "",
           muscle_group:      exercise.muscle_group || "",
           secondary_muscles: exercise.secondary_muscles || [],
           equipment:         exercise.equipment || "",
@@ -213,6 +214,23 @@ const ExerciseFormModal = ({ isOpen, onClose, onSave, exercise }) => {
               <p className="text-xs text-primary cursor-pointer hover:underline" onClick={() => setVideoPreview(true)}>
                 ▶ Pré-visualização do vídeo
               </p>
+            )}
+          </div>
+
+          {/* URL do GIF (alternativa ao vídeo) */}
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">URL do GIF (alternativa ao vídeo)</Label>
+            <Input
+              placeholder="https://..."
+              value={form.gif_url}
+              onChange={e => set("gif_url", e.target.value)}
+              className="bg-muted border-border"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Se o exercício tiver vídeo do YouTube, ele aparece primeiro pro aluno; o GIF é usado quando não há vídeo.
+            </p>
+            {form.gif_url && (
+              <img src={form.gif_url} alt="Pré-visualização do GIF" className="mt-2 rounded-xl max-h-40 border border-border" />
             )}
           </div>
 
