@@ -11,7 +11,7 @@ import {
   User, Dumbbell, LogOut, Loader2, RefreshCw, ChevronRight,
   AlertCircle, Trophy, Calendar, Play, CheckCircle2, Lock,
   FileText, ArrowRight, Star, Clock, ChevronDown, ChevronUp,
-  X, MessageCircle, BookOpen, Crown, Bookmark, BookmarkCheck,
+  X, MessageCircle, BookOpen, Crown, Bookmark, BookmarkCheck, Sparkles,
 } from "lucide-react";
 import { getJourneys, getCategories, getStudentJourneys, getGrantedJourneyIds, enrollStudentInJourney, PERSONAL_WHATSAPP } from "@/services/journeyService";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,12 @@ import { toast } from "sonner";
 // ── Constants ──────────────────────────────────────────────────
 const waLink = (msg) => `https://wa.me/${PERSONAL_WHATSAPP}?text=${encodeURIComponent(msg)}`;
 const todayStr = () => new Date().toISOString().split("T")[0];
+const greeting = () => {
+  const h = new Date().getHours();
+  if (h < 12) return "Bom dia";
+  if (h < 18) return "Boa tarde";
+  return "Boa noite";
+};
 
 // ── Helpers ────────────────────────────────────────────────────
 function getNextWorkoutIndex(workouts, sessions) {
@@ -343,6 +349,17 @@ const StudentWorkoutsPage = () => {
           </div>
         ) : (
           <div className="flex flex-col gap-6 pt-3">
+
+            {/* Hero de boas-vindas */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/15 via-primary/5 to-transparent border border-primary/20 p-5">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-primary bg-primary/10 rounded-full px-2.5 py-1 mb-3">
+                <Sparkles className="h-3 w-3" />Método do seu personal
+              </span>
+              <h1 className="text-xl font-bold leading-snug">
+                {greeting()}, {(profile?.name || "Aluno").split(" ")[0]}.
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">Resultado não vem de treino aleatório — vamos pro treino de hoje?</p>
+            </div>
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-2.5">
