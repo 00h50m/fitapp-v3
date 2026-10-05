@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { getJourneyById, getStudentJourneys, enrollStudentInJourney } from "@/services/journeyService";
 import { Button } from "@/components/ui/button";
-import { Bookmark, BookmarkCheck, ChevronLeft, ChevronRight, CheckCircle2, Clock, Loader2, Lock, Play, Zap } from "lucide-react";
+import { Bookmark, BookmarkCheck, ChevronLeft, ChevronRight, CheckCircle2, Loader2, Lock, Play, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { DIFFICULTY_LABEL } from "@/lib/difficultyLabels";
