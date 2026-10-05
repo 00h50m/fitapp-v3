@@ -18,8 +18,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 // ── Constants ──────────────────────────────────────────────────
-const WA_NUMBER = "5511949997913";
-const waLink = (msg) => `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
+const waLink = (msg) => `https://wa.me/${PERSONAL_WHATSAPP}?text=${encodeURIComponent(msg)}`;
 const todayStr = () => new Date().toISOString().split("T")[0];
 
 // ── Helpers ────────────────────────────────────────────────────

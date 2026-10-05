@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { incrementJourneyProgress, getStudentJourneys } from "@/services/journeyService";
+import { incrementJourneyProgress, getStudentJourneys, PERSONAL_WHATSAPP } from "@/services/journeyService";
 
 const blockTypeConfig = {
   normal:   { label: "Normal",    color: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
@@ -547,7 +547,7 @@ const StudentWorkoutPage = () => {
           <div className="flex flex-col items-center justify-center py-16 px-6 text-center space-y-5">
             <div className="h-24 w-24 rounded-full bg-destructive/10 border border-destructive/20 flex items-center justify-center"><Lock className="h-11 w-11 text-destructive/70" /></div>
             <div className="space-y-2"><h2 className="text-2xl font-bold">Treino Expirado</h2><p className="text-sm text-muted-foreground">{workout?.end_date ? `Expirou em ${new Date(workout.end_date+"T12:00:00").toLocaleDateString("pt-BR")}.` : "Não disponível."}</p></div>
-            <Button variant="premium" className="w-full max-w-[260px] gap-2 py-6" onClick={() => window.open(`https://wa.me/5511949997913?text=${encodeURIComponent("Olá! Meu treino expirou. 🏋️")}`, "_blank")}>Falar com o Personal</Button>
+            <Button variant="premium" className="w-full max-w-[260px] gap-2 py-6" onClick={() => window.open(`https://wa.me/${PERSONAL_WHATSAPP}?text=${encodeURIComponent("Olá! Meu treino expirou. 🏋️")}`, "_blank")}>Falar com o Personal</Button>
             <Button variant="outline" onClick={() => navigate("/student")} className="w-full max-w-[260px]"><ChevronLeft className="h-4 w-4 mr-1" />Voltar</Button>
           </div>
         ) : error ? (
