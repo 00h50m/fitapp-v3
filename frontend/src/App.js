@@ -13,6 +13,7 @@ import StudentWorkoutPage from "@/pages/student/StudentWorkoutPage";
 import StudentCatalogPage   from "@/pages/student/Studentcatalogpage";
 import JourneyDetailPage   from "@/pages/student/JourneyDetailPage";
 import WorkoutPreviewPage  from "@/pages/student/WorkoutPreviewPage";
+import StudentProfilePage  from "@/pages/student/StudentProfilePage";
 import DashboardPage from "@/pages/admin/DashboardPage";
 import AdminAlunosPage from "@/pages/admin/AdminAlunosPage";
 import AdminAlunoDetailPage from "@/pages/admin/AdminAlunoDetailPage.jsx";
@@ -49,6 +50,7 @@ function AppRoutes() {
       <Route path="/student/catalog"      element={<ProtectedRoute><StudentCatalogPage /></ProtectedRoute>} />
       <Route path="/student/journey/:id"   element={<ProtectedRoute><JourneyDetailPage /></ProtectedRoute>} />
       <Route path="/student/workout-preview/:id" element={<ProtectedRoute><WorkoutPreviewPage /></ProtectedRoute>} />
+      <Route path="/student/profile" element={<ProtectedRoute><StudentProfilePage /></ProtectedRoute>} />
       <Route path="/app" element={<Navigate to="/student" replace />} />
       <Route path="/student/workouts" element={<Navigate to="/student" replace />} />
       <Route path="/admin" element={<AdminRoute><DashboardPage /></AdminRoute>} />

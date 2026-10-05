@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
-import { MobileContainer, MobileHeader, MobileContent, MobileFooter } from "@/components/layout/MobileContainer";
+import { MobileContainer, MobileHeader, MobileContent } from "@/components/layout/MobileContainer";
+import { BottomNav } from "@/components/layout/BottomNav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -353,6 +354,7 @@ const StudentWorkoutsPage = () => {
             </div>
           </div>
         </MobileContent>
+        <BottomNav />
       </MobileContainer>
     );
   }
@@ -572,10 +574,10 @@ const StudentWorkoutsPage = () => {
         )}
       </MobileContent>
 
-      {/* Footer CTA */}
+      {/* Footer CTA — flutua acima da navegação inferior */}
       {!loading && !error && !isExpired && hasPersonalWorkouts && todayWorkout && (
-        <MobileFooter>
-          <Button variant="premium" size="xl" className="w-full gap-2" onClick={() => {
+        <div className="fixed bottom-16 left-0 right-0 z-30 mx-auto w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-3xl px-4 pb-2">
+          <Button variant="premium" size="xl" className="w-full gap-2 shadow-lg" onClick={() => {
             const target = ongoing ? (workouts.find(w => w.id===ongoing.workout_id)||todayWorkout) : todayWorkout;
             navigate(`/student/workout/${target.id}`);
           }}>
@@ -583,10 +585,11 @@ const StudentWorkoutsPage = () => {
             : alreadyToday ? <><RefreshCw className="h-5 w-5" />Repetir Treino</>
             : <><Dumbbell className="h-5 w-5" />Iniciar Treino de Hoje</>}
           </Button>
-        </MobileFooter>
+        </div>
       )}
 
       {pdfUrl && <PdfModal url={pdfUrl} onClose={() => setPdfUrl(null)} />}
+      <BottomNav />
     </MobileContainer>
   );
 };

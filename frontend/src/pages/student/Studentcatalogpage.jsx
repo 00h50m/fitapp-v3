@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { getJourneys, getCategories, getStudentJourneys, getGrantedJourneyIds, enrollStudentInJourney, PERSONAL_WHATSAPP } from "@/services/journeyService";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { BottomNav } from "@/components/layout/BottomNav";
 import { Loader2, BookOpen, ChevronRight, CheckCircle2, Clock, Zap, Lock, MessageCircle, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -265,7 +266,7 @@ const StudentCatalogPage = () => {
   const lockedJourneys = journeys.filter(j => !grantedIds.has(j.id));
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/90 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center gap-3">
         <button onClick={() => navigate("/student")} className="text-muted-foreground hover:text-foreground transition-colors">
@@ -326,6 +327,7 @@ const StudentCatalogPage = () => {
           starting={starting}
         />
       )}
+      <BottomNav />
     </div>
   );
 };
