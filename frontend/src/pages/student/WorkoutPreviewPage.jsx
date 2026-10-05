@@ -196,7 +196,7 @@ const WorkoutPreviewPage = () => {
   const totalExercises = blocks.reduce((s, b) => s + b.exercises.length, 0);
 
   return (
-    <div className="min-h-screen bg-background pb-28 max-w-md mx-auto">
+    <div className="min-h-screen bg-background pb-28 w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto">
       {/* Header fixo */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center gap-3">
         <button onClick={() => navigate(-1)} className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0">

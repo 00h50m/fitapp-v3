@@ -180,7 +180,7 @@ const StudentCatalogPage = () => {
   const lockedJourneys = journeys.filter(j => !grantedIds.has(j.id));
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-24 w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/90 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center gap-3">
         <button onClick={() => navigate("/student")} className="text-muted-foreground hover:text-foreground transition-colors">
