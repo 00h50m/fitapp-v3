@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   ChevronLeft, Loader2, Play, Bookmark, BookmarkCheck,
   Layers, Repeat, Clock, Weight, Zap, FileText, X,
-  ChevronDown, ChevronUp,
+  ChevronDown, ChevronUp, CheckCircle2, Video,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -194,6 +194,7 @@ const WorkoutPreviewPage = () => {
   );
 
   const totalExercises = blocks.reduce((s, b) => s + b.exercises.length, 0);
+  const mediaCount = blocks.reduce((s, b) => s + b.exercises.filter(ex => ex.exercise?.video_url || ex.exercise?.gif_url).length, 0);
 
   return (
     <div className="min-h-screen bg-background pb-28 w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto">
@@ -223,10 +224,45 @@ const WorkoutPreviewPage = () => {
       </div>
 
       {/* Conteúdo */}
-      <div className="px-4 py-4 space-y-3 max-w-2xl mx-auto">
-        {template.description && (
-          <p className="text-sm text-muted-foreground">{template.description}</p>
-        )}
+      <div className="px-4 py-4 space-y-5 max-w-2xl mx-auto">
+        {/* Título editorial — reforça que é um programa feito pelo personal */}
+        <div>
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-primary bg-primary/10 rounded-full px-2.5 py-1 mb-3">
+            <Zap className="h-3 w-3" />Método do seu personal
+          </span>
+          <h1 className="text-2xl font-semibold leading-snug">{template.title}</h1>
+          {template.description && <p className="text-sm text-muted-foreground mt-1.5">{template.description}</p>}
+        </div>
+
+        {/* Info grid */}
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-card border border-border rounded-2xl p-3 text-center">
+            <p className="text-lg font-bold">{blocks.length}</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">blocos</p>
+          </div>
+          <div className="bg-card border border-border rounded-2xl p-3 text-center">
+            <p className="text-lg font-bold">{totalExercises}</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">exercícios</p>
+          </div>
+          <div className="bg-card border border-border rounded-2xl p-3 text-center">
+            <p className="text-lg font-bold">{mediaCount}</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">com vídeo/GIF</p>
+          </div>
+        </div>
+
+        {/* Benefícios — valoriza o acompanhamento individual do personal */}
+        <div className="bg-card border border-border rounded-2xl p-4 space-y-2.5">
+          {[
+            { icon: CheckCircle2, text: "Montado especialmente pelo seu personal" },
+            { icon: Video, text: "Demonstração em vídeo ou GIF em cada exercício" },
+            { icon: Weight, text: "Progressão de carga registrada a cada treino" },
+          ].map(({ icon: Icon, text }) => (
+            <div key={text} className="flex items-start gap-2.5">
+              <Icon className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+              <p className="text-sm">{text}</p>
+            </div>
+          ))}
+        </div>
 
         {saved && (
           <div className="flex items-center gap-1.5 text-xs text-primary">
