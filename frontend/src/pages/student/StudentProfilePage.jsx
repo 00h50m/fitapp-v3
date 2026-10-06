@@ -28,7 +28,7 @@ const StudentProfilePage = () => {
   return (
     <MobileContainer className="pb-24">
       <MobileHeader>
-        <h1 className="text-xl font-bold">Seu perfil</h1>
+        <h1 className="text-xl font-semibold">Seu perfil</h1>
         <p className="text-xs text-muted-foreground mt-1">Conta e preferências</p>
       </MobileHeader>
 

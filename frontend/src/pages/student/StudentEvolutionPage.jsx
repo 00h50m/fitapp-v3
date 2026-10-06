@@ -73,7 +73,7 @@ const StudentEvolutionPage = () => {
   return (
     <MobileContainer className="pb-24">
       <MobileHeader>
-        <h1 className="text-xl font-bold">Evolução</h1>
+        <h1 className="text-xl font-semibold">Evolução</h1>
         <p className="text-xs text-muted-foreground mt-1">Sua consistência nos últimos 6 meses</p>
       </MobileHeader>
 
