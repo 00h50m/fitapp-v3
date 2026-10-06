@@ -66,7 +66,7 @@ export const JourneyCard = ({ journey, studentJourney, hasAccess, onSelect, size
         {/* Título e metadados sobrepostos na capa, estilo editorial */}
         <div className="absolute bottom-0 left-0 right-0 p-2.5 pt-6">
           <div className="flex items-center justify-between gap-2 mb-0.5">
-            <span className={cn("text-[9px] font-medium uppercase tracking-wide", DIFFICULTY_LABEL[journey.difficulty]?.color ?? "text-white/60")}>
+            <span className={cn("text-[9px] font-medium uppercase tracking-wide", DIFFICULTY_LABEL[journey.difficulty]?.overlayColor ?? "text-white/60")}>
               {DIFFICULTY_LABEL[journey.difficulty]?.label}
             </span>
             <span className="text-[9px] text-white/70">
