@@ -350,16 +350,43 @@ const StudentWorkoutsPage = () => {
         ) : (
           <div className="flex flex-col gap-6 pt-3">
 
-            {/* Hero de boas-vindas */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/15 via-primary/5 to-transparent border border-primary/20 p-5">
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-primary bg-primary/10 rounded-full px-2.5 py-1 mb-3">
-                <Sparkles className="h-3 w-3" />Método do seu personal
-              </span>
-              <h1 className="text-xl font-bold leading-snug">
-                {greeting()}, {(profile?.name || "Aluno").split(" ")[0]}.
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1">Resultado não vem de treino aleatório — vamos pro treino de hoje?</p>
+            {/* Hero de boas-vindas — sangra até a borda da tela, estilo editorial */}
+            <div className="relative overflow-hidden -mx-4 md:-mx-6 -mt-3 rounded-b-[28px] px-4 md:px-6 pt-7 pb-7 bg-gradient-to-br from-primary/25 via-primary/8 to-transparent">
+              <div className="absolute top-0 right-0 w-56 h-56 rounded-full bg-primary/15 blur-3xl -translate-y-1/3 translate-x-1/4 pointer-events-none" />
+              <div className="relative">
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-foreground bg-background/60 backdrop-blur-md border border-border/50 rounded-full px-2.5 py-1 mb-4">
+                  <Sparkles className="h-3 w-3 text-primary" />Método do seu personal
+                </span>
+                <h1 className="text-2xl font-semibold leading-snug">
+                  {greeting()}, {(profile?.name || "Aluno").split(" ")[0]}.
+                </h1>
+                <p className="text-sm text-muted-foreground mt-1.5 max-w-[280px]">Resultado não vem de treino aleatório — vamos pro treino de hoje?</p>
+              </div>
             </div>
+
+            {/* Escolha sua jornada — atalho por categoria */}
+            {categories.length > 0 && (
+              <div>
+                <span className="text-[11px] text-muted-foreground uppercase tracking-wider">Escolha sua jornada</span>
+                <h2 className="text-lg font-semibold mt-1 mb-3">O que você quer treinar hoje?</h2>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {categories.slice(0, 4).map(cat => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => navigate(`/student/catalog#cat-${cat.id}`)}
+                      className="rounded-2xl bg-card border border-border p-4 text-left min-h-[104px] flex flex-col justify-between hover:border-primary/40 transition-colors"
+                    >
+                      <span className="text-2xl">{cat.emoji}</span>
+                      <span>
+                        <span className="block text-sm font-semibold">{cat.name}</span>
+                        <span className="block text-[11px] text-muted-foreground mt-0.5">Ver jornadas</span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-2.5">
@@ -548,14 +575,25 @@ const StudentWorkoutsPage = () => {
       {/* Footer CTA — flutua acima da navegação inferior */}
       {!loading && !error && !isExpired && hasPersonalWorkouts && todayWorkout && (
         <div className="fixed bottom-16 left-0 right-0 z-30 mx-auto w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-3xl px-4 pb-2">
-          <Button variant="premium" size="xl" className="w-full gap-2 shadow-lg" onClick={() => {
-            const target = ongoing ? (workouts.find(w => w.id===ongoing.workout_id)||todayWorkout) : todayWorkout;
-            navigate(`/student/workout/${target.id}`);
-          }}>
-            {ongoing ? <><Play className="h-5 w-5" />Continuar Treino</>
-            : alreadyToday ? <><RefreshCw className="h-5 w-5" />Repetir Treino</>
-            : <><Dumbbell className="h-5 w-5" />Iniciar Treino de Hoje</>}
-          </Button>
+          <button
+            type="button"
+            className="w-full flex items-center gap-3 rounded-2xl bg-primary text-primary-foreground px-4 py-3.5 shadow-lg active:scale-[0.99] transition-transform"
+            onClick={() => {
+              const target = ongoing ? (workouts.find(w => w.id === ongoing.workout_id) || todayWorkout) : todayWorkout;
+              navigate(`/student/workout/${target.id}`);
+            }}
+          >
+            <div className="h-9 w-9 rounded-full bg-primary-foreground/15 flex items-center justify-center flex-shrink-0">
+              {ongoing ? <Play className="h-4 w-4" /> : alreadyToday ? <RefreshCw className="h-4 w-4" /> : <Dumbbell className="h-4 w-4" />}
+            </div>
+            <div className="flex-1 min-w-0 text-left">
+              <p className="font-bold text-sm leading-tight">
+                {ongoing ? "Continuar treino" : alreadyToday ? "Repetir treino" : "Iniciar treino de hoje"}
+              </p>
+              <p className="text-xs opacity-75 truncate mt-0.5">{todayWorkout.title}</p>
+            </div>
+            <ChevronRight className="h-5 w-5 flex-shrink-0" />
+          </button>
         </div>
       )}
 

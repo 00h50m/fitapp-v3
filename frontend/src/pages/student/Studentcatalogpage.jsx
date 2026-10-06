@@ -109,10 +109,10 @@ const JourneyDetailModal = ({ journey, studentJourney, hasAccess, onClose, onSta
 };
 
 // ── Row horizontal por categoria ───────────────────────────────
-const CategoryRow = ({ title, journeys, studentJourneys, grantedIds, onSelect }) => {
+const CategoryRow = ({ id, title, journeys, studentJourneys, grantedIds, onSelect }) => {
   if (!journeys.length) return null;
   return (
-    <div className="mb-8">
+    <div id={id} className="mb-8 scroll-mt-20">
       <h2 className="text-base font-semibold text-foreground mb-3 px-4">{title}</h2>
       <div className="flex gap-3 overflow-x-auto pb-2 px-4 scrollbar-none">
         {journeys.map(j => (
@@ -158,6 +158,13 @@ const StudentCatalogPage = () => {
   }, []);
 
   useEffect(() => { loadAll(); }, [loadAll]);
+
+  // Rola até a categoria indicada na URL (vindo do atalho da tela inicial)
+  useEffect(() => {
+    if (loading || !window.location.hash) return;
+    const el = document.querySelector(window.location.hash);
+    if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  }, [loading]);
 
   const handleEnroll = async (journey) => {
     setStarting(true);
@@ -212,7 +219,7 @@ const StudentCatalogPage = () => {
           {categories.map(cat => {
             const catJourneys = availableJourneys.filter(j => j.category_id === cat.id);
             return (
-              <CategoryRow key={cat.id} title={`${cat.emoji} ${cat.name}`} journeys={catJourneys} studentJourneys={studentJourneys} grantedIds={grantedIds} onSelect={setSelectedJourney} />
+              <CategoryRow key={cat.id} id={`cat-${cat.id}`} title={`${cat.emoji} ${cat.name}`} journeys={catJourneys} studentJourneys={studentJourneys} grantedIds={grantedIds} onSelect={setSelectedJourney} />
             );
           })}
 
