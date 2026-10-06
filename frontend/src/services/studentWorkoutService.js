@@ -35,60 +35,6 @@ export async function getStudentWorkouts() {
   }));
 }
 
-export async function createStudentWorkout(payload) {
-  // Remove campos virtuais que nao existem na tabela
-  const { student_name, workout_name, ...dbPayload } = payload;
-
-  const { data, error } = await supabase
-    .from("student_workouts")
-    .insert([dbPayload])
-    .select()
-    .single();
-
-  if (error) throw error;
-
-  return {
-    ...data,
-    student_name: student_name || "Aluno",
-    workout_name: data.title || "Treino",
-  };
-}
-
-export async function updateStudentWorkout(id, payload) {
-  // Remove campos virtuais e envia so colunas reais da tabela
-  const { student_name, workout_name, ...rest } = payload;
-
-  const safePayload = {
-    ...(rest.start_date !== undefined && { start_date: rest.start_date }),
-    ...(rest.end_date !== undefined && { end_date: rest.end_date }),
-    ...(rest.status !== undefined && { status: rest.status }),
-    ...(rest.title !== undefined && { title: rest.title }),
-    ...(rest.description !== undefined && { description: rest.description }),
-    ...(rest.pdf_url !== undefined && { pdf_url: rest.pdf_url }),
-  };
-
-  // Sem .select() para evitar body stream already read
-  const { error } = await supabase
-    .from("student_workouts")
-    .update(safePayload)
-    .eq("id", id);
-
-  if (error) throw error;
-
-  // Busca os dados atualizados em query separada
-  const { data } = await supabase
-    .from("student_workouts")
-    .select("*")
-    .eq("id", id)
-    .maybeSingle();
-
-  return {
-    ...(data || { id }),
-    student_name: student_name || "Aluno",
-    workout_name: data?.title || payload.title || "Treino",
-  };
-}
-
 export async function deleteStudentWorkout(id) {
   const { error } = await supabase
     .from("student_workouts")
