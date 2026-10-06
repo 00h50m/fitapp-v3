@@ -212,6 +212,9 @@ const LoadTrackingModal = ({ exercise, sessionId, studentId, workoutId, restSeco
       }, { onConflict: "session_id,exercise_row_id,set_number" });
       setSets(prev => prev.map((x, i) => i === idx ? { ...x, done: true } : x));
       onComplete?.(exercise.exercise_row_id, s.num);
+      if (lastLog?.kg && s.kg && Number(s.kg) > Number(lastLog.kg)) {
+        toast.success(`🔥 Mais pesado que da última vez! ${s.kg}kg (antes: ${lastLog.kg}kg)`);
+      }
     } catch (err) { toast.error("Erro ao salvar"); console.error(err); }
     finally { setSaving(null); }
   };
@@ -776,11 +779,15 @@ const StudentWorkoutPage = () => {
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 backdrop-blur-sm p-4">
           <Card className="bg-card border-border w-full max-w-sm"><CardContent className="p-6 space-y-4">
             <div className="text-center">
-              <div className={cn("h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-3 border", progressPct===100?"bg-green-500/10 border-green-500/20":"bg-primary/10 border-primary/20")}>
-                <Trophy className={cn("h-8 w-8", progressPct===100?"text-green-600 dark:text-green-400":"text-primary")} />
+              <div className="relative mx-auto mb-3 h-16 w-16">
+                {progressPct === 100 && <div className="absolute inset-0 rounded-full bg-green-400/30 animate-ping" />}
+                <div className={cn("relative h-16 w-16 rounded-full flex items-center justify-center border", progressPct===100?"bg-green-500/10 border-green-500/20":"bg-primary/10 border-primary/20")}>
+                  <Trophy className={cn("h-8 w-8", progressPct===100?"text-green-600 dark:text-green-400":"text-primary")} />
+                </div>
               </div>
               <h3 className="text-lg font-bold">{progressPct===100?"Treino Concluído! 🏆":"Finalizar Treino?"}</h3>
               <p className="text-sm text-muted-foreground mt-1">{progressPct===100?"Parabéns! Todos os exercícios concluídos.":`${doneExercises} de ${totalExercises} exercícios (${progressPct}%).`}</p>
+              {progressPct === 100 && elapsedLabel && <p className="text-xs text-muted-foreground mt-1">Duração: {elapsedLabel}</p>}
             </div>
             <div className="h-2.5 rounded-full bg-muted overflow-hidden"><div className={cn("h-full rounded-full", progressPct===100?"bg-green-400":"bg-primary")} style={{ width: `${progressPct}%` }} /></div>
             {progressPct < 100 && <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl px-3 py-2.5 text-xs text-orange-600 dark:text-orange-400 text-center">⚠️ {totalExercises-doneExercises} exercício{totalExercises-doneExercises>1?"s":""} ainda não concluído{totalExercises-doneExercises>1?"s":""}.</div>}
