@@ -128,7 +128,7 @@ const StudentEvolutionPage = () => {
               {recentes.map(s => (
                 <div key={s.id} className="flex items-center gap-3 bg-card border border-border rounded-2xl px-4 py-3">
                   <div className="h-9 w-9 rounded-full bg-green-500/15 flex items-center justify-center flex-shrink-0">
-                    <Calendar className="h-4 w-4 text-green-400" />
+                    <Calendar className="h-4 w-4 text-green-600 dark:text-green-400" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium truncate">{workoutTitles[s.workout_id] || "Treino"}</p>

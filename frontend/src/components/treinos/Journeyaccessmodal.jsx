@@ -74,7 +74,7 @@ const JourneyAccessModal = ({ journey, onClose }) => {
         </DialogHeader>
         <div className="grid grid-cols-2 gap-2 my-2 flex-shrink-0">
           <div className="bg-secondary rounded-lg p-2 text-center">
-            <p className="text-sm font-medium text-green-400">{withAccess}</p>
+            <p className="text-sm font-medium text-green-600 dark:text-green-400">{withAccess}</p>
             <p className="text-xs text-muted-foreground">Com acesso</p>
           </div>
           <div className="bg-secondary rounded-lg p-2 text-center">
@@ -107,7 +107,7 @@ const JourneyAccessModal = ({ journey, onClose }) => {
                 <p className="text-xs text-muted-foreground truncate">{student.email}</p>
               </div>
               <div className="flex-shrink-0 mr-1">
-                {student.hasAccess ? <Unlock className="h-3.5 w-3.5 text-green-400" /> : <Lock className="h-3.5 w-3.5 text-muted-foreground" />}
+                {student.hasAccess ? <Unlock className="h-3.5 w-3.5 text-green-600 dark:text-green-400" /> : <Lock className="h-3.5 w-3.5 text-muted-foreground" />}
               </div>
               {toggling[student.id] ? (
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground flex-shrink-0" />

@@ -18,13 +18,13 @@ import { cn } from "@/lib/utils";
 import { incrementJourneyProgress, getStudentJourneys, PERSONAL_WHATSAPP } from "@/services/journeyService";
 
 const blockTypeConfig = {
-  normal:   { label: "Normal",    color: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
-  single:   { label: "Simples",   color: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
-  biset:    { label: "Biset",     color: "bg-purple-500/15 text-purple-400 border-purple-500/30" },
-  triset:   { label: "Triset",    color: "bg-orange-500/15 text-orange-400 border-orange-500/30" },
-  circuit:  { label: "Circuito",  color: "bg-green-500/15 text-green-400 border-green-500/30" },
-  dropset:  { label: "Drop Set",  color: "bg-red-500/15 text-red-400 border-red-500/30" },
-  giantset: { label: "Giant Set", color: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30" },
+  normal:   { label: "Normal",    color: "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30" },
+  single:   { label: "Simples",   color: "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30" },
+  biset:    { label: "Biset",     color: "bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30" },
+  triset:   { label: "Triset",    color: "bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/30" },
+  circuit:  { label: "Circuito",  color: "bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/30" },
+  dropset:  { label: "Drop Set",  color: "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30" },
+  giantset: { label: "Giant Set", color: "bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border-yellow-500/30" },
 };
 
 function getYoutubeId(url) {
@@ -288,7 +288,7 @@ const LoadTrackingModal = ({ exercise, sessionId, studentId, workoutId, restSeco
               <Button
                 size="sm"
                 variant={s.done ? "ghost" : "outline"}
-                className={cn("h-8 w-9 p-0 flex-shrink-0", s.done && "text-green-400")}
+                className={cn("h-8 w-9 p-0 flex-shrink-0", s.done && "text-green-600 dark:text-green-400")}
                 onClick={() => handleSetDone(idx)}
                 disabled={s.done || saving === idx}
               >
@@ -346,7 +346,7 @@ const ExerciseDetailModal = ({ exercise, onClose }) => {
             {exercise.default_description && <p className="text-sm text-muted-foreground leading-relaxed">{exercise.default_description}</p>}
             {exercise.instructions && <div><p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Como executar</p><div className="bg-muted/30 rounded-2xl p-4"><p className="text-sm leading-relaxed whitespace-pre-line">{exercise.instructions}</p></div></div>}
             {exercise.tips && <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 flex gap-3"><StickyNote className="h-4 w-4 text-amber-400 flex-shrink-0 mt-0.5" /><p className="text-sm leading-relaxed">{exercise.tips}</p></div>}
-            {exercise.obs && <div className="bg-blue-500/5 border border-blue-500/20 rounded-2xl p-4 flex gap-3"><StickyNote className="h-4 w-4 text-blue-400 flex-shrink-0 mt-0.5" /><p className="text-sm">{exercise.obs}</p></div>}
+            {exercise.obs && <div className="bg-blue-500/5 border border-blue-500/20 rounded-2xl p-4 flex gap-3"><StickyNote className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" /><p className="text-sm">{exercise.obs}</p></div>}
           </div>
         </div>
         {exercise.video_url && <div className="px-5 py-4 border-t border-border flex-shrink-0"><a href={exercise.video_url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 text-sm text-primary font-medium hover:underline"><Video className="h-4 w-4" />Abrir vídeo</a></div>}
@@ -570,7 +570,7 @@ const StudentWorkoutPage = () => {
               <div className="bg-card border border-border rounded-2xl p-4 space-y-2">
                 <div className="flex justify-between text-sm"><span className="text-muted-foreground">Progresso</span><span className="font-bold">{doneExercises}/{totalExercises} exercícios</span></div>
                 <div className="h-2.5 rounded-full bg-muted overflow-hidden"><div className={cn("h-full rounded-full transition-all", progressPct===100?"bg-green-400":"bg-primary")} style={{ width: `${progressPct}%` }} /></div>
-                {progressPct===100 && <p className="text-xs text-center text-green-400 font-semibold">🏆 Todos os exercícios concluídos!</p>}
+                {progressPct===100 && <p className="text-xs text-center text-green-600 dark:text-green-400 font-semibold">🏆 Todos os exercícios concluídos!</p>}
               </div>
             )}
 
@@ -584,10 +584,10 @@ const StudentWorkoutPage = () => {
                     <div className="flex items-center justify-between px-4 py-4 cursor-pointer" onClick={() => toggleBlock(block.block_id)}>
                       <div className="flex items-center gap-3">
                         <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center border flex-shrink-0", blockDone ? "bg-green-500/10 border-green-500/30" : "bg-primary/10 border-primary/20")}>
-                          {blockDone ? <CheckCircle2 className="h-5 w-5 text-green-400" /> : <Layers className="h-4 w-4 text-primary" />}
+                          {blockDone ? <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" /> : <Layers className="h-4 w-4 text-primary" />}
                         </div>
                         <div>
-                          <p className={cn("font-semibold text-base", blockDone ? "text-green-400" : "text-foreground")}>{block.block_label || `Bloco ${String.fromCharCode(64+(blocks.indexOf(block)+1))}`}</p>
+                          <p className={cn("font-semibold text-base", blockDone ? "text-green-600 dark:text-green-400" : "text-foreground")}>{block.block_label || `Bloco ${String.fromCharCode(64+(blocks.indexOf(block)+1))}`}</p>
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className={cn("text-[10px] font-medium px-1.5 py-0.5 rounded border", typeCfg.color)}>{typeCfg.label}</span>
                             <span className="text-[10px] text-muted-foreground">{block.exercises.length} exerc.</span>
@@ -614,7 +614,7 @@ const StudentWorkoutPage = () => {
                                 </div>
 
                                 <div className="flex-1 min-w-0">
-                                  <p className={cn("font-semibold text-sm leading-tight", exDone ? "text-green-400 line-through" : "text-foreground")}>{ex.exercise_name}</p>
+                                  <p className={cn("font-semibold text-sm leading-tight", exDone ? "text-green-600 dark:text-green-400 line-through" : "text-foreground")}>{ex.exercise_name}</p>
                                   <div className="flex flex-wrap gap-2 mt-1 text-xs text-muted-foreground">
                                     {ex.sets && <span>{ex.sets} séries</span>}
                                     {ex.reps && <span>· {ex.reps} reps</span>}
@@ -744,13 +744,13 @@ const StudentWorkoutPage = () => {
           <Card className="bg-card border-border w-full max-w-sm"><CardContent className="p-6 space-y-4">
             <div className="text-center">
               <div className={cn("h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-3 border", progressPct===100?"bg-green-500/10 border-green-500/20":"bg-primary/10 border-primary/20")}>
-                <Trophy className={cn("h-8 w-8", progressPct===100?"text-green-400":"text-primary")} />
+                <Trophy className={cn("h-8 w-8", progressPct===100?"text-green-600 dark:text-green-400":"text-primary")} />
               </div>
               <h3 className="text-lg font-bold">{progressPct===100?"Treino Concluído! 🏆":"Finalizar Treino?"}</h3>
               <p className="text-sm text-muted-foreground mt-1">{progressPct===100?"Parabéns! Todos os exercícios concluídos.":`${doneExercises} de ${totalExercises} exercícios (${progressPct}%).`}</p>
             </div>
             <div className="h-2.5 rounded-full bg-muted overflow-hidden"><div className={cn("h-full rounded-full", progressPct===100?"bg-green-400":"bg-primary")} style={{ width: `${progressPct}%` }} /></div>
-            {progressPct < 100 && <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl px-3 py-2.5 text-xs text-orange-400 text-center">⚠️ {totalExercises-doneExercises} exercício{totalExercises-doneExercises>1?"s":""} ainda não concluído{totalExercises-doneExercises>1?"s":""}.</div>}
+            {progressPct < 100 && <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl px-3 py-2.5 text-xs text-orange-600 dark:text-orange-400 text-center">⚠️ {totalExercises-doneExercises} exercício{totalExercises-doneExercises>1?"s":""} ainda não concluído{totalExercises-doneExercises>1?"s":""}.</div>}
             <div className="space-y-2">
               <Button variant="premium" className={cn("w-full", progressPct===100&&"bg-green-500 hover:bg-green-600 border-green-500")} onClick={handleFinish} disabled={finishing}>
                 {finishing?<><Loader2 className="h-4 w-4 animate-spin" />Finalizando...</>:<><CheckCircle2 className="h-4 w-4" />{progressPct===100?"Concluir Treino":"Finalizar Mesmo Assim"}</>}

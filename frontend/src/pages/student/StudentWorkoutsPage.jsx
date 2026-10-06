@@ -132,7 +132,7 @@ const WorkoutCard = ({ workout, isNext, isOngoing, alreadyToday, sessions, navig
           : isNext && !alreadyToday ? "bg-primary/15 border-primary/25"
           : "bg-muted border-border")}>
           {expired ? <Lock className="h-5 w-5 text-muted-foreground/40" />
-          : isOngoing ? <Play className="h-5 w-5 text-blue-400" />
+          : isOngoing ? <Play className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           : isNext && !alreadyToday ? <Star className="h-5 w-5 text-primary" />
           : <Dumbbell className="h-5 w-5 text-muted-foreground" />}
         </div>
@@ -140,9 +140,9 @@ const WorkoutCard = ({ workout, isNext, isOngoing, alreadyToday, sessions, navig
           <div className="flex items-center gap-2 flex-wrap mb-1.5">
             <p className={cn("font-bold text-sm truncate", expired ? "text-muted-foreground" : "text-foreground")}>{workout.title}</p>
             {expired && <Badge variant="destructive" className="text-[10px] px-1.5">Expirado</Badge>}
-            {!expired && isOngoing && <Badge className="text-[10px] px-1.5 bg-blue-500/20 text-blue-400 border-blue-500/30 border">Em andamento</Badge>}
+            {!expired && isOngoing && <Badge className="text-[10px] px-1.5 bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30 border">Em andamento</Badge>}
             {!expired && isNext && !alreadyToday && !isOngoing && <Badge variant="premium" className="text-[10px] px-1.5">Hoje ⚡</Badge>}
-            {!expired && alreadyToday && isNext && <Badge className="text-[10px] px-1.5 bg-green-500/20 text-green-400 border-green-500/30 border">✓ Feito</Badge>}
+            {!expired && alreadyToday && isNext && <Badge className="text-[10px] px-1.5 bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30 border">✓ Feito</Badge>}
           </div>
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1.5"><Trophy className="h-3 w-3" />{doneCount} {doneCount===1?"sessão":"sessões"}</span>
@@ -384,9 +384,9 @@ const StudentWorkoutsPage = () => {
                 )}
                 {alreadyToday && (
                   <div className="flex items-center gap-3.5 bg-green-500/8 border border-green-500/20 rounded-2xl px-4 py-4">
-                    <div className="h-10 w-10 rounded-full bg-green-500/15 flex items-center justify-center flex-shrink-0"><CheckCircle2 className="h-5 w-5 text-green-400" /></div>
+                    <div className="h-10 w-10 rounded-full bg-green-500/15 flex items-center justify-center flex-shrink-0"><CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" /></div>
                     <div>
-                      <p className="text-sm font-bold text-green-400">Treino concluído hoje! 🏆</p>
+                      <p className="text-sm font-bold text-green-600 dark:text-green-400">Treino concluído hoje! 🏆</p>
                       <p className="text-xs text-muted-foreground mt-0.5">{activeWorkouts.length > 1 ? "Amanhã começa o próximo." : "Repita quando quiser!"}</p>
                     </div>
                   </div>

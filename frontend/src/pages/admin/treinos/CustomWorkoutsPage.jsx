@@ -32,7 +32,7 @@ function getRealStatus(w) {
 }
 
 const statusConfig = {
-  active:   { label: "Ativo",    variant: "success",     icon: CheckCircle2, color: "text-green-400" },
+  active:   { label: "Ativo",    variant: "success",     icon: CheckCircle2, color: "text-green-600 dark:text-green-400" },
   expired:  { label: "Expirado", variant: "destructive", icon: XCircle,      color: "text-destructive" },
   inactive: { label: "Inativo",  variant: "secondary",   icon: Clock,        color: "text-muted-foreground" },
 };
@@ -147,7 +147,7 @@ const CustomWorkoutsPage = () => {
         <div className="grid grid-cols-3 gap-3">
           {[
             { label: "Total",    value: counts.Todos,     color: "text-foreground",  tab: "Todos" },
-            { label: "Ativos",   value: counts.Ativos,    color: "text-green-400",   tab: "Ativos" },
+            { label: "Ativos",   value: counts.Ativos,    color: "text-green-600 dark:text-green-400",   tab: "Ativos" },
             { label: "Expirados",value: counts.Expirados, color: "text-destructive", tab: "Expirados" },
           ].map(s => (
             <Card key={s.tab} className="bg-card border-border cursor-pointer hover:border-primary/30 transition-colors"

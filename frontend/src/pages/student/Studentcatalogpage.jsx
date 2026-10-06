@@ -91,7 +91,7 @@ const JourneyDetailModal = ({ journey, studentJourney, hasAccess, onClose, onSta
           {/* Concluída */}
           {!locked && isDone && (
             <div className="text-center space-y-3">
-              <div className="flex items-center justify-center gap-2 text-green-400">
+              <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400">
                 <CheckCircle2 className="h-5 w-5" />
                 <p className="font-medium">Jornada concluída!</p>
               </div>

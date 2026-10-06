@@ -45,10 +45,10 @@ import ExerciseSelectorModal from "@/components/treinos/ExerciseSelectorModal";
 
 // Block type colors
 const blockTypeColors = {
-  single: "bg-blue-500/15 text-blue-400 border-blue-500/30",
-  biset: "bg-purple-500/15 text-purple-400 border-purple-500/30",
-  triset: "bg-orange-500/15 text-orange-400 border-orange-500/30",
-  circuit: "bg-green-500/15 text-green-400 border-green-500/30",
+  single: "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30",
+  biset: "bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30",
+  triset: "bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/30",
+  circuit: "bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/30",
 };
 
 const WorkoutEditorPage = () => {

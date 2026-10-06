@@ -41,10 +41,10 @@ const Field = ({ label, children }) => (
 const InfoChip = ({ icon: Icon, label, value, color = "default" }) => {
   const colors = {
     default: "bg-muted/60 border-border text-foreground",
-    green:   "bg-green-500/10 border-green-500/20 text-green-400",
-    blue:    "bg-blue-500/10 border-blue-500/20 text-blue-400",
-    orange:  "bg-orange-500/10 border-orange-500/20 text-orange-400",
-    red:     "bg-red-500/10 border-red-500/20 text-red-400",
+    green:   "bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400",
+    blue:    "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400",
+    orange:  "bg-orange-500/10 border-orange-500/20 text-orange-600 dark:text-orange-400",
+    red:     "bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400",
     primary: "bg-primary/10 border-primary/20 text-primary",
   };
   return (
@@ -200,7 +200,7 @@ const AdminAlunoDetailPage = () => {
               <Trash2 className="h-3.5 w-3.5" />Excluir
             </Button>
             <Button variant="outline" size="sm"
-              className={cn("gap-1.5 text-xs", form.is_active ? "text-destructive border-destructive/30 hover:bg-destructive/10" : "text-green-400 border-green-400/30 hover:bg-green-400/10")}
+              className={cn("gap-1.5 text-xs", form.is_active ? "text-destructive border-destructive/30 hover:bg-destructive/10" : "text-green-600 dark:text-green-400 border-green-400/30 hover:bg-green-400/10")}
               onClick={toggleActive}>
               {form.is_active ? <><ShieldOff className="h-3.5 w-3.5" />Inativar</> : <><Shield className="h-3.5 w-3.5" />Reativar</>}
             </Button>

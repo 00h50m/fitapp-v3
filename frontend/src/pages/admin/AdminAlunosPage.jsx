@@ -149,9 +149,9 @@ const AdminAlunosPage = () => {
                   )}>
                     <Icon className={cn("h-4 w-4",
                       color === "primary" ? "text-primary" :
-                      color === "green"   ? "text-green-400" :
-                      color === "orange"  ? "text-orange-400" :
-                      "text-red-400"
+                      color === "green"   ? "text-green-600 dark:text-green-400" :
+                      color === "orange"  ? "text-orange-600 dark:text-orange-400" :
+                      "text-red-600 dark:text-red-400"
                     )} />
                   </div>
                   <div>

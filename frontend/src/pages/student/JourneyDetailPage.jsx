@@ -212,9 +212,9 @@ const JourneyDetailPage = () => {
                         <div className="flex items-center gap-2 mb-0.5">
                           <span className="text-xs text-muted-foreground">Treino {idx + 1}</span>
                           {isCurrent && <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full font-medium">Próximo</span>}
-                          {isDoneItem  && <span className="text-[10px] text-green-400 font-medium">✓ Concluído</span>}
+                          {isDoneItem  && <span className="text-[10px] text-green-600 dark:text-green-400 font-medium">✓ Concluído</span>}
                         </div>
-                        <p className={cn("font-medium text-sm truncate", isDoneItem ? "text-green-400" : isCurrent ? "text-foreground font-semibold" : "text-muted-foreground")}>
+                        <p className={cn("font-medium text-sm truncate", isDoneItem ? "text-green-600 dark:text-green-400" : isCurrent ? "text-foreground font-semibold" : "text-muted-foreground")}>
                           {workout?.title ?? "Treino"}
                         </p>
                       </div>
@@ -230,8 +230,8 @@ const JourneyDetailPage = () => {
 
         {isDone && (
           <div className="text-center py-4 space-y-2">
-            <CheckCircle2 className="h-10 w-10 text-green-400 mx-auto" />
-            <p className="font-bold text-green-400">Jornada concluída! 🏆</p>
+            <CheckCircle2 className="h-10 w-10 text-green-600 dark:text-green-400 mx-auto" />
+            <p className="font-bold text-green-600 dark:text-green-400">Jornada concluída! 🏆</p>
             <p className="text-xs text-muted-foreground">Parabéns pelo comprometimento!</p>
           </div>
         )}

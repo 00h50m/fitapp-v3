@@ -12,19 +12,19 @@ import { Search, Dumbbell, Check, Video, Loader2, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const muscleGroupColors = {
-  chest:       "bg-red-500/15 text-red-400 border-red-500/30",
-  back:        "bg-blue-500/15 text-blue-400 border-blue-500/30",
-  legs:        "bg-purple-500/15 text-purple-400 border-purple-500/30",
-  shoulders:   "bg-orange-500/15 text-orange-400 border-orange-500/30",
-  biceps:      "bg-green-500/15 text-green-400 border-green-500/30",
+  chest:       "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30",
+  back:        "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30",
+  legs:        "bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30",
+  shoulders:   "bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/30",
+  biceps:      "bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/30",
   triceps:     "bg-cyan-500/15 text-cyan-400 border-cyan-500/30",
   forearms:    "bg-lime-500/15 text-lime-400 border-lime-500/30",
-  core:        "bg-yellow-500/15 text-yellow-400 border-yellow-500/30",
+  core:        "bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border-yellow-500/30",
   cardio:      "bg-pink-500/15 text-pink-400 border-pink-500/30",
   glutes:      "bg-rose-500/15 text-rose-400 border-rose-500/30",
   quads:       "bg-violet-500/15 text-violet-400 border-violet-500/30",
   hamstrings:  "bg-amber-500/15 text-amber-400 border-amber-500/30",
-  adductors:   "bg-teal-500/15 text-teal-400 border-teal-500/30",
+  adductors:   "bg-teal-500/15 text-teal-600 dark:text-teal-400 border-teal-500/30",
   calves:      "bg-sky-500/15 text-sky-400 border-sky-500/30",
   full_body:   "bg-indigo-500/15 text-indigo-400 border-indigo-500/30",
 };

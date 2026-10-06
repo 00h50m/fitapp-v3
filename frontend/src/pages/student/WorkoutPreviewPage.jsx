@@ -70,13 +70,13 @@ const PdfModal = ({ url, onClose }) => {
 };
 
 const blockTypeConfig = {
-  normal:   { label: "Normal",    color: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
-  single:   { label: "Simples",   color: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
-  biset:    { label: "Biset",     color: "bg-purple-500/15 text-purple-400 border-purple-500/30" },
-  triset:   { label: "Triset",    color: "bg-orange-500/15 text-orange-400 border-orange-500/30" },
-  circuit:  { label: "Circuito",  color: "bg-green-500/15 text-green-400 border-green-500/30" },
-  dropset:  { label: "Drop Set",  color: "bg-red-500/15 text-red-400 border-red-500/30" },
-  giantset: { label: "Giant Set", color: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30" },
+  normal:   { label: "Normal",    color: "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30" },
+  single:   { label: "Simples",   color: "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30" },
+  biset:    { label: "Biset",     color: "bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30" },
+  triset:   { label: "Triset",    color: "bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/30" },
+  circuit:  { label: "Circuito",  color: "bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/30" },
+  dropset:  { label: "Drop Set",  color: "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30" },
+  giantset: { label: "Giant Set", color: "bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border-yellow-500/30" },
 };
 
 const WorkoutPreviewPage = () => {

@@ -26,11 +26,11 @@ const fmtRelative = (dateStr) => {
 };
 
 const AVATAR_COLORS = [
-  "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  "bg-purple-500/20 text-purple-400 border-purple-500/30",
-  "bg-orange-500/20 text-orange-400 border-orange-500/30",
-  "bg-teal-500/20 text-teal-400 border-teal-500/30",
+  "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border-yellow-500/30",
+  "bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30",
+  "bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/30",
+  "bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/30",
+  "bg-teal-500/20 text-teal-600 dark:text-teal-400 border-teal-500/30",
 ];
 const avatarColor = (name = "") => AVATAR_COLORS[(name.charCodeAt(0) || 0) % AVATAR_COLORS.length];
 const initials = (name = "") => name.split(" ").slice(0, 2).map(w => w[0]?.toUpperCase() || "").join("");
@@ -198,7 +198,7 @@ const DashboardPage = () => {
           action: "Novo cadastro",
           date: s.created_at,
           icon: UserPlus,
-          iconColor: "text-blue-400",
+          iconColor: "text-blue-600 dark:text-blue-400",
         })),
       ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 6);
 
@@ -304,7 +304,7 @@ const DashboardPage = () => {
                     <Badge className={cn("text-[10px] px-1.5 py-0.5 border",
                       conclusionRate >= 70
                         ? "bg-primary/15 text-primary border-primary/30"
-                        : "bg-orange-500/15 text-orange-400 border-orange-500/30")}>
+                        : "bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/30")}>
                       {conclusionRate >= 70 ? "Alta" : "Média"}
                     </Badge>
                   )}
@@ -329,7 +329,7 @@ const DashboardPage = () => {
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-sm font-medium text-muted-foreground">Renovações Pendentes</p>
                   {renewals > 0 && (
-                    <Badge className="text-[10px] px-1.5 py-0.5 bg-orange-500/15 text-orange-400 border border-orange-500/30">
+                    <Badge className="text-[10px] px-1.5 py-0.5 bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/30">
                       Atenção
                     </Badge>
                   )}
