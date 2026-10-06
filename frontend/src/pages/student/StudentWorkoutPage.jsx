@@ -562,7 +562,7 @@ const StudentWorkoutPage = () => {
           <div className="space-y-4 pt-3">
             <div>
               <Badge variant="premium" className="text-xs mb-2">Treino Atual</Badge>
-              <h1 className="text-2xl font-bold leading-tight">{workout?.title || "Treino"}</h1>
+              <h1 className="text-2xl font-semibold leading-tight">{workout?.title || "Treino"}</h1>
               <p className="text-sm text-muted-foreground mt-1">{blocks.length} blocos · {totalExercises} exercícios</p>
             </div>
 
@@ -625,41 +625,36 @@ const StudentWorkoutPage = () => {
                                     <p className="text-[10px] text-muted-foreground mt-1">Última: {prevLog.kg}kg × {prevLog.reps || "?"}</p>
                                   )}
                                 </div>
-
-                                {/* Botões de ação */}
-                                <div className="flex items-center gap-1 flex-shrink-0">
-                                  {(ytId || ex.gif_url) && (
-                                    <button className="h-8 w-8 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
-                                      onClick={() => setExpandedVideos(prev => { const next = new Set(prev); next.has(ex.exercise_row_id) ? next.delete(ex.exercise_row_id) : next.add(ex.exercise_row_id); return next; })}>
-                                      <Play className="h-3.5 w-3.5" />
-                                    </button>
-                                  )}
-                                  <button className="h-8 w-8 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
-                                    onClick={() => setHistoryExercise({ name: ex.exercise_name, rowId: ex.exercise_row_id })}>
-                                    <History className="h-3.5 w-3.5" />
-                                  </button>
-                                  <button className="h-8 w-8 rounded-xl bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
-                                    onClick={() => setDetailExercise(ex)}>
-                                    <HelpCircle className="h-3.5 w-3.5" />
-                                  </button>
-                                </div>
                               </div>
 
                               {/* Obs */}
                               {ex.obs && <div className="flex items-start gap-1.5 mt-2 ml-10"><StickyNote className="h-3 w-3 text-primary flex-shrink-0 mt-0.5" /><p className="text-xs text-muted-foreground">{ex.obs}</p></div>}
 
-                              {/* Botão registrar carga */}
-                              {!exDone && (
-                                <div className="mt-3 ml-10">
+                              {/* Ações — pills com rótulo, estilo editorial */}
+                              <div className="flex flex-wrap items-center gap-1.5 mt-3 ml-10">
+                                {(ytId || ex.gif_url) && (
+                                  <button className="inline-flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+                                    onClick={() => setExpandedVideos(prev => { const next = new Set(prev); next.has(ex.exercise_row_id) ? next.delete(ex.exercise_row_id) : next.add(ex.exercise_row_id); return next; })}>
+                                    <Play className="h-3.5 w-3.5" />{ytId ? "Vídeo" : "GIF"}
+                                  </button>
+                                )}
+                                <button className="inline-flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+                                  onClick={() => setHistoryExercise({ name: ex.exercise_name, rowId: ex.exercise_row_id })}>
+                                  <History className="h-3.5 w-3.5" />Histórico
+                                </button>
+                                <button className="inline-flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+                                  onClick={() => setDetailExercise(ex)}>
+                                  <HelpCircle className="h-3.5 w-3.5" />Detalhes
+                                </button>
+                                {!exDone && (
                                   <button
-                                    className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors font-medium"
+                                    className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs text-primary hover:bg-primary/15 transition-colors font-medium"
                                     onClick={() => setTrackingExercise(ex)}
                                   >
-                                    <BarChart2 className="h-3.5 w-3.5" />
-                                    Registrar cargas por série
+                                    <BarChart2 className="h-3.5 w-3.5" />Registrar cargas
                                   </button>
-                                </div>
-                              )}
+                                )}
+                              </div>
 
                               {/* Vídeo inline */}
                               {expandedVideos.has(ex.exercise_row_id) && ytId && (
