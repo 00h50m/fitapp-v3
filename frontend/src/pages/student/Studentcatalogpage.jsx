@@ -186,6 +186,12 @@ const StudentCatalogPage = () => {
   const availableJourneys = journeys.filter(j => grantedIds.has(j.id) && !studentJourneys.some(sj => sj.journey_id === j.id));
   const lockedJourneys = journeys.filter(j => !grantedIds.has(j.id));
 
+  const scrollToSection = (id) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const chipCategories = categories.filter(cat => availableJourneys.some(j => j.category_id === cat.id));
+
   return (
     <div className="min-h-screen bg-background pb-24 w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto">
       {/* Header */}
@@ -201,6 +207,24 @@ const StudentCatalogPage = () => {
         </div>
       </div>
 
+      {/* Chips de atalho por categoria */}
+      {!loading && (myJourneys.length > 0 || chipCategories.length > 0) && (
+        <div className="flex gap-2 overflow-x-auto px-4 pt-3 pb-1 scrollbar-none">
+          {myJourneys.length > 0 && (
+            <button type="button" onClick={() => scrollToSection("cat-minhas")}
+              className="flex-shrink-0 text-xs font-medium px-3 py-2 rounded-full bg-primary text-primary-foreground">
+              Minhas
+            </button>
+          )}
+          {chipCategories.map(cat => (
+            <button key={cat.id} type="button" onClick={() => scrollToSection(`cat-${cat.id}`)}
+              className="flex-shrink-0 text-xs font-medium px-3 py-2 rounded-full bg-card border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors">
+              {cat.emoji} {cat.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       {loading ? (
         <div className="flex items-center justify-center py-24"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
       ) : journeys.length === 0 ? (
@@ -212,7 +236,7 @@ const StudentCatalogPage = () => {
         <div className="pt-4">
           {/* Minhas jornadas */}
           {myJourneys.length > 0 && (
-            <CategoryRow title="Minhas jornadas" journeys={myJourneys} studentJourneys={studentJourneys} grantedIds={grantedIds} onSelect={setSelectedJourney} />
+            <CategoryRow id="cat-minhas" title="Minhas jornadas" journeys={myJourneys} studentJourneys={studentJourneys} grantedIds={grantedIds} onSelect={setSelectedJourney} />
           )}
 
           {/* Disponíveis por categoria */}
