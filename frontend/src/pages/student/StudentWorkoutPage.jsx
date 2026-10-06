@@ -190,7 +190,7 @@ const LoadHistoryModal = ({ exerciseName, exerciseRowId, onClose }) => {
 };
 
 // ── Modal de registro de cargas ────────────────────────────────
-const LoadTrackingModal = ({ exercise, sessionId, studentId, workoutId, restSeconds, lastLog, onClose, onComplete }) => {
+const LoadTrackingModal = ({ exercise, sessionId, studentId, workoutId, restSeconds, lastLog, personalBest, onClose, onComplete }) => {
   const numSets = Number(exercise.sets) || 1;
   // Pré-preenche com a carga/reps da última sessão desse exercício, assim o
   // aluno só confirma (ou ajusta) em vez de digitar tudo de novo toda vez.
@@ -220,8 +220,11 @@ const LoadTrackingModal = ({ exercise, sessionId, studentId, workoutId, restSeco
         completed_at: new Date().toISOString(),
       }, { onConflict: "session_id,exercise_row_id,set_number" });
       setSets(prev => prev.map((x, i) => i === idx ? { ...x, done: true } : x));
-      onComplete?.(exercise.exercise_row_id, s.num);
-      if (lastLog?.kg && s.kg && Number(s.kg) > Number(lastLog.kg)) {
+      onComplete?.(exercise.exercise_row_id, s.num, s.kg, s.reps);
+      if (s.kg && personalBest && Number(s.kg) > personalBest) {
+        navigator.vibrate?.([100, 60, 100, 60, 200]);
+        toast.success(`🏆 Novo recorde pessoal! ${s.kg}kg (antes: ${personalBest}kg)`);
+      } else if (lastLog?.kg && s.kg && Number(s.kg) > Number(lastLog.kg)) {
         toast.success(`🔥 Mais pesado que da última vez! ${s.kg}kg (antes: ${lastLog.kg}kg)`);
       }
     } catch (err) { toast.error("Erro ao salvar"); console.error(err); }
@@ -407,6 +410,8 @@ const StudentWorkoutPage = () => {
   const [historyExercise, setHistoryExercise] = useState(null);
   const [trackingExercise, setTrackingExercise] = useState(null); // modal de registro de carga
   const [lastLogs, setLastLogs]     = useState({});
+  const [personalBests, setPersonalBests] = useState({}); // maior carga já registrada por exercício (recorde pessoal)
+  const [sessionVolume, setSessionVolume] = useState(0);  // soma de carga × reps das séries registradas nesta sessão
   const [tick, setTick]             = useState(Date.now()); // atualiza o cronômetro de duração do treino
 
   const loadWorkout = useCallback(async () => {
@@ -439,6 +444,18 @@ const StudentWorkoutPage = () => {
       // extra por bloco só pra ver os exercícios. Agora todos já abrem prontos.
       setExpandedBlocks(new Set(sortedBlocks.map(b => b.block_id)));
 
+      // Recorde pessoal por exercício — maior carga já registrada em qualquer sessão
+      const rowIds = sortedBlocks.flatMap(b => b.exercises.map(e => e.exercise_row_id)).filter(Boolean);
+      if (rowIds.length) {
+        const { data: allLogs } = await supabase.from("workout_exercise_logs").select("exercise_row_id, actual_load").eq("student_id", user.id).in("exercise_row_id", rowIds);
+        const bests = {};
+        for (const log of allLogs || []) {
+          const val = Number(log.actual_load);
+          if (!isNaN(val) && val > 0 && (!bests[log.exercise_row_id] || val > bests[log.exercise_row_id])) bests[log.exercise_row_id] = val;
+        }
+        setPersonalBests(bests);
+      }
+
       const today = new Date().toISOString().split("T")[0];
       const { data: session } = await supabase.from("workout_sessions").select("*").eq("student_id", user.id).eq("workout_id", workoutId).eq("session_date", today).eq("finished", false).maybeSingle();
       if (session) {
@@ -448,13 +465,17 @@ const StudentWorkoutPage = () => {
           const setsMap = {};
           const doneEx = new Set();
           const logsMap = {};
+          let volume = 0;
           for (const log of logs) {
             if (!setsMap[log.exercise_row_id]) setsMap[log.exercise_row_id] = new Set();
             setsMap[log.exercise_row_id].add(log.set_number);
             logsMap[log.exercise_row_id] = { kg: log.actual_load, reps: log.actual_reps };
+            const kgNum = Number(log.actual_load), repsNum = Number(log.actual_reps);
+            if (kgNum > 0 && repsNum > 0) volume += kgNum * repsNum;
           }
           setCompletedSets(setsMap);
           setLastLogs(logsMap);
+          setSessionVolume(volume);
         }
       }
 
@@ -503,13 +524,16 @@ const StudentWorkoutPage = () => {
     } catch (err) { toast.error("Erro: " + err.message); }
   };
 
-  const handleSetComplete = (exerciseRowId, setNum) => {
+  const handleSetComplete = (exerciseRowId, setNum, kg, reps) => {
     setCompletedSets(prev => {
       const next = { ...prev };
       if (!next[exerciseRowId]) next[exerciseRowId] = new Set();
       next[exerciseRowId] = new Set([...next[exerciseRowId], setNum]);
       return next;
     });
+    const kgNum = Number(kg), repsNum = Number(reps);
+    if (kgNum > 0 && repsNum > 0) setSessionVolume(prev => prev + kgNum * repsNum);
+    if (kgNum > 0) setPersonalBests(prev => (!prev[exerciseRowId] || kgNum > prev[exerciseRowId]) ? { ...prev, [exerciseRowId]: kgNum } : prev);
   };
 
   const handleStart = async () => {
@@ -518,7 +542,7 @@ const StudentWorkoutPage = () => {
       const today = new Date().toISOString().split("T")[0];
       const { data: todaySession } = await supabase.from("workout_sessions").select("*").eq("student_id", user.id).eq("workout_id", workoutId).eq("session_date", today).maybeSingle();
       if (todaySession) {
-        if (todaySession.finished) { await supabase.from("workout_sessions").update({ status: "active", finished: false, started_at: new Date().toISOString() }).eq("id", todaySession.id); setActiveSession({ ...todaySession, status: "active", finished: false }); setCompletedSets({}); setCompletedExercises(new Set()); toast.success("Novo ciclo! 💪"); }
+        if (todaySession.finished) { await supabase.from("workout_sessions").update({ status: "active", finished: false, started_at: new Date().toISOString() }).eq("id", todaySession.id); setActiveSession({ ...todaySession, status: "active", finished: false }); setCompletedSets({}); setCompletedExercises(new Set()); setSessionVolume(0); toast.success("Novo ciclo! 💪"); }
         else { setActiveSession(todaySession); toast.success("Treino retomado! 💪"); }
         return;
       }
@@ -526,7 +550,7 @@ const StudentWorkoutPage = () => {
       if (otherActive) await supabase.from("workout_sessions").update({ status: "finished", finished: true, finished_at: new Date().toISOString() }).eq("id", otherActive.id);
       await supabase.from("workout_sessions").insert({ student_id: user.id, workout_id: workoutId, session_date: today, started_at: new Date().toISOString(), status: "active", finished: false });
       const { data: newSession } = await supabase.from("workout_sessions").select("*").eq("student_id", user.id).eq("workout_id", workoutId).eq("session_date", today).maybeSingle();
-      if (newSession) { setActiveSession(newSession); setCompletedSets({}); setCompletedExercises(new Set()); toast.success("Treino iniciado! 💪"); }
+      if (newSession) { setActiveSession(newSession); setCompletedSets({}); setCompletedExercises(new Set()); setSessionVolume(0); toast.success("Treino iniciado! 💪"); }
       else throw new Error("Sessão não encontrada.");
     } catch (err) { toast.error("Erro ao iniciar: " + err.message); }
     finally { setStarting(false); }
@@ -620,6 +644,7 @@ const StudentWorkoutPage = () => {
                   </div>
                 </div>
                 <div className="h-2.5 rounded-full bg-muted overflow-hidden"><div className={cn("h-full rounded-full transition-all", progressPct===100?"bg-green-400":"bg-primary")} style={{ width: `${progressPct}%` }} /></div>
+                {sessionVolume > 0 && <p className="text-xs text-muted-foreground flex items-center gap-1"><Weight className="h-3 w-3" />Volume total: <span className="font-semibold text-foreground">{Math.round(sessionVolume).toLocaleString("pt-BR")}kg</span></p>}
                 {progressPct===100 && <p className="text-xs text-center text-green-600 dark:text-green-400 font-semibold">🏆 Todos os exercícios concluídos!</p>}
               </div>
             )}
@@ -652,6 +677,7 @@ const StudentWorkoutPage = () => {
                         {block.exercises.map((ex, idx) => {
                           const exDone = isExerciseDone(ex);
                           const prevLog = lastLogs[ex.exercise_row_id];
+                          const best = personalBests[ex.exercise_row_id];
                           const ytId = getYoutubeId(ex.video_url);
                           return (
                             <div key={ex.exercise_row_id || idx} className={cn("px-4 py-4 transition-colors", exDone && "bg-green-500/5")}>
@@ -671,8 +697,11 @@ const StudentWorkoutPage = () => {
                                     {ex.rest_seconds && <span>· {ex.rest_seconds}s descanso</span>}
                                     {ex.load && <span>· {ex.load}</span>}
                                   </div>
-                                  {prevLog?.kg && (
-                                    <p className="text-[10px] text-muted-foreground mt-1">Última: {prevLog.kg}kg × {prevLog.reps || "?"}</p>
+                                  {(prevLog?.kg || best) && (
+                                    <div className="flex items-center gap-2 mt-1">
+                                      {prevLog?.kg && <p className="text-[10px] text-muted-foreground">Última: {prevLog.kg}kg × {prevLog.reps || "?"}</p>}
+                                      {best && <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-primary">🏆 PR {best}kg</span>}
+                                    </div>
                                   )}
                                 </div>
                               </div>
@@ -768,9 +797,10 @@ const StudentWorkoutPage = () => {
           workoutId={workoutId}
           restSeconds={trackingExercise.rest_seconds || 60}
           lastLog={lastLogs[trackingExercise.exercise_row_id]}
+          personalBest={personalBests[trackingExercise.exercise_row_id]}
           onClose={() => setTrackingExercise(null)}
-          onComplete={(rowId, setNum) => {
-            handleSetComplete(rowId, setNum);
+          onComplete={(rowId, setNum, kg, reps) => {
+            handleSetComplete(rowId, setNum, kg, reps);
             const numSets = Number(trackingExercise.sets) || 1;
             setCompletedSets(prev => {
               const next = { ...prev };
@@ -796,8 +826,13 @@ const StudentWorkoutPage = () => {
               </div>
               <h3 className="text-lg font-bold">{progressPct===100?"Treino Concluído! 🏆":"Finalizar Treino?"}</h3>
               <p className="text-sm text-muted-foreground mt-1">{progressPct===100?"Parabéns! Todos os exercícios concluídos.":`${doneExercises} de ${totalExercises} exercícios (${progressPct}%).`}</p>
-              {progressPct === 100 && elapsedLabel && <p className="text-xs text-muted-foreground mt-1">Duração: {elapsedLabel}</p>}
             </div>
+            {progressPct === 100 && (elapsedLabel || sessionVolume > 0) && (
+              <div className="grid grid-cols-2 gap-2">
+                {elapsedLabel && <div className="bg-muted/50 rounded-xl p-3 text-center"><p className="text-lg font-bold tabular-nums">{elapsedLabel}</p><p className="text-[10px] text-muted-foreground mt-0.5">duração</p></div>}
+                {sessionVolume > 0 && <div className="bg-muted/50 rounded-xl p-3 text-center"><p className="text-lg font-bold tabular-nums">{Math.round(sessionVolume).toLocaleString("pt-BR")}kg</p><p className="text-[10px] text-muted-foreground mt-0.5">volume total</p></div>}
+              </div>
+            )}
             <div className="h-2.5 rounded-full bg-muted overflow-hidden"><div className={cn("h-full rounded-full", progressPct===100?"bg-green-400":"bg-primary")} style={{ width: `${progressPct}%` }} /></div>
             {progressPct < 100 && <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl px-3 py-2.5 text-xs text-orange-600 dark:text-orange-400 text-center">⚠️ {totalExercises-doneExercises} exercício{totalExercises-doneExercises>1?"s":""} ainda não concluído{totalExercises-doneExercises>1?"s":""}.</div>}
             <div className="space-y-2">
