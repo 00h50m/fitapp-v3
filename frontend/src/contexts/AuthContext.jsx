@@ -102,6 +102,18 @@ export const AuthProvider = ({ children }) => {
     await supabase.auth.signOut();
   };
 
+  const requestPasswordReset = async (email) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) throw new Error(error.message || "Erro ao solicitar redefinição de senha.");
+  };
+
+  const updatePassword = async (newPassword) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw new Error(error.message || "Erro ao atualizar senha.");
+  };
+
   // Expõe flag para CreateStudentPage bloquear o SIGNED_IN do signup
   const setIgnoreNextSignIn = () => { ignoreSIGNIN.current = true; };
 
@@ -109,6 +121,7 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider value={{
       user, profile, loading,
       login, logout,
+      requestPasswordReset, updatePassword,
       isAdmin:         profile?.role === "admin" || profile?.is_admin === true,
       isStudent:       profile?.role === "student",
       isAuthenticated: !!user,

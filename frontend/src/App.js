@@ -8,6 +8,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Loader2 } from "lucide-react";
 
 import LoginPage from "@/pages/LoginPage";
+import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import StudentWorkoutsPage from "@/pages/student/StudentWorkoutsPage";
 import StudentWorkoutPage from "@/pages/student/StudentWorkoutPage";
 import StudentCatalogPage   from "@/pages/student/Studentcatalogpage";
@@ -45,6 +47,8 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+      <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
+      <Route path="/reset-password" element={<PublicRoute><ResetPasswordPage /></PublicRoute>} />
       <Route path="/student" element={<ProtectedRoute><StudentWorkoutsPage /></ProtectedRoute>} />
       <Route path="/student/workout/:id" element={<ProtectedRoute><StudentWorkoutPage /></ProtectedRoute>} />
       <Route path="/student/catalog"      element={<ProtectedRoute><StudentCatalogPage /></ProtectedRoute>} />
