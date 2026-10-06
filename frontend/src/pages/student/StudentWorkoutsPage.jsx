@@ -266,6 +266,24 @@ const StudentWorkoutsPage = () => {
     return count;
   })();
 
+  // Tira semanal — últimos 7 dias, estilo Strava/Whoop, reforça a sequência visualmente
+  const weekStrip = (() => {
+    const finishedDates = new Set(sessions.filter(s => s.finished).map(s => s.session_date));
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split("T")[0];
+      days.push({
+        dateStr,
+        label: d.toLocaleDateString("pt-BR", { weekday: "narrow" }).toUpperCase(),
+        done: finishedDates.has(dateStr),
+        isToday: i === 0,
+      });
+    }
+    return days;
+  })();
+
   // Derived — jornadas
   const getStudentJourney = (id) => studentJourneys.find(sj => sj.journey_id === id) ?? null;
   const myJourneys        = journeys.filter(j => studentJourneys.some(sj => sj.journey_id === j.id));
@@ -398,6 +416,23 @@ const StudentWorkoutsPage = () => {
                 <div key={label} className="bg-card border border-border rounded-2xl p-4 text-center">
                   <p className={cn("text-2xl font-black leading-none mb-1.5", color)}>{value}</p>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Tira semanal — visual, reforça a constância dia a dia */}
+            <div className="bg-card border border-border rounded-2xl px-4 py-3.5 flex items-center justify-between gap-1">
+              {weekStrip.map(day => (
+                <div key={day.dateStr} className="flex flex-col items-center gap-1.5">
+                  <span className="text-[9px] font-medium text-muted-foreground">{day.label}</span>
+                  <div className={cn(
+                    "h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors",
+                    day.done ? "bg-primary text-primary-foreground"
+                    : day.isToday ? "border-2 border-primary/40 text-primary"
+                    : "bg-muted text-muted-foreground/50"
+                  )}>
+                    {day.done ? "✓" : new Date(day.dateStr + "T12:00").getDate()}
+                  </div>
                 </div>
               ))}
             </div>

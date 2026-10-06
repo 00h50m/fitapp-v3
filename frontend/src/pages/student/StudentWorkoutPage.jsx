@@ -379,6 +379,7 @@ const StudentWorkoutPage = () => {
   const [historyExercise, setHistoryExercise] = useState(null);
   const [trackingExercise, setTrackingExercise] = useState(null); // modal de registro de carga
   const [lastLogs, setLastLogs]     = useState({});
+  const [tick, setTick]             = useState(Date.now()); // atualiza o cronômetro de duração do treino
 
   const loadWorkout = useCallback(async () => {
     if (!user || !workoutId) { setLoading(false); return; }
@@ -525,6 +526,21 @@ const StudentWorkoutPage = () => {
   const progressPct    = totalExercises > 0 ? Math.round((doneExercises / totalExercises) * 100) : 0;
   const isBlockCompleted = b => b.exercises.every(ex => isExerciseDone(ex));
 
+  useEffect(() => {
+    if (!activeSession) return;
+    const interval = setInterval(() => setTick(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [activeSession]);
+
+  const elapsedLabel = (() => {
+    if (!activeSession?.started_at) return null;
+    const secs = Math.max(0, Math.floor((tick - new Date(activeSession.started_at).getTime()) / 1000));
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}` : `${m}:${String(s).padStart(2, "0")}`;
+  })();
+
   return (
     <MobileContainer>
       <MobileHeader>
@@ -568,7 +584,13 @@ const StudentWorkoutPage = () => {
 
             {activeSession && (
               <div className="bg-card border border-border rounded-2xl p-4 space-y-2">
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">Progresso</span><span className="font-bold">{doneExercises}/{totalExercises} exercícios</span></div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">Progresso</span>
+                  <div className="flex items-center gap-3">
+                    {elapsedLabel && <span className="flex items-center gap-1 text-xs text-muted-foreground tabular-nums"><Timer className="h-3 w-3" />{elapsedLabel}</span>}
+                    <span className="font-bold">{doneExercises}/{totalExercises} exercícios</span>
+                  </div>
+                </div>
                 <div className="h-2.5 rounded-full bg-muted overflow-hidden"><div className={cn("h-full rounded-full transition-all", progressPct===100?"bg-green-400":"bg-primary")} style={{ width: `${progressPct}%` }} /></div>
                 {progressPct===100 && <p className="text-xs text-center text-green-600 dark:text-green-400 font-semibold">🏆 Todos os exercícios concluídos!</p>}
               </div>
