@@ -120,7 +120,10 @@ const JourneyDetailPage = () => {
       <div className="px-4 -mt-4 relative z-10 space-y-5">
         {/* Título */}
         <div>
-          <h1 className="text-2xl font-bold">{journey.title}</h1>
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-primary bg-primary/10 rounded-full px-2.5 py-1 mb-2">
+            <Zap className="h-3 w-3" />Método do seu personal
+          </span>
+          <h1 className="text-2xl font-semibold">{journey.title}</h1>
           {journey.description && <p className="text-sm text-muted-foreground mt-1">{journey.description}</p>}
         </div>
 
