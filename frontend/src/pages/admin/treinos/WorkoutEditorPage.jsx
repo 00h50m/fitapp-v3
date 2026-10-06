@@ -412,7 +412,7 @@ const WorkoutEditorPage = () => {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-display font-bold text-foreground flex items-center gap-2">
+              <h1 className="text-2xl font-display font-semibold text-foreground flex items-center gap-2">
                 <ClipboardList className="h-6 w-6 text-primary" />
                 {isNew ? "Novo Treino" : "Editar Treino"}
               </h1>

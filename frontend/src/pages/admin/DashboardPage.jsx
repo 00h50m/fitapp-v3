@@ -222,7 +222,7 @@ const DashboardPage = () => {
       <div className="space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-display font-bold text-foreground">
+            <h1 className="text-2xl font-display font-semibold text-foreground">
               {greeting()}{adminFirstName ? `, ${adminFirstName}` : ""}
             </h1>
             <p className="text-sm text-muted-foreground mt-0.5">Visão geral do seu aplicativo de treinos</p>

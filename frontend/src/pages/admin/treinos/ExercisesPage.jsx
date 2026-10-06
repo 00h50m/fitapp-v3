@@ -209,7 +209,7 @@ const ExercisesPage = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-display font-bold text-foreground flex items-center gap-2">
+            <h1 className="text-2xl font-display font-semibold text-foreground flex items-center gap-2">
               <Dumbbell className="h-6 w-6 text-primary" />
               Biblioteca de Exercícios
             </h1>

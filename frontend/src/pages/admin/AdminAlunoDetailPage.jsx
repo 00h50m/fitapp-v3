@@ -188,7 +188,7 @@ const AdminAlunoDetailPage = () => {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-xl font-display font-bold text-foreground">{form.name || form.email?.split("@")[0] || "Aluno"}</h1>
+              <h1 className="text-xl font-display font-semibold text-foreground">{form.name || form.email?.split("@")[0] || "Aluno"}</h1>
               <div className="flex items-center gap-2 mt-0.5">
                 <Badge variant={status.variant} className="text-[10px]">{status.label}</Badge>
                 <span className="text-xs text-muted-foreground">{form.email}</span>
