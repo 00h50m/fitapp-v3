@@ -96,7 +96,16 @@ const RestTimer = ({ seconds, onDone, onSkip }) => {
   const [remaining, setRemaining] = useState(seconds);
   useEffect(() => {
     const interval = setInterval(() => {
-      setRemaining(prev => { if (prev <= 1) { clearInterval(interval); onDone?.(); return 0; } return prev - 1; });
+      setRemaining(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          navigator.vibrate?.([200, 100, 200]); // avisa que o descanso acabou, sem precisar olhar pro celular
+          onDone?.();
+          return 0;
+        }
+        if (prev <= 4) navigator.vibrate?.(40); // contagem regressiva final
+        return prev - 1;
+      });
     }, 1000);
     return () => clearInterval(interval);
   }, []);
