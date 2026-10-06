@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase, supabaseUrl, supabaseAnonKey } from "@/lib/supabase";
 import { useParams, useNavigate } from "react-router-dom";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -304,14 +304,12 @@ const WorkoutEditorPage = () => {
       if (templateId && blocks.length > 0) {
         await supabase.from("workout_template_blocks").delete().eq("template_id", templateId);
 
-        const SUPA_URL = "https://gsixrfvbusezudqbquiu.supabase.co";
-        const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzaXhyZnZidXNlenVkcWJxdWl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3NTIxMTEsImV4cCI6MjA4NjMyODExMX0.7TAhXexcqjhfCcL1CDPx1llz46uGIWZkYaW32BiGzTw";
         const { data: { session } } = await supabase.auth.getSession();
-        const token = session?.access_token || ANON_KEY;
+        const token = session?.access_token || supabaseAnonKey;
 
         const headers = {
           "Content-Type": "application/json",
-          "apikey": ANON_KEY,
+          "apikey": supabaseAnonKey,
           "Authorization": `Bearer ${token}`,
           "Prefer": "return=representation",
         };
@@ -329,13 +327,11 @@ const WorkoutEditorPage = () => {
           order_index: i,
         }));
 
-        console.log("[save] blocksPayload:", JSON.stringify(blocksPayload, null, 2));
-        const bRes = await fetch(`${SUPA_URL}/rest/v1/workout_template_blocks`, {
+        const bRes = await fetch(`${supabaseUrl}/rest/v1/workout_template_blocks`, {
           method: "POST", headers,
           body: JSON.stringify(blocksPayload),
         });
         const bText = await bRes.text();
-        console.log("[save] blocks response:", bRes.status, bText);
         if (!bRes.ok) throw new Error("Erro ao salvar blocos: " + bText);
         const savedBlocks_raw = bText;
         const savedBlocks = JSON.parse(savedBlocks_raw);
@@ -361,8 +357,7 @@ const WorkoutEditorPage = () => {
         }
 
         if (allExercises.length > 0) {
-          console.log("[save] exercises payload:", JSON.stringify(allExercises[0]));
-          const eRes = await fetch(`${SUPA_URL}/rest/v1/workout_template_exercises`, {
+          const eRes = await fetch(`${supabaseUrl}/rest/v1/workout_template_exercises`, {
             method: "POST",
             headers: { ...headers, "Prefer": "return=minimal" },
             body: JSON.stringify(allExercises),
@@ -374,7 +369,6 @@ const WorkoutEditorPage = () => {
             console.error("[save] exercises error:", eRes.status, eText);
             throw new Error(`Os blocos foram salvos, mas os exercícios não (${eRes.status}): ${eText}`);
           } else {
-            console.log("[save] exercises saved OK");
           }
         }
       }

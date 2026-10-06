@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase, supabaseUrl, supabaseAnonKey } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { AdminLayout } from "@/components/layout/AdminLayout";
@@ -62,8 +62,6 @@ const CreateStudentPage = () => {
       // Endpoint: POST /auth/v1/admin/users — requer service role key
       // Como não temos service role no frontend, usamos signUp mas salvamos
       // a sessão do admin antes e restauramos depois
-      const SUPABASE_URL = "https://gsixrfvbusezudqbquiu.supabase.co";
-      const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzaXhyZnZidXNlenVkcWJxdWl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3NTIxMTEsImV4cCI6MjA4NjMyODExMX0.7TAhXexcqjhfCcL1CDPx1llz46uGIWZkYaW32BiGzTw";
 
       // Bloqueia o listener de auth para não redirecionar o admin
       setIgnoreNextSignIn();
@@ -72,11 +70,11 @@ const CreateStudentPage = () => {
       const { data: { session: adminSession } } = await supabase.auth.getSession();
 
       // Cria o usuário via fetch direto (não altera sessão atual)
-      const signUpRes = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+      const signUpRes = await fetch(`${supabaseUrl}/auth/v1/signup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "apikey": ANON_KEY,
+          "apikey": supabaseAnonKey,
         },
         body: JSON.stringify({ email: form.email, password: form.password }),
       });
