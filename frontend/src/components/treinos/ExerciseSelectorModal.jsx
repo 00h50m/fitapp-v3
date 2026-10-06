@@ -58,7 +58,7 @@ const ExerciseSelectorModal = ({ isOpen, onClose, onSelect, selectedIds = [] }) 
     try {
       const { data, error } = await supabase
         .from("exercises")
-        .select("id, title, default_description, video_url, muscle_group, equipment, difficulty")
+        .select("id, title, default_description, video_url, gif_url, muscle_group, equipment, difficulty")
         .order("title");
       if (error) throw error;
       setExercises(data || []);
@@ -95,6 +95,7 @@ const ExerciseSelectorModal = ({ isOpen, onClose, onSelect, selectedIds = [] }) 
   };
 
   const embedUrl = previewVideo ? getEmbedUrl(previewVideo.video_url) : "";
+  const showGifPreview = previewVideo && !embedUrl && previewVideo.gif_url;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -139,6 +140,18 @@ const ExerciseSelectorModal = ({ isOpen, onClose, onSelect, selectedIds = [] }) 
           </div>
         )}
 
+        {/* GIF preview inline (quando não há vídeo) */}
+        {showGifPreview && (
+          <div className="px-5 pb-3">
+            <div className="rounded-lg overflow-hidden bg-muted border border-border">
+              <img src={previewVideo.gif_url} alt={previewVideo.title} className="w-full max-h-64 object-contain" />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1 text-center">
+              Pré-visualização: {previewVideo.title} · © Gym visual
+            </p>
+          </div>
+        )}
+
         {/* List */}
         <ScrollArea className="px-5" style={{ height: "340px" }}>
           {loading ? (
@@ -152,7 +165,7 @@ const ExerciseSelectorModal = ({ isOpen, onClose, onSelect, selectedIds = [] }) 
                 const isSelected = selectedExercise?.id === exercise.id;
                 const isAlreadyAdded = selectedIds.includes(exercise.id);
                 const isPreviewing = previewVideo?.id === exercise.id;
-                const hasVideo = !!exercise.video_url;
+                const hasMedia = !!(exercise.video_url || exercise.gif_url);
 
                 return (
                   <div
@@ -173,7 +186,7 @@ const ExerciseSelectorModal = ({ isOpen, onClose, onSelect, selectedIds = [] }) 
                         isSelected ? "bg-primary text-primary-foreground" : "bg-card text-muted-foreground"
                       )}>
                         {isSelected ? <Check className="h-5 w-5" /> :
-                          hasVideo ? <Video className="h-5 w-5" /> : <Dumbbell className="h-5 w-5" />}
+                          hasMedia ? <Video className="h-5 w-5" /> : <Dumbbell className="h-5 w-5" />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className={cn("font-medium truncate text-sm", isSelected ? "text-primary" : "text-foreground")}>
@@ -190,8 +203,8 @@ const ExerciseSelectorModal = ({ isOpen, onClose, onSelect, selectedIds = [] }) 
                           )}
                         </div>
                       </div>
-                      {/* Video preview toggle */}
-                      {hasVideo && !isAlreadyAdded && (
+                      {/* Media preview toggle */}
+                      {hasMedia && !isAlreadyAdded && (
                         <Button
                           variant="ghost"
                           size="icon"
