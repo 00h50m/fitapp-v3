@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +34,13 @@ const AVATAR_COLORS = [
 ];
 const avatarColor = (name = "") => AVATAR_COLORS[(name.charCodeAt(0) || 0) % AVATAR_COLORS.length];
 const initials = (name = "") => name.split(" ").slice(0, 2).map(w => w[0]?.toUpperCase() || "").join("");
+
+const greeting = () => {
+  const h = new Date().getHours();
+  if (h < 12) return "Bom dia";
+  if (h < 18) return "Boa tarde";
+  return "Boa noite";
+};
 
 const StatCard = ({ title, value, icon: Icon, trend, trendLabel, loading }) => (
   <Card className="bg-card border-border">
@@ -78,6 +86,8 @@ const ActivityItem = ({ name, action, time, icon: Icon, iconColor }) => (
 
 const DashboardPage = () => {
   const navigate = useNavigate();
+  const { profile, user } = useAuth();
+  const adminFirstName = (profile?.name || user?.email?.split("@")[0] || "").split(" ")[0];
   const mountedRef = useRef(true);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -212,7 +222,9 @@ const DashboardPage = () => {
       <div className="space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-display font-bold text-foreground">Dashboard</h1>
+            <h1 className="text-2xl font-display font-bold text-foreground">
+              {greeting()}{adminFirstName ? `, ${adminFirstName}` : ""}
+            </h1>
             <p className="text-sm text-muted-foreground mt-0.5">Visão geral do seu aplicativo de treinos</p>
           </div>
           <Button variant="ghost" size="sm" onClick={loadDashboard} disabled={loading}>
