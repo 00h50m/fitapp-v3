@@ -16,8 +16,8 @@ WMFVS = None
 
 def wm_items(dx, dy, s=1.0):
     m = Tm(s, dx, dy)
-    meta = dict(text='Gabriela Barros', x=WM_OX*s + dx, y=dy, size=WM_SIZE*s, track=WM_TRACK, font='Young Serif', weight=400)
-    return [('gabriela-barros', 'sig', ap(WM, m), ('text', meta))], []
+    meta = dict(text='Gabr\u0131ela Barros', x=WM_OX*s + dx, y=dy, size=WM_SIZE*s, track=WM_TRACK, font='Young Serif', weight=400)
+    return [('gabriela-barros', 'sig', ap(WM, m), ('text', meta))], [('pingo-do-i', 'sus', ap(WM_DOT, m), None)]
 
 DESC = 'CONFEITARIA \u00b7 RECEITAS DE FAM\u00cdLIA'
 def desc_group(cx, y, size=17, track=170, align='center'):
@@ -30,14 +30,14 @@ def desc_group(cx, y, size=17, track=170, align='center'):
 
 def principal(cw):
     w, d = wm_items(0, 0)
-    return [('nome', 'Nome', w), ('descritor', 'Descritor', desc_group(WM_W/2, 46))]
+    return [('nome', 'Nome', w + d), ('descritor', 'Descritor', desc_group(WM_W/2, 46))]
 
 def horizontal(cw):
     sh = 92; s = sh/SUSH
     sus = T(SUS, s, 0, 0, s, 0, -sh + 32)
     ox = SUSW*s + 30
     w, d = wm_items(ox, 0)
-    return [('simbolo', 'Suspiro', [('suspiro', 'sus', sus, None)]), ('nome', 'Nome', w),
+    return [('simbolo', 'Suspiro', [('suspiro', 'sus', sus, None)]), ('nome', 'Nome', w + d),
             ('descritor', 'Descritor', desc_group(ox + 2, 40, 15, 200, align='left'))]
 
 def monograma(cw):
@@ -69,7 +69,7 @@ def carimbo(cw):
 def simbolo(cw): return [('simbolo', 'Suspiro', [('suspiro', 'sus', SUS, None)])]
 def nome(cw):
     w, d = wm_items(0, 0)
-    return [('nome', 'Nome', w)]
+    return [('nome', 'Nome', w + d)]
 
 VERSIONS = [('logo-principal', 'Logo principal', principal), ('logo-horizontal', 'Logo horizontal', horizontal),
             ('monograma', 'Monograma', monograma), ('carimbo', 'Carimbo', carimbo),

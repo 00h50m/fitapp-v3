@@ -1,10 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-47.58 -127.58 888.16 234.66" width="888.16" height="234.66">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-46.57 -126.57 869.34 232.64" width="869.34" height="232.64">
 <title>Gabriela Barros — Logo principal (monocromática chocolate) — texto editável</title>
 <g id="nome" inkscape:label="Nome" inkscape:groupmode="layer">
-<text id="nome-gabriela-barros" x="-3.5" y="0" font-family="'Young Serif'" font-weight="400" font-size="100" letter-spacing="0" fill="#3B2220">Gabriela Barros</text>
+<text id="nome-gabriela-barros" x="-3.5" y="0" font-family="'Young Serif'" font-weight="400" font-size="100" letter-spacing="-1.2" fill="#3B2220">Gabrıela Barros</text>
+<path id="nome-pingo-do-i" inkscape:label="pingo-do-i" d="M257.1 -74Q259.7 -74 262.2 -71.5Q264.7 -69 264.7 -66.5Q264.7 -64 262.2 -61.5Q259.7 -59 257.1 -59Q254.7 -59 252.1 -61.5Q249.6 -63.9 249.6 -66.5Q249.6 -69 252.1 -71.5Q254.6 -74 257.1 -74Z" fill="#3B2220"/>
 </g>
 <g id="descritor" inkscape:label="Descritor" inkscape:groupmode="layer">
-<text id="descritor-confeitaria-receitas-de-familia" x="182.07" y="46" font-family="'Courier Prime'" font-weight="700" font-size="17" letter-spacing="2.89" fill="#3B2220">CONFEITARIA · RECEITAS DE FAMÍLIA</text>
-<path id="descritor-fio" inkscape:label="fio" d="M182.07 57.9H610.93V59.5H182.07V57.9Z" fill="#3B2220"/>
+<text id="descritor-confeitaria-receitas-de-familia" x="173.67" y="46" font-family="'Courier Prime'" font-weight="700" font-size="17" letter-spacing="2.89" fill="#3B2220">CONFEITARIA · RECEITAS DE FAMÍLIA</text>
+<path id="descritor-fio" inkscape:label="fio" d="M173.67 57.9H602.53V59.5H173.67V57.9Z" fill="#3B2220"/>
 </g>
 </svg>

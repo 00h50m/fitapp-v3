@@ -1,6 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-47.58 -127.58 888.16 176.56" width="888.16" height="176.56">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-46.57 -126.57 869.34 174.54" width="869.34" height="174.54">
 <title>Gabriela Barros — Nome (preta) — texto editável</title>
 <g id="nome" inkscape:label="Nome" inkscape:groupmode="layer">
-<text id="nome-gabriela-barros" x="-3.5" y="0" font-family="'Young Serif'" font-weight="400" font-size="100" letter-spacing="0" fill="#000000">Gabriela Barros</text>
+<text id="nome-gabriela-barros" x="-3.5" y="0" font-family="'Young Serif'" font-weight="400" font-size="100" letter-spacing="-1.2" fill="#000000">Gabrıela Barros</text>
+<path id="nome-pingo-do-i" inkscape:label="pingo-do-i" d="M257.1 -74Q259.7 -74 262.2 -71.5Q264.7 -69 264.7 -66.5Q264.7 -64 262.2 -61.5Q259.7 -59 257.1 -59Q254.7 -59 252.1 -61.5Q249.6 -63.9 249.6 -66.5Q249.6 -69 252.1 -71.5Q254.6 -74 257.1 -74Z" fill="#000000"/>
 </g>
 </svg>

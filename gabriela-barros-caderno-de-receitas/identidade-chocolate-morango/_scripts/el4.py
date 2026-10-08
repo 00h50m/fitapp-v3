@@ -21,16 +21,28 @@ def text(s, size, font=TYPEB, track=0):
     return U(*[P(d) for _, d in gl]), adv, bb
 
 # ---- wordmark: "Gabriela Barros" with a dotless i; the dot becomes a suspiro ----
-WM_SIZE = 100; WM_TRACK = 0
+WM_SIZE = 100; WM_TRACK = -12
 import pathops
+def _split(p):
+    out = []
+    for c in p.contours:
+        q = pathops.Path(); c.draw(q.getPen()); out.append(q)
+    return out
 def _wordmark():
+    """Young Serif, tightened spacing; the dot of the i is detached so it can be coloured (morango)."""
     gl, adv, bb = shape(SERIF, 'Gabriela Barros', WM_SIZE, WM_TRACK)
-    body = U(*[P(d) for _, d in gl])
-    x0, y0, x1, y1 = body.bounds
-    return MOVE(body, -x0, 0), pathops.Path(), -x0, adv
+    body, dot = [], None
+    for n, d in gl:
+        p = P(d)
+        if n == 'i':
+            cs = sorted(_split(p), key=lambda q: q.bounds[1]); dot = U(cs[0]); body.append(U(*cs[1:]))
+        else:
+            body.append(p)
+    body = U(*body)
+    x0 = U(body, dot).bounds[0]
+    return MOVE(body, -x0, 0), MOVE(dot, -x0, 0), -x0, adv
 WM, WM_DOT, WM_OX, WM_ADV = _wordmark()
-import pathops
-_a = WM.bounds; WM_W = _a[2]; WM_TOP = _a[1]; WM_BOT = _a[3]
+_a = U(WM, WM_DOT).bounds; WM_W = _a[2]; WM_TOP = _a[1]; WM_BOT = _a[3]
 
 def monogram_gb():
     g, adv, bb = shape(SERIF, 'G', 160, 0); G = U(*[P(d) for _, d in g])

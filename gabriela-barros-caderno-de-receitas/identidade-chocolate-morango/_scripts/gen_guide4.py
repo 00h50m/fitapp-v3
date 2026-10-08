@@ -42,7 +42,7 @@ page(b, num=False)
 # 2 concept
 b = Pa(56, 170, ['A Gabriela aprendeu a confeitar na infância, com a avó', 'paterna, e depois com a tia materna. Juntas, testavam', 'receitas e inventavam as delas.',
                  '', 'A marca é esse caderno de receitas de família — que', 'continua sendo escrito.'], 13, fill=INK)
-items = [('Nome', ['Young Serif: cara de rótulo antigo de doceria.', 'Afetiva, legível e pouco vista em confeitarias.']),
+items = [('Nome', ['Young Serif ajustada: letras mais próximas e o', 'pingo do "i" em morango, como um confeito.']),
          ('Suspiro', ['O doce e a reação de quem prova: símbolo,', 'carimbo, padrões e detalhes de embalagem.']),
          ('Datilografia', ['Courier Prime: a máquina de escrever das fichas', 'de receita. Garante a leitura do nome e dos dados.']),
          ('Cores', ['O bolo-assinatura: chocolate amargo, morango,', 'rosa-morango, creme de leite e folha.'])]
@@ -98,7 +98,7 @@ b = card(56, 150, 500, 560) + Tx(80, 186, 'NOME E TÍTULOS', 11, 700, C['morango
 b += embed(L('nome', 'chocolate'), 80, 205, 440, 80)[0]
 b += Tx(80, 330, 'Young Serif', 30, 700, C['chocolate'])
 b += Pa(80, 358, ['Autor: Bastien Sozeau (Noirblancrouge).', 'Google Fonts. Licença SIL Open Font', 'License 1.1 — uso comercial livre.'], 11, fill=INK)
-b += Pa(80, 430, ['Nome: Young Serif Regular, convertido em curvas.', 'Use o arquivo do logo, nunca o nome digitado.', '',
+b += Pa(80, 430, ['Nome: Young Serif, espaçamento -12/1000 e pingo', 'do "i" em morango. Use sempre o arquivo do logo.', '',
                   'Títulos e frases afetivas: Young Serif', 'em caixa-baixa, sempre menores que o logo.'], 11, fill=MUTED)
 b += embed(M('frase-feito-com-amor'), 80, 560, 300, 60)[0]
 b += card(580, 150, 487, 560) + Tx(604, 186, 'DATILOGRAFIA', 11, 700, C['morango'], ls=2)

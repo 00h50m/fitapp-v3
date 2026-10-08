@@ -1,7 +1,7 @@
 # Gabriela Barros — Caderno de receitas · Identidade v2 (chocolate com morango)
 
-Conceito "caderno de receitas de família". Nome em **Young Serif**; descritor, carimbo e etiquetas em **Courier Prime**;
-o **suspiro** aparece como símbolo, no carimbo, nos padrões e nas embalagens (o pingo do "i" é normal).
+Conceito "caderno de receitas de família". Nome em **Young Serif** ajustada (espaçamento −12/1000, pingo do "i" em morango); descritor, carimbo e etiquetas em **Courier Prime**;
+o **suspiro** aparece como símbolo, no carimbo, nos padrões e nas embalagens (o pingo do "i" é um ponto redondo em morango, separado do nome no arquivo).
 
 ## Paleta "bolo de chocolate com morango"
 | Cor | HEX | RGB | Uso |
