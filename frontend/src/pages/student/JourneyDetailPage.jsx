@@ -129,15 +129,15 @@ const JourneyDetailPage = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-2">
-          <div className="bg-card border border-border rounded-xl p-3 text-center">
+          <div className="bg-card rounded-xl shadow-sm p-3 text-center">
             <p className="text-lg font-bold">{journey.duration_days ?? "—"}d</p>
             <p className="text-xs text-muted-foreground">Duração</p>
           </div>
-          <div className="bg-card border border-border rounded-xl p-3 text-center">
+          <div className="bg-card rounded-xl shadow-sm p-3 text-center">
             <p className="text-lg font-bold">{total}</p>
             <p className="text-xs text-muted-foreground">Treinos</p>
           </div>
-          <div className="bg-card border border-border rounded-xl p-3 text-center">
+          <div className="bg-card rounded-xl shadow-sm p-3 text-center">
             <p className={cn("text-lg font-bold", diff.color)}>{diff.label}</p>
             <p className="text-xs text-muted-foreground">Nível</p>
           </div>
@@ -145,7 +145,7 @@ const JourneyDetailPage = () => {
 
         {/* Progresso */}
         {isActive && (
-          <div className="bg-card border border-border rounded-xl p-4 space-y-2">
+          <div className="bg-card rounded-xl shadow-sm p-4 space-y-2">
             <div className="flex justify-between text-sm">
               <span className="font-medium flex items-center gap-1.5"><Zap className="h-3.5 w-3.5 text-primary" />Seu progresso</span>
               <span className="font-bold text-primary">{progress}%</span>

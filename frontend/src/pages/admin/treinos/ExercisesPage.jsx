@@ -213,13 +213,8 @@ const ExercisesPage = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-display font-semibold text-foreground flex items-center gap-2">
-              <Dumbbell className="h-6 w-6 text-primary" />
-              Biblioteca de Exercícios
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Gerencie os exercícios disponíveis para os treinos
-            </p>
+            <h1 className="text-2xl font-display font-bold text-foreground">Exercícios</h1>
+            <p className="text-muted-foreground mt-1">Biblioteca reutilizada em todos os treinos.</p>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="icon" onClick={loadExercises} disabled={loading}>
@@ -227,7 +222,7 @@ const ExercisesPage = () => {
             </Button>
             <Button variant="premium" className="gap-2" onClick={() => { setEditingExercise(null); setShowModal(true); }}>
               <Plus className="h-4 w-4" />
-              Novo Exercício
+              Novo exercício
             </Button>
           </div>
         </div>
@@ -253,7 +248,7 @@ const ExercisesPage = () => {
           </select>
         </div>
 
-        <div className="bg-card border border-border rounded-2xl overflow-hidden">
+        <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
             {loading ? (
               <div className="py-16 flex items-center justify-center gap-3">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />

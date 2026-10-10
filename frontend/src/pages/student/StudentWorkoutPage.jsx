@@ -635,7 +635,7 @@ const StudentWorkoutPage = () => {
             </div>
 
             {activeSession && (
-              <div className="bg-card border border-border rounded-2xl p-4 space-y-2">
+              <div className="bg-card rounded-2xl shadow-sm p-4 space-y-2">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-muted-foreground">Progresso</span>
                   <div className="flex items-center gap-3">

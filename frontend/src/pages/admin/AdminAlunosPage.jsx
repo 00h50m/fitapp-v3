@@ -154,7 +154,7 @@ const AdminAlunosPage = () => {
           </Button>
         </div>
 
-        <div className="bg-card border border-border rounded-2xl overflow-hidden">
+        <div className="bg-card rounded-2xl shadow-sm overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-16"><Loader2 className="h-7 w-7 animate-spin text-primary" /></div>
           ) : error ? (

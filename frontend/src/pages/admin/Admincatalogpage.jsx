@@ -277,7 +277,7 @@ const JourneyCard = ({ journey, onEdit, onDelete, onManageAccess }) => {
   const hasCover = !!journey.cover_image_url;
 
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden hover:border-primary/40 transition-all group">
+    <div className="bg-card rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-all group">
       <div className="h-28 flex items-center justify-center relative overflow-hidden" style={{ background: hasCover ? "transparent" : journey.cover_color }}>
         {hasCover ? (
           <img src={journey.cover_image_url} alt={journey.title} className="absolute inset-0 w-full h-full object-cover" />

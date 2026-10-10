@@ -244,22 +244,22 @@ const WorkoutPreviewPage = () => {
 
         {/* Info grid */}
         <div className="grid grid-cols-3 gap-2">
-          <div className="bg-card border border-border rounded-2xl p-3 text-center">
+          <div className="bg-card rounded-2xl shadow-sm p-3 text-center">
             <p className="text-lg font-bold">{blocks.length}</p>
             <p className="text-[10px] text-muted-foreground mt-0.5">blocos</p>
           </div>
-          <div className="bg-card border border-border rounded-2xl p-3 text-center">
+          <div className="bg-card rounded-2xl shadow-sm p-3 text-center">
             <p className="text-lg font-bold">{totalExercises}</p>
             <p className="text-[10px] text-muted-foreground mt-0.5">exercícios</p>
           </div>
-          <div className="bg-card border border-border rounded-2xl p-3 text-center">
+          <div className="bg-card rounded-2xl shadow-sm p-3 text-center">
             <p className="text-lg font-bold">{mediaCount}</p>
             <p className="text-[10px] text-muted-foreground mt-0.5">com vídeo/GIF</p>
           </div>
         </div>
 
         {/* Benefícios — valoriza o acompanhamento individual do personal */}
-        <div className="bg-card border border-border rounded-2xl p-4 space-y-2.5">
+        <div className="bg-card rounded-2xl shadow-sm p-4 space-y-2.5">
           {[
             { icon: CheckCircle2, text: "Montado especialmente pelo seu personal" },
             { icon: Video, text: "Demonstração em vídeo ou GIF em cada exercício" },
@@ -285,7 +285,7 @@ const WorkoutPreviewPage = () => {
           const isExpanded = expandedBlocks.has(block.id);
 
           return (
-            <div key={block.id} className="bg-card border border-border rounded-2xl overflow-hidden">
+            <div key={block.id} className="bg-card rounded-2xl shadow-sm overflow-hidden">
               {/* Header bloco */}
               <button
                 className="w-full px-4 py-3 flex items-center gap-3 text-left"

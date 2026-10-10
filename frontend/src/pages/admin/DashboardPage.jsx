@@ -44,7 +44,7 @@ const greeting = () => {
 };
 
 const StatCard = ({ title, value, icon: Icon, trend, trendLabel, loading }) => (
-  <Card className="bg-card border-border">
+  <Card className="bg-card">
     <CardContent className="p-5">
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
@@ -319,7 +319,7 @@ const DashboardPage = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Atividade Recente */}
-          <Card className="bg-card border-border lg:col-span-2">
+          <Card className="bg-card lg:col-span-2">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-base font-semibold">
@@ -362,7 +362,7 @@ const DashboardPage = () => {
           </Card>
 
           {/* Precisa da sua atenção */}
-          <Card className="bg-card border-border">
+          <Card className="bg-card">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base font-semibold">
                 <AlertCircle className="h-4 w-4 text-orange-500 dark:text-orange-400" />
@@ -402,7 +402,7 @@ const DashboardPage = () => {
 
         {/* Resumo */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <Card className="bg-card border-border">
+            <Card className="bg-card">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-sm font-medium text-muted-foreground">Taxa de Conclusão</p>
@@ -430,7 +430,7 @@ const DashboardPage = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-card border-border">
+            <Card className="bg-card">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-sm font-medium text-muted-foreground">Renovações Pendentes</p>
@@ -449,7 +449,7 @@ const DashboardPage = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-card border-border">
+            <Card className="bg-card">
               <CardContent className="p-4">
                 <p className="text-sm font-medium text-muted-foreground mb-2">Média Treinos/Semana</p>
                 {loading ? <div className="h-8 w-12 bg-muted/50 rounded animate-pulse" /> : (

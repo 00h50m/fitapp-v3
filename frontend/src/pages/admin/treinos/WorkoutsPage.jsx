@@ -121,7 +121,7 @@ const WorkoutsPage = () => {
               return (
                 <div
                   key={workout.id}
-                  className="bg-card border border-border rounded-2xl overflow-hidden group hover:border-primary/40 transition-colors cursor-pointer"
+                  className="bg-card rounded-2xl shadow-sm overflow-hidden group hover:shadow-md transition-all cursor-pointer"
                   onClick={() => navigate(`/admin/treinos/editor/${workout.id}`)}
                 >
                   <div className="relative">

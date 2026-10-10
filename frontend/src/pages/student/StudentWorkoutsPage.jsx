@@ -413,7 +413,7 @@ const StudentWorkoutsPage = () => {
                 { label: "Essa semana", value: weekCount,             color: "text-foreground" },
                 { label: streak >= 2 ? "🔥 Streak" : "Sequência", value: streak, color: "text-foreground" },
               ].map(({ label, value, color }) => (
-                <div key={label} className="bg-card border border-border rounded-2xl p-4 text-center">
+                <div key={label} className="bg-card rounded-2xl shadow-sm p-4 text-center">
                   <p className={cn("text-2xl font-black leading-none mb-1.5", color)}>{value}</p>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</p>
                 </div>
@@ -421,7 +421,7 @@ const StudentWorkoutsPage = () => {
             </div>
 
             {/* Tira semanal — visual, reforça a constância dia a dia */}
-            <div className="bg-card border border-border rounded-2xl px-4 py-3.5 flex items-center justify-between gap-1">
+            <div className="bg-card rounded-2xl shadow-sm px-4 py-3.5 flex items-center justify-between gap-1">
               {weekStrip.map(day => (
                 <div key={day.dateStr} className="flex flex-col items-center gap-1.5">
                   <span className="text-[9px] font-medium text-muted-foreground">{day.label}</span>
@@ -547,11 +547,11 @@ const StudentWorkoutsPage = () => {
                     <div className="space-y-2">
                       {savedJourneys.map(sv => (
                         <div key={sv.id}
-                          className="bg-card border border-border rounded-xl overflow-hidden flex cursor-pointer hover:border-primary/40 transition-all"
+                          className="bg-card rounded-xl shadow-sm overflow-hidden flex cursor-pointer hover:shadow-md transition-all"
                           onClick={() => navigate(`/student/journey/${sv.journey_id}`)}
                         >
                           <div className="w-16 h-16 flex-shrink-0 flex items-center justify-center text-2xl"
-                            style={{ background: sv.journey?.cover_image_url ? "transparent" : (sv.journey?.cover_color ?? "#0F6E56") }}>
+                            style={{ background: sv.journey?.cover_image_url ? "transparent" : `color-mix(in srgb, ${sv.journey?.cover_color ?? "#0F6E56"} 16%, transparent)` }}>
                             {sv.journey?.cover_image_url
                               ? <img src={sv.journey.cover_image_url} alt="" className="w-full h-full object-cover" />
                               : sv.journey?.cover_emoji ?? "⚡"}
@@ -572,7 +572,7 @@ const StudentWorkoutsPage = () => {
                     <div className="space-y-2">
                       {savedWorkouts.map(sw => (
                         <div key={sw.id}
-                          className="bg-card border border-border rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:border-primary/40 transition-all"
+                          className="bg-card rounded-xl shadow-sm p-4 flex items-center gap-3 cursor-pointer hover:shadow-md transition-all"
                           onClick={() => navigate(`/student/workout-preview/${sw.workout_template_id}`)}
                         >
                           <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">

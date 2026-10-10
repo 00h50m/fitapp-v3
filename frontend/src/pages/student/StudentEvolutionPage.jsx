@@ -95,15 +95,15 @@ const StudentEvolutionPage = () => {
         ) : (
           <>
             <div className="grid grid-cols-3 gap-2 mb-5">
-              <div className="bg-card border border-border rounded-2xl p-4 text-center">
+              <div className="bg-card rounded-2xl shadow-sm p-4 text-center">
                 <p className="text-2xl font-black leading-none mb-1.5 text-primary">{treinosMes}</p>
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Treinos no mês</p>
               </div>
-              <div className="bg-card border border-border rounded-2xl p-4 text-center">
+              <div className="bg-card rounded-2xl shadow-sm p-4 text-center">
                 <p className="text-2xl font-black leading-none mb-1.5 text-primary">{sequencia}</p>
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Semanas seguidas</p>
               </div>
-              <div className="bg-card border border-border rounded-2xl p-4 text-center">
+              <div className="bg-card rounded-2xl shadow-sm p-4 text-center">
                 <p className="text-2xl font-black leading-none mb-1.5 text-primary">{taxaConclusao}%</p>
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Conclusão</p>
               </div>
@@ -126,7 +126,7 @@ const StudentEvolutionPage = () => {
             </div>
             <div className="space-y-2">
               {recentes.map(s => (
-                <div key={s.id} className="flex items-center gap-3 bg-card border border-border rounded-2xl px-4 py-3">
+                <div key={s.id} className="flex items-center gap-3 bg-card rounded-2xl shadow-sm px-4 py-3">
                   <div className="h-9 w-9 rounded-full bg-green-500/15 flex items-center justify-center flex-shrink-0">
                     <Calendar className="h-4 w-4 text-green-600 dark:text-green-400" />
                   </div>
