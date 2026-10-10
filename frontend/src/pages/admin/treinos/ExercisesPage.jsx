@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -75,6 +74,7 @@ const ExercisesPage = () => {
   const [deleteExercise, setDeleteExercise] = useState(null);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [muscleFilter, setMuscleFilter] = useState("all");
 
   const loadExercises = useCallback(async () => {
     setLoading(true);
@@ -94,10 +94,14 @@ const ExercisesPage = () => {
 
   useEffect(() => { loadExercises(); }, [loadExercises]);
 
-  const filteredExercises = exercises.filter(ex =>
-    (ex.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (ex.muscle_group || "").toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const muscleGroupsPresent = [...new Set(exercises.map(e => e.muscle_group).filter(Boolean))].sort();
+
+  const filteredExercises = exercises.filter(ex => {
+    const matchesSearch = (ex.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (ex.muscle_group || "").toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesMuscle = muscleFilter === "all" || ex.muscle_group === muscleFilter;
+    return matchesSearch && matchesMuscle;
+  });
 
   // Save: cria ou atualiza. Valida nome único no front antes de enviar.
   const handleSave = async (exerciseData) => {
@@ -228,40 +232,28 @@ const ExercisesPage = () => {
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[
-            { label: "Total", value: exercises.length, color: "text-foreground" },
-            { label: "Com Mídia", value: exercises.filter(e => e.video_url || e.gif_url).length, color: "text-primary" },
-            { label: "Grupos Musc.", value: new Set(exercises.map(e => e.muscle_group).filter(Boolean)).size, color: "text-foreground" },
-            { label: "Equipamentos", value: new Set(exercises.map(e => e.equipment).filter(Boolean)).size, color: "text-foreground" },
-          ].map(s => (
-            <Card key={s.label} className="bg-card border-border">
-              <CardContent className="p-4 text-center">
-                <p className={cn("text-2xl font-bold", s.color)}>{s.value}</p>
-                <p className="text-xs text-muted-foreground">{s.label}</p>
-              </CardContent>
-            </Card>
-          ))}
+        {/* Busca + filtro */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar exercício..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-card border-border h-11"
+            />
+          </div>
+          <select
+            value={muscleFilter}
+            onChange={e => setMuscleFilter(e.target.value)}
+            className="h-11 rounded-md border border-border bg-card px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            <option value="all">Todos os grupos</option>
+            {muscleGroupsPresent.map(mg => <option key={mg} value={mg}>{muscleLabels[mg] || mg}</option>)}
+          </select>
         </div>
 
-        {/* Table */}
-        <Card className="bg-card border-border">
-          <CardHeader className="pb-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <CardTitle className="text-lg font-display">Lista de Exercícios</CardTitle>
-              <div className="relative w-full sm:w-72">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar exercício..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-muted border-border"
-                />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
+        <div className="bg-card border border-border rounded-2xl overflow-hidden">
             {loading ? (
               <div className="py-16 flex items-center justify-center gap-3">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -392,8 +384,7 @@ const ExercisesPage = () => {
                 )}
               </>
             )}
-          </CardContent>
-        </Card>
+        </div>
       </div>
 
       <ExerciseFormModal
