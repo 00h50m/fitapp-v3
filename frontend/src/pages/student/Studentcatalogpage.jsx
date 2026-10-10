@@ -144,6 +144,14 @@ const JourneyListRow = ({ journey, studentJourney, hasAccess, onSelect }) => {
         <p className="text-xs text-muted-foreground truncate mt-0.5">
           {journey.category ? `${journey.category.emoji} ${journey.category.name}` : "Geral"} · {total} treino{total !== 1 ? "s" : ""}
         </p>
+        {journey.description && (
+          <p className="text-xs text-muted-foreground/70 truncate mt-0.5">{journey.description}</p>
+        )}
+        {!locked && isActive && (
+          <div className="h-1 bg-secondary rounded-full overflow-hidden mt-1.5 max-w-[160px]">
+            <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+          </div>
+        )}
       </div>
 
       <div className="flex-shrink-0 text-right">
@@ -307,6 +315,13 @@ const StudentCatalogPage = () => {
                 onSelect={setSelectedJourney}
               />
             ))}
+          </div>
+
+          <div className="mt-4 bg-card/60 border border-dashed border-border rounded-2xl p-5 text-center space-y-3">
+            <p className="text-sm text-muted-foreground">Quer mais jornadas liberadas pra você?</p>
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => openWhatsApp("novas jornadas disponíveis")}>
+              <MessageCircle className="h-4 w-4" />Falar com o personal
+            </Button>
           </div>
         </div>
       )}
