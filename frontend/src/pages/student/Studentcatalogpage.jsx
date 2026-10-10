@@ -5,8 +5,7 @@ import { getJourneys, getCategories, getStudentJourneys, getGrantedJourneyIds, e
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { BottomNav } from "@/components/layout/BottomNav";
-import { JourneyCard } from "@/components/student/JourneyCard";
-import { Loader2, BookOpen, ChevronRight, CheckCircle2, Clock, Lock, MessageCircle, ArrowLeft } from "lucide-react";
+import { Loader2, BookOpen, ChevronRight, CheckCircle2, Lock, MessageCircle, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { DIFFICULTY_LABEL } from "@/lib/difficultyLabels";
@@ -108,25 +107,60 @@ const JourneyDetailModal = ({ journey, studentJourney, hasAccess, onClose, onSta
   );
 };
 
-// ── Row horizontal por categoria ───────────────────────────────
-const CategoryRow = ({ id, title, journeys, studentJourneys, grantedIds, onSelect }) => {
-  if (!journeys.length) return null;
+// ── Linha de lista plana ("Programas", fiel ao protótipo) ───────
+const JourneyListRow = ({ journey, studentJourney, hasAccess, onSelect }) => {
+  const isActive = studentJourney?.status === "active";
+  const isDone = studentJourney?.status === "completed";
+  const locked = !hasAccess;
+  const total = journey.journey_workouts?.[0]?.count ?? 0;
+  const completed = studentJourney?.completed_workouts ?? 0;
+  const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const hasCover = !!journey.cover_image_url;
+
   return (
-    <div id={id} className="mb-8 scroll-mt-20">
-      <h2 className="text-base font-semibold text-foreground mb-3 px-4">{title}</h2>
-      <div className="flex gap-3 overflow-x-auto pb-2 px-4 scrollbar-none">
-        {journeys.map(j => (
-          <JourneyCard
-            key={j.id}
-            journey={j}
-            studentJourney={studentJourneys.find(sj => sj.journey_id === j.id) ?? null}
-            hasAccess={grantedIds.has(j.id)}
-            onSelect={onSelect}
-            size="md"
-          />
-        ))}
+    <button
+      type="button"
+      onClick={() => onSelect(journey)}
+      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/40 active:bg-secondary/60 transition-colors text-left border-b border-border/60 last:border-b-0"
+    >
+      <div
+        className="relative h-12 w-12 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center"
+        style={{ background: hasCover ? undefined : journey.cover_color, filter: locked ? "grayscale(70%)" : "none" }}
+      >
+        {hasCover ? (
+          <img src={journey.cover_image_url} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <span className="text-xl">{journey.cover_emoji}</span>
+        )}
+        {locked && (
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <Lock className="h-4 w-4 text-white/90" />
+          </div>
+        )}
       </div>
-    </div>
+
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-foreground truncate">{journey.title}</p>
+        <p className="text-xs text-muted-foreground truncate mt-0.5">
+          {journey.category ? `${journey.category.emoji} ${journey.category.name}` : "Geral"} · {total} treino{total !== 1 ? "s" : ""}
+        </p>
+      </div>
+
+      <div className="flex-shrink-0 text-right">
+        {locked ? (
+          <span className="text-[10px] font-medium text-muted-foreground/70">Bloqueada</span>
+        ) : isDone ? (
+          <span className="text-[10px] font-medium text-green-600 dark:text-green-400 inline-flex items-center gap-1">
+            <CheckCircle2 className="h-3 w-3" />Concluída
+          </span>
+        ) : isActive ? (
+          <span className="text-[10px] font-medium text-primary">{progress}%</span>
+        ) : (
+          <span className="text-[10px] font-medium text-muted-foreground">Disponível</span>
+        )}
+      </div>
+      <ChevronRight className="h-4 w-4 text-muted-foreground/50 flex-shrink-0" />
+    </button>
   );
 };
 
@@ -140,6 +174,7 @@ const StudentCatalogPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedJourney, setSelectedJourney] = useState(null);
   const [starting, setStarting] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("all"); // "all" | "mine" | categoryId
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -159,11 +194,11 @@ const StudentCatalogPage = () => {
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
-  // Rola até a categoria indicada na URL (vindo do atalho da tela inicial)
+  // Aplica o filtro indicado na URL (vindo do atalho "O que você quer treinar hoje?" da Home)
   useEffect(() => {
-    if (loading || !window.location.hash) return;
-    const el = document.querySelector(window.location.hash);
-    if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    if (loading) return;
+    const hash = window.location.hash;
+    if (hash?.startsWith("#cat-")) setActiveFilter(hash.replace("#cat-", ""));
   }, [loading]);
 
   const handleEnroll = async (journey) => {
@@ -181,16 +216,16 @@ const StudentCatalogPage = () => {
   const selectedStudentJourney = selectedJourney ? studentJourneys.find(sj => sj.journey_id === selectedJourney.id) ?? null : null;
   const selectedHasAccess = selectedJourney ? grantedIds.has(selectedJourney.id) : false;
 
-  // Organiza por categoria
   const myJourneys = journeys.filter(j => studentJourneys.some(sj => sj.journey_id === j.id));
-  const availableJourneys = journeys.filter(j => grantedIds.has(j.id) && !studentJourneys.some(sj => sj.journey_id === j.id));
-  const lockedJourneys = journeys.filter(j => !grantedIds.has(j.id));
 
-  const scrollToSection = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  // Chips só para categorias que de fato têm jornada cadastrada
+  const chipCategories = categories.filter(cat => journeys.some(j => j.category_id === cat.id));
 
-  const chipCategories = categories.filter(cat => availableJourneys.some(j => j.category_id === cat.id));
+  const filteredJourneys = journeys.filter(j => {
+    if (activeFilter === "all") return true;
+    if (activeFilter === "mine") return studentJourneys.some(sj => sj.journey_id === j.id);
+    return j.category_id === activeFilter;
+  });
 
   return (
     <div className="min-h-screen bg-background pb-24 w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto">
@@ -207,18 +242,41 @@ const StudentCatalogPage = () => {
         </div>
       </div>
 
-      {/* Chips de atalho por categoria */}
-      {!loading && (myJourneys.length > 0 || chipCategories.length > 0) && (
+      {/* Chips de filtro (lista plana filtrável, fiel ao protótipo) */}
+      {!loading && (
         <div className="flex gap-2 overflow-x-auto px-4 pt-3 pb-1 scrollbar-none">
+          <button
+            type="button"
+            onClick={() => setActiveFilter("all")}
+            className={cn(
+              "flex-shrink-0 text-xs font-medium px-3 py-2 rounded-full transition-colors",
+              activeFilter === "all" ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:text-foreground hover:border-primary/40"
+            )}
+          >
+            Todas
+          </button>
           {myJourneys.length > 0 && (
-            <button type="button" onClick={() => scrollToSection("cat-minhas")}
-              className="flex-shrink-0 text-xs font-medium px-3 py-2 rounded-full bg-primary text-primary-foreground">
+            <button
+              type="button"
+              onClick={() => setActiveFilter("mine")}
+              className={cn(
+                "flex-shrink-0 text-xs font-medium px-3 py-2 rounded-full transition-colors",
+                activeFilter === "mine" ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:text-foreground hover:border-primary/40"
+              )}
+            >
               Minhas
             </button>
           )}
           {chipCategories.map(cat => (
-            <button key={cat.id} type="button" onClick={() => scrollToSection(`cat-${cat.id}`)}
-              className="flex-shrink-0 text-xs font-medium px-3 py-2 rounded-full bg-card border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors">
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => setActiveFilter(cat.id)}
+              className={cn(
+                "flex-shrink-0 text-xs font-medium px-3 py-2 rounded-full transition-colors",
+                activeFilter === cat.id ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:text-foreground hover:border-primary/40"
+              )}
+            >
               {cat.emoji} {cat.name}
             </button>
           ))}
@@ -232,30 +290,24 @@ const StudentCatalogPage = () => {
           <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-20" />
           <p className="text-sm">Nenhuma jornada disponível ainda.</p>
         </div>
+      ) : filteredJourneys.length === 0 ? (
+        <div className="text-center py-24 text-muted-foreground px-4">
+          <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-20" />
+          <p className="text-sm">Nenhuma jornada nesse filtro ainda.</p>
+        </div>
       ) : (
-        <div className="pt-4">
-          {/* Minhas jornadas */}
-          {myJourneys.length > 0 && (
-            <CategoryRow id="cat-minhas" title="Minhas jornadas" journeys={myJourneys} studentJourneys={studentJourneys} grantedIds={grantedIds} onSelect={setSelectedJourney} />
-          )}
-
-          {/* Disponíveis por categoria */}
-          {categories.map(cat => {
-            const catJourneys = availableJourneys.filter(j => j.category_id === cat.id);
-            return (
-              <CategoryRow key={cat.id} id={`cat-${cat.id}`} title={`${cat.emoji} ${cat.name}`} journeys={catJourneys} studentJourneys={studentJourneys} grantedIds={grantedIds} onSelect={setSelectedJourney} />
-            );
-          })}
-
-          {/* Sem categoria */}
-          {availableJourneys.filter(j => !j.category_id).length > 0 && (
-            <CategoryRow title="Disponíveis" journeys={availableJourneys.filter(j => !j.category_id)} studentJourneys={studentJourneys} grantedIds={grantedIds} onSelect={setSelectedJourney} />
-          )}
-
-          {/* Bloqueadas */}
-          {lockedJourneys.length > 0 && (
-            <CategoryRow title="🔒 Em breve" journeys={lockedJourneys} studentJourneys={studentJourneys} grantedIds={grantedIds} onSelect={setSelectedJourney} />
-          )}
+        <div className="px-4 pt-3">
+          <div className="bg-card border border-border rounded-2xl overflow-hidden">
+            {filteredJourneys.map(j => (
+              <JourneyListRow
+                key={j.id}
+                journey={j}
+                studentJourney={studentJourneys.find(sj => sj.journey_id === j.id) ?? null}
+                hasAccess={grantedIds.has(j.id)}
+                onSelect={setSelectedJourney}
+              />
+            ))}
+          </div>
         </div>
       )}
 
