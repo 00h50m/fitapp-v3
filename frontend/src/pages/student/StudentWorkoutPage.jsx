@@ -561,7 +561,12 @@ const StudentWorkoutPage = () => {
     setFinishing(true);
     try {
       await supabase.from("workout_sessions").update({ finished: true, status: "finished", finished_at: new Date().toISOString(), completed_at: new Date().toISOString() }).eq("id", activeSession.id);
-      try { const sjs = await getStudentJourneys(user.id); const aj = sjs?.find(sj => sj.status === "active"); if (aj) await incrementJourneyProgress(user.id, aj.journey_id); } catch { }
+      try {
+        const { data: profile } = await supabase.from("profiles").select("id").eq("user_id", user.id).single();
+        const sjs = await getStudentJourneys(profile.id);
+        const aj = sjs?.find(sj => sj.status === "active");
+        if (aj) await incrementJourneyProgress(profile.id, aj.journey_id);
+      } catch { }
       setActiveSession(null); setShowFinishModal(false);
       toast.success("Treino concluído! 🏆");
       navigate("/student");

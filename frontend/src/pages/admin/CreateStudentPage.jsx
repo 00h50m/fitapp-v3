@@ -148,8 +148,8 @@ const CreateStudentPage = () => {
         });
       }
 
-      toast.success("Aluno criado com sucesso!");
-      navigate("/admin/alunos");
+      toast.success("Aluno criado! Já pode liberar jornadas pra ele aqui embaixo.");
+      navigate(`/admin/alunos/${userId}`);
     } catch (err) {
       toast.error(err.message || "Erro ao criar aluno.");
     } finally {

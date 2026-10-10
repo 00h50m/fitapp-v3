@@ -13,12 +13,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   ArrowLeft, Save, Loader2, AlertCircle, RefreshCw,
-  User, Calendar, Dumbbell, FileText,
+  User, Calendar, Dumbbell, FileText, BookOpen, Check, Plus,
   Clock, Shield, ShieldOff, Trophy, Trash2,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { getJourneys, getGrantedJourneyIds, grantJourneyAccess, revokeJourneyAccess } from "@/services/journeyService";
 
 const SEL = "w-full bg-muted border border-border text-foreground rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
 
@@ -71,6 +72,9 @@ const AdminAlunoDetailPage = () => {
   const [changed, setChanged]   = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [journeys, setJourneys] = useState([]);
+  const [grantedJourneyIds, setGrantedJourneyIds] = useState(new Set());
+  const [togglingJourney, setTogglingJourney] = useState(null);
 
   const load = async () => {
     if (!id) return;
@@ -84,10 +88,14 @@ const AdminAlunoDetailPage = () => {
         p = p2;
       }
       const studentId = p.user_id || p.id;
-      const [wr, sr] = await Promise.all([
+      const [wr, sr, jr, gr] = await Promise.all([
         supabase.from("student_workouts").select("id, title, status, start_date, end_date, created_at").eq("student_id", studentId).order("created_at", { ascending: false }),
         supabase.from("workout_sessions").select("id, workout_id, session_date, finished, status, finished_at").eq("student_id", studentId).order("session_date", { ascending: false }).limit(50),
+        getJourneys(),
+        getGrantedJourneyIds(p.id),
       ]);
+      setJourneys(jr || []);
+      setGrantedJourneyIds(new Set(gr || []));
       setProfile(p);
       setForm({
         name: p.name || "", email: p.email || "", phone: p.phone || "",
@@ -149,6 +157,25 @@ const AdminAlunoDetailPage = () => {
       toast.success(newVal ? "Aluno reativado!" : "Aluno inativado!");
     } catch (err) {
       toast.error("Erro: " + err.message);
+    }
+  };
+
+  const toggleJourneyAccess = async (journeyId) => {
+    setTogglingJourney(journeyId);
+    const hasAccess = grantedJourneyIds.has(journeyId);
+    try {
+      if (hasAccess) {
+        await revokeJourneyAccess(journeyId, profile.id);
+        setGrantedJourneyIds(prev => { const next = new Set(prev); next.delete(journeyId); return next; });
+      } else {
+        await grantJourneyAccess(journeyId, profile.id);
+        setGrantedJourneyIds(prev => new Set(prev).add(journeyId));
+        toast.success("Jornada liberada!");
+      }
+    } catch (err) {
+      toast.error("Erro ao atualizar acesso: " + err.message);
+    } finally {
+      setTogglingJourney(null);
     }
   };
 
@@ -267,6 +294,41 @@ const AdminAlunoDetailPage = () => {
             </Field>
           </CardContent>
         </Card>
+
+        {journeys.length > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2"><BookOpen className="h-4 w-4 text-primary" />Acesso a jornadas</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y divide-border">
+                {journeys.map(j => {
+                  const granted = grantedJourneyIds.has(j.id);
+                  const toggling = togglingJourney === j.id;
+                  return (
+                    <div key={j.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="text-lg flex-shrink-0">{j.cover_emoji}</span>
+                        <p className="text-sm font-medium text-foreground truncate">{j.title}</p>
+                      </div>
+                      <Button
+                        variant={granted ? "outline" : "premium"}
+                        size="sm"
+                        className="gap-1.5 text-xs flex-shrink-0"
+                        disabled={toggling}
+                        onClick={() => toggleJourneyAccess(j.id)}
+                      >
+                        {toggling ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          : granted ? <><Check className="h-3.5 w-3.5" />Liberada</>
+                          : <><Plus className="h-3.5 w-3.5" />Liberar</>}
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {workouts.length > 0 && (
           <Card>

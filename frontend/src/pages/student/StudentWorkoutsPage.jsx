@@ -217,11 +217,12 @@ const StudentWorkoutsPage = () => {
     if (!user) { setLoadingJourneys(false); return; }
     setLoadingJourneys(true);
     try {
+      const { data: profile } = await supabase.from("profiles").select("id").eq("user_id", user.id).single();
       const [j, c, sj, ids] = await Promise.all([
         getJourneys(),
         getCategories(),
-        getStudentJourneys(user.id),
-        getGrantedJourneyIds(user.id),
+        getStudentJourneys(profile.id),
+        getGrantedJourneyIds(profile.id),
       ]);
       setJourneys(j); setCategories(c); setStudentJourneys(sj); setGrantedIds(new Set(ids));
 
