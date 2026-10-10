@@ -107,7 +107,10 @@ const JourneyDetailModal = ({ journey, studentJourney, hasAccess, onClose, onSta
   );
 };
 
-// ── Linha de lista plana ("Programas", fiel ao protótipo) ───────
+// ── Card de lista plana ("Programas", fiel ao protótipo) ────────
+// Cada jornada é seu próprio cartão flutuante (não uma linha de tabela),
+// com selo de ícone em tom suave da cor da jornada — igual ao .feature
+// do protótipo (ícone em quadrado 42px com fundo tingido a 16%).
 const JourneyListRow = ({ journey, studentJourney, hasAccess, onSelect }) => {
   const isActive = studentJourney?.status === "active";
   const isDone = studentJourney?.status === "completed";
@@ -116,58 +119,54 @@ const JourneyListRow = ({ journey, studentJourney, hasAccess, onSelect }) => {
   const completed = studentJourney?.completed_workouts ?? 0;
   const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
   const hasCover = !!journey.cover_image_url;
+  const tint = journey.cover_color || "hsl(var(--primary))";
+  const subtitle = journey.description || `${journey.category ? journey.category.name : "Geral"} · ${total} treino${total !== 1 ? "s" : ""}`;
 
   return (
     <button
       type="button"
       onClick={() => onSelect(journey)}
-      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/40 active:bg-secondary/60 transition-colors text-left border-b border-border/60 last:border-b-0"
+      className="w-full flex items-center gap-3 bg-card rounded-[18px] p-3.5 text-left shadow-sm hover:shadow-md active:scale-[0.99] transition-all"
     >
       <div
-        className="relative h-12 w-12 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center"
-        style={{ background: hasCover ? undefined : journey.cover_color, filter: locked ? "grayscale(70%)" : "none" }}
+        className="relative h-11 w-11 rounded-[13px] overflow-hidden flex-shrink-0 flex items-center justify-center"
+        style={{
+          background: hasCover ? undefined : `color-mix(in srgb, ${tint} 16%, transparent)`,
+          filter: locked ? "grayscale(70%)" : "none",
+        }}
       >
         {hasCover ? (
           <img src={journey.cover_image_url} alt="" className="h-full w-full object-cover" />
         ) : (
-          <span className="text-xl">{journey.cover_emoji}</span>
+          <span className="text-lg" style={{ filter: "saturate(1.3)" }}>{journey.cover_emoji}</span>
         )}
         {locked && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-            <Lock className="h-4 w-4 text-white/90" />
+            <Lock className="h-3.5 w-3.5 text-white/90" />
           </div>
         )}
       </div>
 
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-foreground truncate">{journey.title}</p>
-        <p className="text-xs text-muted-foreground truncate mt-0.5">
-          {journey.category ? `${journey.category.emoji} ${journey.category.name}` : "Geral"} · {total} treino{total !== 1 ? "s" : ""}
-        </p>
-        {journey.description && (
-          <p className="text-xs text-muted-foreground/70 truncate mt-0.5">{journey.description}</p>
-        )}
+        <p className="text-xs text-muted-foreground truncate mt-0.5">{subtitle}</p>
         {!locked && isActive && (
-          <div className="h-1 bg-secondary rounded-full overflow-hidden mt-1.5 max-w-[160px]">
+          <div className="h-1 bg-secondary rounded-full overflow-hidden mt-1.5 max-w-[140px]">
             <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
           </div>
         )}
       </div>
 
-      <div className="flex-shrink-0 text-right">
+      <div className="flex-shrink-0 flex items-center gap-1.5">
         {locked ? (
-          <span className="text-[10px] font-medium text-muted-foreground/70">Bloqueada</span>
+          <Lock className="h-3.5 w-3.5 text-muted-foreground/40" />
         ) : isDone ? (
-          <span className="text-[10px] font-medium text-green-600 dark:text-green-400 inline-flex items-center gap-1">
-            <CheckCircle2 className="h-3 w-3" />Concluída
-          </span>
+          <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
         ) : isActive ? (
-          <span className="text-[10px] font-medium text-primary">{progress}%</span>
-        ) : (
-          <span className="text-[10px] font-medium text-muted-foreground">Disponível</span>
-        )}
+          <span className="text-[11px] font-semibold text-primary">{progress}%</span>
+        ) : null}
+        <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
       </div>
-      <ChevronRight className="h-4 w-4 text-muted-foreground/50 flex-shrink-0" />
     </button>
   );
 };
@@ -242,7 +241,6 @@ const StudentCatalogPage = () => {
         <button onClick={() => navigate("/student")} className="text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <h1 className="text-base font-semibold">Jornadas</h1>
         <div className="flex-1" />
         <div className="flex gap-3 text-xs text-muted-foreground">
           {myJourneys.length > 0 && <span className="text-primary">{myJourneys.length} ativa{myJourneys.length !== 1 ? "s" : ""}</span>}
@@ -250,9 +248,15 @@ const StudentCatalogPage = () => {
         </div>
       </div>
 
+      {/* Título grande, fiel ao protótipo */}
+      <div className="px-4 pt-5 pb-1">
+        <h2 className="text-2xl font-display font-bold text-foreground">Jornadas</h2>
+        <p className="text-sm text-muted-foreground mt-1">Programas completos para cada objetivo e rotina.</p>
+      </div>
+
       {/* Chips de filtro (lista plana filtrável, fiel ao protótipo) */}
       {!loading && (
-        <div className="flex gap-2 overflow-x-auto px-4 pt-3 pb-1 scrollbar-none">
+        <div className="flex gap-2 overflow-x-auto px-4 pt-2 pb-1 scrollbar-none">
           <button
             type="button"
             onClick={() => setActiveFilter("all")}
@@ -304,20 +308,18 @@ const StudentCatalogPage = () => {
           <p className="text-sm">Nenhuma jornada nesse filtro ainda.</p>
         </div>
       ) : (
-        <div className="px-4 pt-3">
-          <div className="bg-card border border-border rounded-2xl overflow-hidden">
-            {filteredJourneys.map(j => (
-              <JourneyListRow
-                key={j.id}
-                journey={j}
-                studentJourney={studentJourneys.find(sj => sj.journey_id === j.id) ?? null}
-                hasAccess={grantedIds.has(j.id)}
-                onSelect={setSelectedJourney}
-              />
-            ))}
-          </div>
+        <div className="px-4 pt-3 space-y-3">
+          {filteredJourneys.map(j => (
+            <JourneyListRow
+              key={j.id}
+              journey={j}
+              studentJourney={studentJourneys.find(sj => sj.journey_id === j.id) ?? null}
+              hasAccess={grantedIds.has(j.id)}
+              onSelect={setSelectedJourney}
+            />
+          ))}
 
-          <div className="mt-4 bg-card/60 border border-dashed border-border rounded-2xl p-5 text-center space-y-3">
+          <div className="bg-card/60 border border-dashed border-border rounded-2xl p-5 text-center space-y-3">
             <p className="text-sm text-muted-foreground">Quer mais jornadas liberadas pra você?</p>
             <Button variant="outline" size="sm" className="gap-2" onClick={() => openWhatsApp("novas jornadas disponíveis")}>
               <MessageCircle className="h-4 w-4" />Falar com o personal
