@@ -1,111 +1,17 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { getJourneys, getCategories, getStudentJourneys, getGrantedJourneyIds, enrollStudentInJourney, PERSONAL_WHATSAPP } from "@/services/journeyService";
+import { getJourneys, getCategories, getStudentJourneys, getGrantedJourneyIds, PERSONAL_WHATSAPP } from "@/services/journeyService";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Loader2, BookOpen, ChevronRight, CheckCircle2, Lock, MessageCircle, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { DIFFICULTY_LABEL } from "@/lib/difficultyLabels";
 
 function openWhatsApp(journeyTitle) {
   const msg = encodeURIComponent(`Olá! Tenho interesse em liberar acesso à jornada "${journeyTitle}". Poderia me ajudar?`);
   window.open(`https://wa.me/${PERSONAL_WHATSAPP}?text=${msg}`, "_blank");
 }
-
-// ── Modal de detalhe ───────────────────────────────────────────
-const JourneyDetailModal = ({ journey, studentJourney, hasAccess, onClose, onStart, starting }) => {
-  const total = journey.journey_workouts?.[0]?.count ?? 0;
-  const isActive = studentJourney?.status === "active";
-  const isDone = studentJourney?.status === "completed";
-  const locked = !hasAccess;
-  const hasCover = !!journey.cover_image_url;
-  const completed = studentJourney?.completed_workouts ?? 0;
-  const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
-
-  return (
-    <Dialog open onOpenChange={onClose}>
-      <DialogContent className="bg-card border-border max-w-sm p-0 overflow-hidden">
-        {/* Capa grande */}
-        <div
-          className="h-48 flex items-center justify-center relative overflow-hidden"
-          style={{ background: hasCover ? "transparent" : journey.cover_color, filter: locked ? "grayscale(60%)" : "none" }}
-        >
-          {hasCover ? (
-            <img src={journey.cover_image_url} alt={journey.title} className="absolute inset-0 w-full h-full object-cover" />
-          ) : (
-            <span className="text-7xl">{journey.cover_emoji}</span>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-          {locked && <div className="absolute inset-0 bg-black/40 flex items-center justify-center"><Lock className="h-10 w-10 text-white/80" /></div>}
-        </div>
-
-        <div className="p-5 space-y-4">
-          <div>
-            <h2 className="text-lg font-bold">{journey.title}</h2>
-            {journey.description && <p className="text-sm text-muted-foreground mt-1">{journey.description}</p>}
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="bg-secondary rounded-lg p-2"><p className="text-sm font-medium">{journey.duration_days ?? "—"}d</p><p className="text-xs text-muted-foreground">Duração</p></div>
-            <div className="bg-secondary rounded-lg p-2"><p className="text-sm font-medium">{total}</p><p className="text-xs text-muted-foreground">Treinos</p></div>
-            <div className="bg-secondary rounded-lg p-2">
-              <p className={cn("text-sm font-medium", DIFFICULTY_LABEL[journey.difficulty]?.color)}>{DIFFICULTY_LABEL[journey.difficulty]?.label ?? "—"}</p>
-              <p className="text-xs text-muted-foreground">Nível</p>
-            </div>
-          </div>
-
-          {/* Progresso se ativa */}
-          {!locked && isActive && (
-            <div>
-              <div className="flex justify-between text-xs text-muted-foreground mb-1"><span>Progresso</span><span>{progress}%</span></div>
-              <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">Dia {completed} de {total}</p>
-            </div>
-          )}
-
-          {/* Bloqueada */}
-          {locked && (
-            <div className="bg-secondary/60 rounded-xl p-4 text-center space-y-3">
-              <p className="text-sm font-medium">Jornada bloqueada</p>
-              <p className="text-xs text-muted-foreground">Fale com seu personal para liberar o acesso.</p>
-              <Button className="w-full bg-green-600 hover:bg-green-500 text-white" onClick={() => openWhatsApp(journey.title)}>
-                <MessageCircle className="h-4 w-4 mr-2" />Falar com o personal
-              </Button>
-            </div>
-          )}
-
-          {/* Liberada */}
-          {!locked && !isDone && (
-            <Button className="w-full" onClick={onStart} disabled={starting}>
-              {starting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Iniciando...</> : isActive ? "Continuar jornada" : "Iniciar jornada"}
-            </Button>
-          )}
-
-          {/* Concluída */}
-          {!locked && isDone && (
-            <div className="text-center space-y-3">
-              <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400">
-                <CheckCircle2 className="h-5 w-5" />
-                <p className="font-medium">Jornada concluída!</p>
-              </div>
-              <Button variant="outline" className="w-full" onClick={() => openWhatsApp(`próxima etapa após ${journey.title}`)}>
-                <MessageCircle className="h-4 w-4 mr-2" />Falar com o personal
-              </Button>
-            </div>
-          )}
-
-          <Button variant="ghost" className="w-full" onClick={onClose}>Fechar</Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
 
 // ── Card de lista plana ("Programas", fiel ao protótipo) ────────
 // Cada jornada é seu próprio cartão flutuante (não uma linha de tabela),
@@ -179,8 +85,6 @@ const StudentCatalogPage = () => {
   const [studentJourneys, setStudentJourneys] = useState([]);
   const [grantedIds, setGrantedIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
-  const [selectedJourney, setSelectedJourney] = useState(null);
-  const [starting, setStarting] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all"); // "all" | "mine" | categoryId
 
   const loadAll = useCallback(async () => {
@@ -207,21 +111,6 @@ const StudentCatalogPage = () => {
     const hash = window.location.hash;
     if (hash?.startsWith("#cat-")) setActiveFilter(hash.replace("#cat-", ""));
   }, [loading]);
-
-  const handleEnroll = async (journey) => {
-    setStarting(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      const { data: profile } = await supabase.from("profiles").select("id").eq("user_id", user.id).single();
-      await enrollStudentInJourney(profile.id, journey.id);
-      toast.success(`Jornada "${journey.title}" iniciada! 🚀`);
-      await loadAll(); setSelectedJourney(null);
-    } catch { toast.error("Erro ao iniciar jornada"); }
-    finally { setStarting(false); }
-  };
-
-  const selectedStudentJourney = selectedJourney ? studentJourneys.find(sj => sj.journey_id === selectedJourney.id) ?? null : null;
-  const selectedHasAccess = selectedJourney ? grantedIds.has(selectedJourney.id) : false;
 
   const myJourneys = journeys.filter(j => studentJourneys.some(sj => sj.journey_id === j.id));
 
@@ -315,7 +204,7 @@ const StudentCatalogPage = () => {
               journey={j}
               studentJourney={studentJourneys.find(sj => sj.journey_id === j.id) ?? null}
               hasAccess={grantedIds.has(j.id)}
-              onSelect={setSelectedJourney}
+              onSelect={(journey) => navigate(`/student/journey/${journey.id}`)}
             />
           ))}
 
@@ -328,19 +217,6 @@ const StudentCatalogPage = () => {
         </div>
       )}
 
-      {selectedJourney && (
-        <JourneyDetailModal
-          journey={selectedJourney}
-          studentJourney={selectedStudentJourney}
-          hasAccess={selectedHasAccess}
-          onClose={() => setSelectedJourney(null)}
-          onStart={() => {
-            if (selectedStudentJourney?.status === "active") navigate(`/student/journey/${selectedJourney.id}`);
-            else handleEnroll(selectedJourney);
-          }}
-          starting={starting}
-        />
-      )}
       <BottomNav />
     </div>
   );

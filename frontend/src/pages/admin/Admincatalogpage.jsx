@@ -17,7 +17,7 @@ const DIFFICULTY_LABEL = {
   intermediario: { label: "Intermediário", color: "bg-yellow-500/15 text-yellow-600 dark:text-yellow-400" },
   avancado: { label: "Avançado", color: "bg-red-500/15 text-red-600 dark:text-red-400" },
 };
-const COVER_EMOJIS = ["⚡","🔥","💪","🏃","🌟","🎯","⚔️","🏆","🌅","🧗","🥊","🚀"];
+const COVER_EMOJIS = ["🔥","💪","🏃","⚖️","🧘","🏋️","⚡","🎯","🏆","🌅","🥊","🚀"];
 const COVER_COLORS = ["#0F6E56","#1a1a2e","#16213e","#0f3460","#533483","#6b2d5e","#8B1A1A","#1B4332","#7B3F00","#1a1a1a"];
 
 const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {

@@ -2,12 +2,17 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
-import { getJourneyById, getStudentJourneys, enrollStudentInJourney } from "@/services/journeyService";
+import { getJourneyById, getStudentJourneys, enrollStudentInJourney, getGrantedJourneyIds, PERSONAL_WHATSAPP } from "@/services/journeyService";
 import { Button } from "@/components/ui/button";
-import { Bookmark, BookmarkCheck, ChevronLeft, ChevronRight, CheckCircle2, Loader2, Lock, Play, Zap } from "lucide-react";
+import { Bookmark, BookmarkCheck, ChevronLeft, ChevronRight, CheckCircle2, Loader2, Lock, MessageCircle, Play, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { DIFFICULTY_LABEL } from "@/lib/difficultyLabels";
+
+function openWhatsApp(journeyTitle) {
+  const msg = encodeURIComponent(`Olá! Tenho interesse em liberar acesso à jornada "${journeyTitle}". Poderia me ajudar?`);
+  window.open(`https://wa.me/${PERSONAL_WHATSAPP}?text=${msg}`, "_blank");
+}
 
 const JourneyDetailPage = () => {
   const { id: journeyId } = useParams();
@@ -16,6 +21,8 @@ const JourneyDetailPage = () => {
 
   const [journey, setJourney]               = useState(null);
   const [studentJourney, setStudentJourney] = useState(null);
+  const [hasAccess, setHasAccess]           = useState(true);
+  const [profileId, setProfileId]           = useState(null);
   const [loading, setLoading]               = useState(true);
   const [savedJourney, setSavedJourney]     = useState(false);
   const [savingJourney, setSavingJourney]   = useState(false);
@@ -25,12 +32,16 @@ const JourneyDetailPage = () => {
     if (!user || !journeyId) return;
     setLoading(true);
     try {
-      const [j, sjs] = await Promise.all([
+      const { data: profile } = await supabase.from("profiles").select("id").eq("user_id", user.id).single();
+      setProfileId(profile.id);
+      const [j, sjs, grantedIds] = await Promise.all([
         getJourneyById(journeyId),
-        getStudentJourneys(user.id),
+        getStudentJourneys(profile.id),
+        getGrantedJourneyIds(profile.id),
       ]);
       setJourney(j);
       setStudentJourney(sjs?.find(sj => sj.journey_id === journeyId) ?? null);
+      setHasAccess(grantedIds.includes(journeyId));
 
       // Verifica se jornada está salva
       const { data: sv } = await supabase
@@ -64,7 +75,7 @@ const JourneyDetailPage = () => {
   const handleEnroll = async () => {
     setEnrolling(true);
     try {
-      await enrollStudentInJourney(user.id, journeyId);
+      await enrollStudentInJourney(profileId, journeyId);
       toast.success("Jornada iniciada! 🚀");
       await load();
     } catch { toast.error("Erro ao iniciar jornada"); }
@@ -96,11 +107,16 @@ const JourneyDetailPage = () => {
   return (
     <div className="min-h-screen bg-background pb-8 w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto">
       {/* Hero */}
-      <div className="relative h-56 overflow-hidden" style={{ background: hasCover ? "transparent" : journey.cover_color }}>
+      <div className="relative h-56 overflow-hidden" style={{ background: hasCover ? "transparent" : journey.cover_color, filter: hasAccess ? "none" : "grayscale(60%)" }}>
         {hasCover
           ? <img src={journey.cover_image_url} alt={journey.title} className="absolute inset-0 w-full h-full object-cover" />
           : <div className="absolute inset-0 flex items-center justify-center text-8xl">{journey.cover_emoji}</div>}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+        {!hasAccess && (
+          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+            <div className="bg-black/60 rounded-full p-3"><Lock className="h-6 w-6 text-white/90" /></div>
+          </div>
+        )}
 
         {/* Header buttons */}
         <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
@@ -157,8 +173,19 @@ const JourneyDetailPage = () => {
           </div>
         )}
 
-        {/* CTA iniciar se não iniciou */}
-        {!studentJourney && (
+        {/* Bloqueada: sem acesso, oferece falar com o personal */}
+        {!hasAccess && (
+          <div className="bg-secondary/60 rounded-xl p-4 text-center space-y-3">
+            <p className="text-sm font-medium">Jornada bloqueada</p>
+            <p className="text-xs text-muted-foreground">Fale com seu personal para liberar o acesso.</p>
+            <Button className="w-full bg-green-600 hover:bg-green-500 text-white" onClick={() => openWhatsApp(journey.title)}>
+              <MessageCircle className="h-4 w-4 mr-2" />Falar com o personal
+            </Button>
+          </div>
+        )}
+
+        {/* CTA iniciar se liberada e ainda não iniciou */}
+        {hasAccess && !studentJourney && (
           <Button className="w-full gap-2" onClick={handleEnroll} disabled={enrolling}>
             {enrolling ? <><Loader2 className="h-4 w-4 animate-spin" />Iniciando...</> : <><Play className="h-4 w-4" />Iniciar jornada</>}
           </Button>
