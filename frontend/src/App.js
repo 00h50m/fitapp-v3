@@ -23,6 +23,7 @@ import AdminAlunosPage from "@/pages/admin/AdminAlunosPage";
 import AdminAlunoDetailPage from "@/pages/admin/AdminAlunoDetailPage.jsx";
 import CreateStudentPage from "@/pages/admin/CreateStudentPage";
 import AdminCatalogPage from "@/pages/admin/Admincatalogpage";
+import PlansPage from "@/pages/admin/PlansPage";
 import {
   ExercisesPage as TreinosExercisesPage,
   WorkoutsPage,
@@ -70,6 +71,7 @@ function AppRoutes() {
       <Route path="/admin/treinos/editor/:id" element={<AdminRoute><WorkoutEditorPage /></AdminRoute>} />
       <Route path="/admin/treinos/personalizados" element={<AdminRoute><CustomWorkoutsPage /></AdminRoute>} />
       <Route path="/admin/catalog" element={<AdminRoute><AdminCatalogPage /></AdminRoute>} />
+      <Route path="/admin/planos" element={<AdminRoute><PlansPage /></AdminRoute>} />
       <Route path="/" element={<RedirectByRole />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
