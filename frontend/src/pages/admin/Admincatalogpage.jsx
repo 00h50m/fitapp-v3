@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Trash2, Pencil, Loader2, FolderOpen, BookOpen, Users, Check, Upload, X, Image } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { uploadCoverImage } from "@/lib/uploadCoverImage";
 
 const DIFFICULTY_LABEL = {
   iniciante: { label: "Iniciante", color: "bg-green-500/15 text-green-600 dark:text-green-400" },
@@ -18,15 +19,6 @@ const DIFFICULTY_LABEL = {
 };
 const COVER_EMOJIS = ["⚡","🔥","💪","🏃","🌟","🎯","⚔️","🏆","🌅","🧗","🥊","🚀"];
 const COVER_COLORS = ["#0F6E56","#1a1a2e","#16213e","#0f3460","#533483","#6b2d5e","#8B1A1A","#1B4332","#7B3F00","#1a1a1a"];
-
-async function uploadCoverImage(file) {
-  const ext = file.name.split(".").pop();
-  const path = `covers/${Date.now()}.${ext}`;
-  const { error } = await supabase.storage.from("journey-covers").upload(path, file, { upsert: true });
-  if (error) throw error;
-  const { data } = supabase.storage.from("journey-covers").getPublicUrl(path);
-  return data.publicUrl;
-}
 
 const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
   const isEdit = !!journey;

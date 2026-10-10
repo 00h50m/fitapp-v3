@@ -26,6 +26,7 @@ import {
   Dumbbell,
   Upload,
   FileText,
+  Image,
   ChevronDown,
   ChevronUp,
   X,
@@ -33,6 +34,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { uploadCoverImage } from "@/lib/uploadCoverImage";
 const blockTypeOptions = [
   { value: "single",  label: "Simples" },
   { value: "biset",   label: "Biset" },
@@ -61,6 +63,9 @@ const WorkoutEditorPage = () => {
   const [workoutDescription, setWorkoutDescription] = useState("");
   const [pdfFile, setPdfFile] = useState(null);
   const [pdfUrl, setPdfUrl] = useState(null);
+  const [coverImageUrl, setCoverImageUrl] = useState(null);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [environment, setEnvironment] = useState("");
   const [saving, setSaving] = useState(false);
   const [loadingData, setLoadingData] = useState(!isNew);
   const [blocks, setBlocks] = useState([]);
@@ -76,6 +81,8 @@ const WorkoutEditorPage = () => {
           setWorkoutName(tmpl.title || "");
           setWorkoutDescription(tmpl.description || "");
           setPdfUrl(tmpl.pdf_url || null);
+          setCoverImageUrl(tmpl.cover_image_url || null);
+          setEnvironment(tmpl.environment || "");
         }
         const { data: blks, error: blkErr } = await supabase.from("workout_template_blocks").select("*").eq("template_id", id).order("order_index");
         console.log("[Editor] blocks:", blks?.length, "err:", blkErr?.message);
@@ -260,6 +267,22 @@ const WorkoutEditorPage = () => {
     return publicUrl;
   };
 
+  const handleCoverUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error("Imagem deve ter menos de 5MB"); return; }
+    setUploadingCover(true);
+    try {
+      const url = await uploadCoverImage(file, "templates");
+      setCoverImageUrl(url);
+      toast.success("Capa enviada!");
+    } catch (err) {
+      toast.error("Erro ao enviar capa: " + err.message);
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
   // Save workout
   const handleSave = async () => {
     if (!workoutName.trim()) { toast.error("Nome do treino é obrigatório"); return; }
@@ -279,6 +302,8 @@ const WorkoutEditorPage = () => {
           title: workoutName.trim(),
           description: workoutDescription.trim() || null,
           pdf_url: finalPdfUrl || null,
+          cover_image_url: coverImageUrl || null,
+          environment: environment || null,
         }]);
         if (ie) throw ie;
 
@@ -296,6 +321,8 @@ const WorkoutEditorPage = () => {
           title: workoutName.trim(),
           description: workoutDescription.trim() || null,
           pdf_url: finalPdfUrl || null,
+          cover_image_url: coverImageUrl || null,
+          environment: environment || null,
         }).eq("id", templateId);
         if (ue) throw ue;
       }
@@ -523,6 +550,46 @@ const WorkoutEditorPage = () => {
                 placeholder="Descreva o treino..."
                 className="bg-muted border-border min-h-[80px]"
               />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="cover">Capa (foto)</Label>
+                <Input id="cover" type="file" accept="image/*" onChange={handleCoverUpload} className="hidden" />
+                <div
+                  onClick={() => document.getElementById("cover").click()}
+                  className="border-2 border-dashed border-border rounded-xl p-4 text-center cursor-pointer hover:border-primary/40 hover:bg-muted/20 transition-all"
+                >
+                  {uploadingCover ? (
+                    <div className="flex items-center justify-center gap-2 py-1"><Loader2 className="h-4 w-4 animate-spin text-primary" /><span className="text-xs text-muted-foreground">Enviando...</span></div>
+                  ) : coverImageUrl ? (
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <img src={coverImageUrl} alt="Capa" className="h-8 w-8 rounded object-cover flex-shrink-0" />
+                        <span className="text-xs text-muted-foreground truncate">Capa definida</span>
+                      </div>
+                      <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" onClick={(e) => { e.stopPropagation(); setCoverImageUrl(null); }}>
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-1 py-1">
+                      <Image className="h-5 w-5 text-muted-foreground/50" />
+                      <p className="text-xs text-muted-foreground">Clique para enviar uma foto · Máx. 5MB</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Ambiente</Label>
+                <Select value={environment || undefined} onValueChange={setEnvironment}>
+                  <SelectTrigger className="bg-muted border-border"><SelectValue placeholder="Não definido" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="academia">Academia</SelectItem>
+                    <SelectItem value="casa">Casa</SelectItem>
+                    <SelectItem value="misto">Misto</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
         </Card>

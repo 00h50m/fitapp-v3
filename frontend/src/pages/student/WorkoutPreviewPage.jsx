@@ -223,8 +223,16 @@ const WorkoutPreviewPage = () => {
         </div>
       </div>
 
+      {/* Foto de capa — só aparece quando o treino tem uma cadastrada */}
+      {template.cover_image_url && (
+        <div className="relative h-48 -mt-px">
+          <img src={template.cover_image_url} alt={template.title} className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+        </div>
+      )}
+
       {/* Conteúdo */}
-      <div className="px-4 py-4 space-y-5 max-w-2xl mx-auto">
+      <div className={cn("px-4 py-4 space-y-5 max-w-2xl mx-auto", template.cover_image_url && "-mt-10 relative")}>
         {/* Título editorial — reforça que é um programa feito pelo personal */}
         <div>
           <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-primary bg-primary/10 rounded-full px-2.5 py-1 mb-3">
