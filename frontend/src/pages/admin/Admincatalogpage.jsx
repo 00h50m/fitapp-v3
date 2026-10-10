@@ -349,18 +349,21 @@ const AdminCatalogPage = () => {
 
   return (
     <AdminLayout>
-      <div className="p-6 max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+      <div className="space-y-6 animate-fade-in">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-xl font-medium">Catálogo de jornadas</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">{journeys.length} jornada{journeys.length !== 1 ? "s" : ""} ativas</p>
+            <h1 className="text-2xl font-display font-semibold text-foreground flex items-center gap-2">
+              <BookOpen className="h-6 w-6 text-primary" />
+              Catálogo de programas
+            </h1>
+            <p className="text-muted-foreground mt-1">Organize a vitrine que o aluno encontra no aplicativo.</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setShowCatModal(true)}><FolderOpen className="h-4 w-4 mr-1.5" /> Categorias</Button>
-            <Button size="sm" onClick={() => { setEditingJourney(null); setShowJourneyModal(true); }}><Plus className="h-4 w-4 mr-1.5" /> Nova jornada</Button>
+            <Button variant="outline" onClick={() => setShowCatModal(true)}><FolderOpen className="h-4 w-4 mr-1.5" /> Categorias</Button>
+            <Button variant="premium" onClick={() => { setEditingJourney(null); setShowJourneyModal(true); }}><Plus className="h-4 w-4 mr-1.5" /> Novo programa</Button>
           </div>
         </div>
-        <div className="flex gap-2 mb-6 flex-wrap">
+        <div className="flex gap-2 flex-wrap">
           {[{ id: "all", emoji: "", name: "Todos" }, ...categories].map(c => (
             <button key={c.id} onClick={() => setFilterCategory(c.id)} className={cn("px-3 py-1.5 rounded-full text-sm transition-all", filterCategory === c.id ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground")}>
               {c.emoji} {c.name}
