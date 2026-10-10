@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import {
   Users, Activity, Dumbbell, Calendar, TrendingUp, TrendingDown,
   RefreshCw, Loader2, CheckCircle2, UserPlus, ArrowRight, Clock,
+  AlertCircle, Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -98,6 +99,7 @@ const DashboardPage = () => {
   const [renewals, setRenewals] = useState(null);
   const [avgWorkouts, setAvgWorkouts] = useState(null);
   const [conclusionRate, setConclusionRate] = useState(null);
+  const [priorities, setPriorities] = useState([]);
 
   const loadDashboard = useCallback(async () => {
     if (!mountedRef.current) return;
@@ -204,6 +206,61 @@ const DashboardPage = () => {
 
       if (mountedRef.current) setActivity(feed);
 
+      // "Precisa da sua atenção" — prioridades reais computadas dos dados
+      // que já temos (sem inventar insight que não dá pra calcular, tipo
+      // "mensagens sem resposta" do protótipo, que exigiria chat).
+      const [activeProfiles, renewalProfiles] = await Promise.all([
+        supabase.from("profiles").select("user_id, name").eq("role", "student").eq("is_active", true),
+        supabase.from("profiles").select("name, access_end").eq("role", "student").eq("is_active", true)
+          .gte("access_end", today).lte("access_end", in7Days).order("access_end", { ascending: true }).limit(3),
+      ]);
+      if (!mountedRef.current) return;
+
+      const activeIds = (activeProfiles?.data || []).map(p => p.user_id).filter(Boolean);
+      let noTrainItems = [];
+      if (activeIds.length) {
+        const { data: recentSessions } = await supabase
+          .from("workout_sessions")
+          .select("student_id, session_date")
+          .eq("finished", true)
+          .in("student_id", activeIds)
+          .gte("session_date", new Date(Date.now() - 60 * 86400000).toISOString().split("T")[0])
+          .order("session_date", { ascending: false });
+        if (!mountedRef.current) return;
+
+        const lastSessionByStudent = {};
+        (recentSessions || []).forEach(s => {
+          if (!lastSessionByStudent[s.student_id]) lastSessionByStudent[s.student_id] = s.session_date;
+        });
+        const nameByUserId = Object.fromEntries((activeProfiles?.data || []).map(p => [p.user_id, p.name]));
+
+        noTrainItems = activeIds
+          .map(uid => {
+            const last = lastSessionByStudent[uid];
+            const days = last ? Math.floor((Date.now() - new Date(last + "T12:00").getTime()) / 86400000) : null;
+            return { name: nameByUserId[uid] || "Aluno", days };
+          })
+          .filter(x => x.days === null || x.days >= 5)
+          .sort((a, b) => (b.days ?? 999) - (a.days ?? 999))
+          .slice(0, 3)
+          .map(x => ({
+            id: `nt-${x.name}`,
+            title: x.days === null ? `${x.name} ainda não treinou` : `${x.name} está há ${x.days} dias sem treinar`,
+            subtitle: "Considere enviar um acompanhamento.",
+          }));
+      }
+
+      const renewalItems = (renewalProfiles?.data || []).map(p => {
+        const days = Math.ceil((new Date(p.access_end + "T23:59") - Date.now()) / 86400000);
+        return {
+          id: `rn-${p.name}-${p.access_end}`,
+          title: `Plano de ${p.name} vence em ${days}d`,
+          subtitle: "Renovação pendente.",
+        };
+      });
+
+      if (mountedRef.current) setPriorities([...noTrainItems, ...renewalItems].slice(0, 4));
+
     } catch (err) {
       console.error("Dashboard error:", err?.message);
     } finally {
@@ -220,17 +277,27 @@ const DashboardPage = () => {
   return (
     <AdminLayout>
       <div className="space-y-6 animate-fade-in">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-display font-semibold text-foreground">
-              {greeting()}{adminFirstName ? `, ${adminFirstName}` : ""}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Visão geral do seu aplicativo de treinos</p>
-          </div>
+        <div className="flex items-center justify-end">
           <Button variant="ghost" size="sm" onClick={loadDashboard} disabled={loading}>
             <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
             Atualizar
           </Button>
+        </div>
+
+        {/* Hero — insight do dia, fiel ao protótipo do personal */}
+        <div className="relative overflow-hidden rounded-2xl bg-[hsl(220,20%,6%)] p-6">
+          <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-primary/10 blur-3xl -translate-y-1/3 translate-x-1/4 pointer-events-none" />
+          <div className="relative max-w-lg">
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-primary mb-2">
+              <Sparkles className="h-3 w-3" />{greeting()}{adminFirstName ? `, ${adminFirstName}` : ""}
+            </span>
+            <h1 className="text-xl font-semibold text-white leading-snug">
+              {stats.activeStudents != null
+                ? `Hoje você tem ${stats.activeStudents} aluno${stats.activeStudents !== 1 ? "s" : ""} ativo${stats.activeStudents !== 1 ? "s" : ""} para acompanhar.`
+                : "Visão geral do seu aplicativo de treinos."}
+            </h1>
+            <p className="text-sm text-white/60 mt-1.5">Priorize quem está perdendo constância e deixe o catálogo trabalhar na retenção.</p>
+          </div>
         </div>
 
         {/* Stats — 100% dados reais, sem trend mockado */}
@@ -294,8 +361,47 @@ const DashboardPage = () => {
             </CardContent>
           </Card>
 
-          {/* Resumo */}
-          <div className="space-y-3">
+          {/* Precisa da sua atenção */}
+          <Card className="bg-card border-border">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                <AlertCircle className="h-4 w-4 text-orange-500 dark:text-orange-400" />
+                Precisa da sua atenção
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {loading ? (
+                <div className="space-y-3">
+                  {[1, 2].map(i => (
+                    <div key={i} className="h-12 bg-muted/50 rounded-xl animate-pulse" />
+                  ))}
+                </div>
+              ) : priorities.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                  <CheckCircle2 className="h-7 w-7 opacity-30 mb-2" />
+                  <p className="text-sm">Tudo em dia por aqui</p>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {priorities.map(p => (
+                    <div key={p.id} className="flex items-start gap-2.5 bg-orange-500/5 border border-orange-500/15 rounded-xl p-3">
+                      <div className="h-6 w-6 rounded-full bg-orange-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <AlertCircle className="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground leading-tight">{p.title}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{p.subtitle}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Resumo */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <Card className="bg-card border-border">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-3">
@@ -363,7 +469,6 @@ const DashboardPage = () => {
               </span>
               <ArrowRight className="h-4 w-4" />
             </Button>
-          </div>
         </div>
       </div>
     </AdminLayout>
