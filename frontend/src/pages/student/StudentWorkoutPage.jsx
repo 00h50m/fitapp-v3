@@ -16,6 +16,8 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { incrementJourneyProgress, getStudentJourneys, PERSONAL_WHATSAPP } from "@/services/journeyService";
+import { usePlanPermission, FEATURES } from "@/lib/planPermissions";
+import { LockedFeature } from "@/components/ui/locked-feature";
 
 const blockTypeConfig = {
   normal:   { label: "Normal",    color: "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30" },
@@ -392,6 +394,7 @@ const StudentWorkoutPage = () => {
   const { id: workoutId } = useParams();
   const navigate = useNavigate();
   const { user, profile, logout, loading: authLoading } = useAuth();
+  const perm = usePlanPermission(profile);
 
   const [workout, setWorkout]       = useState(null);
   const [blocks, setBlocks]         = useState([]);
@@ -503,6 +506,7 @@ const StudentWorkoutPage = () => {
 
   // Marcar exercício inteiro como feito (sem carga)
   const handleMarkExerciseDone = async (ex) => {
+    if (!perm.can(FEATURES.MARK_EXERCISE)) { toast(`Disponível no plano ${perm.minTierLabelFor(FEATURES.MARK_EXERCISE)} ou superior 🔒`); return; }
     if (!activeSession) { toast("Inicie o treino primeiro ⚡"); return; }
     const numSets = Number(ex.sets) || 1;
     try {
@@ -539,6 +543,7 @@ const StudentWorkoutPage = () => {
   };
 
   const handleStart = async () => {
+    if (!perm.can(FEATURES.FINISH_WORKOUT)) { toast(`Disponível no plano ${perm.minTierLabelFor(FEATURES.FINISH_WORKOUT)} ou superior 🔒`); return; }
     setStarting(true);
     try {
       const today = new Date().toISOString().split("T")[0];
@@ -691,9 +696,10 @@ const StudentWorkoutPage = () => {
                               {/* Nome + status */}
                               <div className="flex items-start gap-3">
                                 {/* Check circular */}
-                                <div className={cn("w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all cursor-pointer", exDone ? "border-green-400 bg-green-400" : "border-muted-foreground/40 hover:border-primary/60")}
+                                <div className={cn("w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all", exDone ? "border-green-400 bg-green-400" : perm.can(FEATURES.MARK_EXERCISE) ? "border-muted-foreground/40 hover:border-primary/60 cursor-pointer" : "border-muted-foreground/20 cursor-pointer")}
                                   onClick={() => !exDone && handleMarkExerciseDone(ex)}>
                                   {exDone && <CheckCircle2 className="h-4 w-4 text-white" />}
+                                  {!exDone && !perm.can(FEATURES.MARK_EXERCISE) && <Lock className="h-3 w-3 text-muted-foreground/40" />}
                                 </div>
 
                                 <div className="flex-1 min-w-0">
@@ -724,21 +730,29 @@ const StudentWorkoutPage = () => {
                                     <Play className="h-3.5 w-3.5" />{ytId ? "Vídeo" : "GIF"}
                                   </button>
                                 )}
-                                <button className="inline-flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
-                                  onClick={() => setHistoryExercise({ name: ex.exercise_name, rowId: ex.exercise_row_id })}>
-                                  <History className="h-3.5 w-3.5" />Histórico
-                                </button>
+                                {perm.can(FEATURES.LOAD_HISTORY) ? (
+                                  <button className="inline-flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+                                    onClick={() => setHistoryExercise({ name: ex.exercise_name, rowId: ex.exercise_row_id })}>
+                                    <History className="h-3.5 w-3.5" />Histórico
+                                  </button>
+                                ) : (
+                                  <LockedFeature compact label="Histórico" requiredTierLabel={perm.minTierLabelFor(FEATURES.LOAD_HISTORY)} />
+                                )}
                                 <button className="inline-flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
                                   onClick={() => setDetailExercise(ex)}>
                                   <HelpCircle className="h-3.5 w-3.5" />Detalhes
                                 </button>
-                                {!exDone && (
-                                  <button
-                                    className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs text-primary hover:bg-primary/15 transition-colors font-medium"
-                                    onClick={() => setTrackingExercise(ex)}
-                                  >
-                                    <BarChart2 className="h-3.5 w-3.5" />Registrar cargas
-                                  </button>
+                                {!exDone && perm.can(FEATURES.FINISH_WORKOUT) && (
+                                  perm.can(FEATURES.LOAD_LOGGING) ? (
+                                    <button
+                                      className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs text-primary hover:bg-primary/15 transition-colors font-medium"
+                                      onClick={() => setTrackingExercise(ex)}
+                                    >
+                                      <BarChart2 className="h-3.5 w-3.5" />Registrar cargas
+                                    </button>
+                                  ) : (
+                                    <LockedFeature compact label="Registrar cargas" requiredTierLabel={perm.minTierLabelFor(FEATURES.LOAD_LOGGING)} />
+                                  )
                                 )}
                               </div>
 
@@ -771,7 +785,13 @@ const StudentWorkoutPage = () => {
       {/* Footer */}
       {!loading && !error && !isExpired && blocks.length > 0 && (
         <MobileFooter>
-          {!activeSession ? (
+          {!perm.can(FEATURES.FINISH_WORKOUT) ? (
+            <LockedFeature
+              className="w-full"
+              label="Marcar exercícios e finalizar treino"
+              requiredTierLabel={perm.minTierLabelFor(FEATURES.FINISH_WORKOUT)}
+            />
+          ) : !activeSession ? (
             <Button variant="premium" size="xl" className="w-full gap-2" onClick={handleStart} disabled={starting}>
               {starting ? <><Loader2 className="h-5 w-5 animate-spin" />Iniciando...</> : <><Play className="h-5 w-5" />Iniciar Treino</>}
             </Button>

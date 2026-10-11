@@ -10,8 +10,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-const PLAN_LABEL = { basic: "Basic", premium: "Premium", vip: "VIP" };
+import { PLAN_VALUE_LABEL as PLAN_LABEL } from "@/lib/planPermissions";
 
 function getAccessStatus(access_end, is_active) {
   if (is_active === false) return { label: "Inativo", variant: "secondary" };

@@ -6,8 +6,7 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, Library, Bookmark, ChartNoAxesColumnIncreasing, MessageCircle, LogOut } from "lucide-react";
 import { PERSONAL_WHATSAPP } from "@/services/journeyService";
-
-const PLAN_LABEL = { basic: "Basic", premium: "Premium", vip: "VIP" };
+import { PLAN_VALUE_LABEL } from "@/lib/planPermissions";
 
 const SettingRow = ({ icon: Icon, label, onClick }) => (
   <button
@@ -40,7 +39,7 @@ const StudentProfilePage = () => {
           <div className="min-w-0">
             <p className="font-semibold truncate">{profile?.name || "Aluno"}</p>
             <span className="inline-flex mt-1 text-[11px] font-medium text-primary bg-primary/10 rounded-full px-2 py-0.5">
-              Plano {PLAN_LABEL[profile?.plan] || profile?.plan || "—"}
+              Plano {PLAN_VALUE_LABEL[profile?.plan] || profile?.plan || "—"}
             </span>
           </div>
         </div>

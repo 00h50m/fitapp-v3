@@ -260,9 +260,9 @@ const CreateStudentPage = () => {
                 <div>
                   <Label className="text-xs text-muted-foreground mb-1.5 block">Plano</Label>
                   <select className={selectClass} value={form.plan} onChange={e => handleChange("plan", e.target.value)}>
-                    <option value="basic">Basic</option>
-                    <option value="premium">Premium</option>
-                    <option value="vip">VIP</option>
+                    <option value="basic">Essencial</option>
+                    <option value="premium">Pro</option>
+                    <option value="vip">Consultoria</option>
                   </select>
                 </div>
               </div>

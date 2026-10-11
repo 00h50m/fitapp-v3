@@ -272,7 +272,7 @@ const AdminAlunoDetailPage = () => {
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Plano">
               <select className={SEL} value={form.plan || ""} onChange={e => handleChange("plan", e.target.value)}>
-                <option value="">Selecione</option><option value="basic">Basic</option><option value="premium">Premium</option><option value="vip">VIP</option>
+                <option value="">Selecione</option><option value="basic">Essencial</option><option value="premium">Pro</option><option value="vip">Consultoria</option>
               </select>
             </Field>
             <Field label="Nível de Treino">
