@@ -11,13 +11,13 @@ import { Plus, Trash2, Pencil, Loader2, FolderOpen, BookOpen, Users, Check, Uplo
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { uploadCoverImage } from "@/lib/uploadCoverImage";
+import { COVER_ICONS, DEFAULT_COVER_ICON, CoverGlyph } from "@/lib/coverIcons";
 
 const DIFFICULTY_LABEL = {
   iniciante: { label: "Iniciante", color: "bg-green-500/15 text-green-600 dark:text-green-400" },
   intermediario: { label: "Intermediário", color: "bg-yellow-500/15 text-yellow-600 dark:text-yellow-400" },
   avancado: { label: "Avançado", color: "bg-red-500/15 text-red-600 dark:text-red-400" },
 };
-const COVER_EMOJIS = ["🔥","💪","🏃","⚖️","🧘","🏋️","⚡","🎯","🏆","🌅","🥊","🚀"];
 const COVER_COLORS = ["#0F6E56","#1a1a2e","#16213e","#0f3460","#533483","#6b2d5e","#8B1A1A","#1B4332","#7B3F00","#1a1a1a"];
 
 const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
@@ -26,7 +26,7 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
   const [form, setForm] = useState({
     title: journey?.title ?? "",
     description: journey?.description ?? "",
-    cover_emoji: journey?.cover_emoji ?? "⚡",
+    cover_emoji: journey?.cover_emoji ?? DEFAULT_COVER_ICON,
     cover_color: journey?.cover_color ?? "#0F6E56",
     cover_image_url: journey?.cover_image_url ?? "",
     duration_days: journey?.duration_days ?? "",
@@ -112,17 +112,17 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
                 </button>
               </>
             ) : (
-              <span className="text-5xl">{form.cover_emoji}</span>
+              <CoverGlyph value={form.cover_emoji} className="h-12 w-12 text-white" />
             )}
           </div>
 
-          {/* Tabs: Emoji vs Foto */}
+          {/* Tabs: Ícone vs Foto */}
           <div className="flex gap-2">
             <button
               onClick={() => setCoverMode("emoji")}
               className={cn("flex-1 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2", coverMode === "emoji" ? "bg-primary/15 text-primary border border-primary/30" : "bg-secondary text-muted-foreground hover:text-foreground")}
             >
-              😀 Emoji
+              Ícone
             </button>
             <button
               onClick={() => fileInputRef.current?.click()}
@@ -140,8 +140,16 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
               <div>
                 <p className="text-xs text-muted-foreground mb-2">Ícone</p>
                 <div className="flex flex-wrap gap-2">
-                  {COVER_EMOJIS.map(e => (
-                    <button key={e} onClick={() => set("cover_emoji", e)} className={cn("w-9 h-9 rounded-lg text-xl transition-all", form.cover_emoji === e ? "bg-primary/20 ring-1 ring-primary" : "bg-secondary hover:bg-secondary/80")}>{e}</button>
+                  {COVER_ICONS.map(({ key, Icon, label }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      title={label}
+                      onClick={() => set("cover_emoji", key)}
+                      className={cn("w-9 h-9 rounded-lg flex items-center justify-center transition-all", form.cover_emoji === key ? "bg-primary/20 ring-1 ring-primary text-primary" : "bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80")}
+                    >
+                      <Icon className="h-[18px] w-[18px]" strokeWidth={2} />
+                    </button>
                   ))}
                 </div>
               </div>
@@ -185,7 +193,7 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
             <p className="text-xs text-muted-foreground mb-1">Categoria</p>
             <Select value={form.category_id} onValueChange={v => set("category_id", v)}>
               <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Selecionar categoria" /></SelectTrigger>
-              <SelectContent>{categories.map(c => <SelectItem key={c.id} value={c.id}>{c.emoji} {c.name}</SelectItem>)}</SelectContent>
+              <SelectContent>{categories.map(c => <SelectItem key={c.id} value={c.id}><span className="flex items-center gap-1.5"><CoverGlyph value={c.emoji} className="h-3.5 w-3.5" />{c.name}</span></SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div>
@@ -225,7 +233,7 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
 const CategoriesModal = ({ onClose, onUpdate }) => {
   const [categories, setCategories] = useState([]);
   const [name, setName] = useState("");
-  const [emoji, setEmoji] = useState("🏋️");
+  const [emoji, setEmoji] = useState(DEFAULT_COVER_ICON);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const load = useCallback(async () => { setLoading(true); const data = await getCategories(); setCategories(data); setLoading(false); }, []);
@@ -233,7 +241,7 @@ const CategoriesModal = ({ onClose, onUpdate }) => {
   const handleCreate = async () => {
     if (!name.trim()) return;
     setSaving(true);
-    try { await createCategory({ name: name.trim(), emoji }); setName(""); setEmoji("🏋️"); await load(); onUpdate(); }
+    try { await createCategory({ name: name.trim(), emoji }); setName(""); setEmoji(DEFAULT_COVER_ICON); await load(); onUpdate(); }
     catch (err) { toast.error(err.message); }
     finally { setSaving(false); }
   };
@@ -249,8 +257,20 @@ const CategoriesModal = ({ onClose, onUpdate }) => {
           <DialogDescription>Organize suas jornadas por categoria.</DialogDescription>
         </DialogHeader>
         <div className="space-y-3 pt-2">
+          <div className="flex flex-wrap gap-1.5">
+            {COVER_ICONS.map(({ key, Icon, label }) => (
+              <button
+                key={key}
+                type="button"
+                title={label}
+                onClick={() => setEmoji(key)}
+                className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all", emoji === key ? "bg-primary/20 ring-1 ring-primary text-primary" : "bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80")}
+              >
+                <Icon className="h-4 w-4" strokeWidth={2} />
+              </button>
+            ))}
+          </div>
           <div className="flex gap-2">
-            <Input value={emoji} onChange={e => setEmoji(e.target.value)} className="w-14 bg-secondary border-border text-center" maxLength={2} />
             <Input value={name} onChange={e => setName(e.target.value)} placeholder="Nome" className="flex-1 bg-secondary border-border" onKeyDown={e => e.key === "Enter" && handleCreate()} />
             <Button onClick={handleCreate} disabled={saving || !name.trim()}>{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}</Button>
           </div>
@@ -259,7 +279,7 @@ const CategoriesModal = ({ onClose, onUpdate }) => {
             {!loading && categories.length === 0 && <p className="text-sm text-muted-foreground py-2">Nenhuma categoria.</p>}
             {categories.map(c => (
               <div key={c.id} className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg">
-                <span>{c.emoji}</span>
+                <CoverGlyph value={c.emoji} className="h-4 w-4 text-muted-foreground" />
                 <span className="flex-1 text-sm">{c.name}</span>
                 <button onClick={() => handleDelete(c.id)} className="text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
               </div>
@@ -282,7 +302,7 @@ const JourneyCard = ({ journey, onEdit, onDelete, onManageAccess }) => {
         {hasCover ? (
           <img src={journey.cover_image_url} alt={journey.title} className="absolute inset-0 w-full h-full object-cover" />
         ) : (
-          <span className="text-5xl">{journey.cover_emoji}</span>
+          <CoverGlyph value={journey.cover_emoji} className="h-10 w-10 text-white" />
         )}
       </div>
       <div className="p-4">
@@ -290,7 +310,11 @@ const JourneyCard = ({ journey, onEdit, onDelete, onManageAccess }) => {
           <h3 className="font-medium text-sm leading-tight">{journey.title}</h3>
           <span className={cn("text-xs px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0", diff.color)}>{diff.label}</span>
         </div>
-        {journey.category && <p className="text-xs text-muted-foreground mb-2">{journey.category.emoji} {journey.category.name}</p>}
+        {journey.category && (
+          <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+            <CoverGlyph value={journey.category.emoji} className="h-3 w-3" />{journey.category.name}
+          </p>
+        )}
         <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
           {journey.duration_days && <span>{journey.duration_days}d</span>}
           <span>{count} treino{count !== 1 ? "s" : ""}</span>
@@ -357,8 +381,8 @@ const AdminCatalogPage = () => {
         </div>
         <div className="flex gap-2 flex-wrap">
           {[{ id: "all", emoji: "", name: "Todos" }, ...categories].map(c => (
-            <button key={c.id} onClick={() => setFilterCategory(c.id)} className={cn("px-3 py-1.5 rounded-full text-sm transition-all", filterCategory === c.id ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground")}>
-              {c.emoji} {c.name}
+            <button key={c.id} onClick={() => setFilterCategory(c.id)} className={cn("px-3 py-1.5 rounded-full text-sm transition-all flex items-center gap-1.5", filterCategory === c.id ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground")}>
+              {c.emoji && <CoverGlyph value={c.emoji} className="h-3.5 w-3.5" />}{c.name}
             </button>
           ))}
         </div>

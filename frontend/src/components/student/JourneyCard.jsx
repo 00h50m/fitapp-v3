@@ -2,6 +2,7 @@ import React from "react";
 import { CheckCircle2, Zap, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DIFFICULTY_LABEL } from "@/lib/difficultyLabels";
+import { CoverGlyph } from "@/lib/coverIcons";
 
 const SIZE_CLASSES = {
   sm: { card: "w-32", cover: "h-48" },
@@ -23,13 +24,13 @@ export const JourneyCard = ({ journey, studentJourney, hasAccess, onSelect, size
     <div className={cn("flex-shrink-0 cursor-pointer group", card)} onClick={() => onSelect(journey)}>
       <div className={cn("relative rounded-2xl overflow-hidden", cover)}>
         <div
-          className="absolute inset-0 flex items-center justify-center text-5xl transition-transform duration-300 group-hover:scale-105"
+          className="absolute inset-0 flex items-center justify-center transition-transform duration-300 group-hover:scale-105"
           style={{ background: hasCover ? "transparent" : journey.cover_color, filter: locked ? "grayscale(70%)" : "none" }}
         >
           {hasCover ? (
             <img src={journey.cover_image_url} alt="" className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
           ) : (
-            <span>{journey.cover_emoji}</span>
+            <CoverGlyph value={journey.cover_emoji} className="h-12 w-12 text-white" />
           )}
         </div>
 

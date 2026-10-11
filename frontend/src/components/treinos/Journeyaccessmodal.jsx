@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Loader2, Lock, Unlock, Search, Users } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { CoverGlyph } from "@/lib/coverIcons";
 
 const JourneyAccessModal = ({ journey, onClose }) => {
   const [students, setStudents] = useState([]);
@@ -68,7 +69,7 @@ const JourneyAccessModal = ({ journey, onClose }) => {
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="bg-card border-border max-w-md max-h-[90vh] flex flex-col">
         <DialogHeader>
-          <div className="h-14 rounded-xl flex items-center justify-center text-3xl mb-2 flex-shrink-0" style={{ background: journey.cover_color }}>{journey.cover_emoji}</div>
+          <div className="h-14 rounded-xl flex items-center justify-center mb-2 flex-shrink-0" style={{ background: journey.cover_color }}><CoverGlyph value={journey.cover_emoji} className="h-7 w-7 text-white" /></div>
           <DialogTitle className="text-base">Gerenciar acesso</DialogTitle>
           <DialogDescription className="text-xs">{journey.title}</DialogDescription>
         </DialogHeader>

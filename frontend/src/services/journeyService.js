@@ -8,7 +8,7 @@ export async function getCategories() {
   return data;
 }
 
-export async function createCategory({ name, emoji = "🏋️", color = "#1D9E75" }) {
+export async function createCategory({ name, emoji = "dumbbell", color = "#1D9E75" }) {
   const { data, error } = await supabase.from("workout_categories").insert({ name, emoji, color }).select().single();
   if (error) throw error;
   return data;
@@ -34,7 +34,7 @@ export async function getJourneyById(id) {
   return data;
 }
 
-export async function createJourney({ title, description, cover_emoji = "⚡", cover_color = "#0F6E56", duration_days, difficulty = "intermediario", category_id }) {
+export async function createJourney({ title, description, cover_emoji = "flame", cover_color = "#0F6E56", duration_days, difficulty = "intermediario", category_id }) {
   const { data, error } = await supabase.from("journeys").insert({ title, description, cover_emoji, cover_color, duration_days, difficulty, category_id }).select().single();
   if (error) throw error;
   return data;

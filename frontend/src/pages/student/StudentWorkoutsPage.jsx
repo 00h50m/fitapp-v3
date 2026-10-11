@@ -13,6 +13,7 @@ import {
   FileText, ArrowRight, Star, Clock, ChevronDown, ChevronUp,
   X, MessageCircle, BookOpen, Crown, Bookmark, BookmarkCheck, Sparkles,
 } from "lucide-react";
+import { CoverGlyph, DEFAULT_COVER_ICON } from "@/lib/coverIcons";
 import { getJourneys, getCategories, getStudentJourneys, getGrantedJourneyIds, enrollStudentInJourney, PERSONAL_WHATSAPP } from "@/services/journeyService";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -396,7 +397,9 @@ const StudentWorkoutsPage = () => {
                       onClick={() => navigate(`/student/catalog#cat-${cat.id}`)}
                       className="rounded-2xl bg-card shadow-sm p-4 text-left min-h-[104px] flex flex-col justify-between hover:shadow-md transition-all"
                     >
-                      <span className="text-2xl">{cat.emoji}</span>
+                      <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <CoverGlyph value={cat.emoji} className="h-[18px] w-[18px] text-primary" />
+                      </div>
                       <span>
                         <span className="block text-sm font-semibold">{cat.name}</span>
                         <span className="block text-[11px] text-muted-foreground mt-0.5">Ver jornadas</span>
@@ -509,7 +512,7 @@ const StudentWorkoutsPage = () => {
                   if (!catJourneys.length) return null;
                   return (
                     <div key={cat.id} className="mb-5">
-                      <p className="text-xs font-medium text-muted-foreground mb-2">{cat.emoji} {cat.name}</p>
+                      <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5"><CoverGlyph value={cat.emoji} className="h-3.5 w-3.5" />{cat.name}</p>
                       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
                         {catJourneys.map(j => <JourneyCard key={j.id} journey={j} studentJourney={getStudentJourney(j.id)} hasAccess={true} onSelect={handleJourneySelect} />)}
                       </div>
@@ -551,11 +554,11 @@ const StudentWorkoutsPage = () => {
                           className="bg-card rounded-xl shadow-sm overflow-hidden flex cursor-pointer hover:shadow-md transition-all"
                           onClick={() => navigate(`/student/journey/${sv.journey_id}`)}
                         >
-                          <div className="w-16 h-16 flex-shrink-0 flex items-center justify-center text-2xl"
+                          <div className="w-16 h-16 flex-shrink-0 flex items-center justify-center"
                             style={{ background: sv.journey?.cover_image_url ? "transparent" : `color-mix(in srgb, ${sv.journey?.cover_color ?? "#0F6E56"} 16%, transparent)` }}>
                             {sv.journey?.cover_image_url
                               ? <img src={sv.journey.cover_image_url} alt="" className="w-full h-full object-cover" />
-                              : sv.journey?.cover_emoji ?? "⚡"}
+                              : <CoverGlyph value={sv.journey?.cover_emoji ?? DEFAULT_COVER_ICON} className="h-6 w-6" />}
                           </div>
                           <div className="flex-1 min-w-0 p-3 flex items-center justify-between">
                             <p className="font-medium text-sm truncate">{sv.journey?.title ?? "Jornada"}</p>

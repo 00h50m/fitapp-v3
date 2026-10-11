@@ -20,6 +20,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { getJourneys, getGrantedJourneyIds, grantJourneyAccess, revokeJourneyAccess } from "@/services/journeyService";
+import { CoverGlyph } from "@/lib/coverIcons";
 
 const SEL = "w-full bg-muted border border-border text-foreground rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
 
@@ -308,7 +309,7 @@ const AdminAlunoDetailPage = () => {
                   return (
                     <div key={j.id} className="flex items-center justify-between gap-3 px-4 py-3">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <span className="text-lg flex-shrink-0">{j.cover_emoji}</span>
+                        <CoverGlyph value={j.cover_emoji} className="h-4 w-4 flex-shrink-0 text-primary" />
                         <p className="text-sm font-medium text-foreground truncate">{j.title}</p>
                       </div>
                       <Button

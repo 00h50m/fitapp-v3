@@ -7,6 +7,7 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { Loader2, BookOpen, ChevronRight, CheckCircle2, Lock, MessageCircle, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { CoverGlyph } from "@/lib/coverIcons";
 
 function openWhatsApp(journeyTitle) {
   const msg = encodeURIComponent(`Olá! Tenho interesse em liberar acesso à jornada "${journeyTitle}". Poderia me ajudar?`);
@@ -44,7 +45,7 @@ const JourneyListRow = ({ journey, studentJourney, hasAccess, onSelect }) => {
         {hasCover ? (
           <img src={journey.cover_image_url} alt="" className="h-full w-full object-cover" />
         ) : (
-          <span className="text-lg" style={{ filter: "saturate(1.3)" }}>{journey.cover_emoji}</span>
+          <div style={{ color: tint }}><CoverGlyph value={journey.cover_emoji} className="h-5 w-5" /></div>
         )}
         {locked && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
@@ -174,11 +175,11 @@ const StudentCatalogPage = () => {
               type="button"
               onClick={() => setActiveFilter(cat.id)}
               className={cn(
-                "flex-shrink-0 text-xs font-medium px-3 py-2 rounded-full transition-colors",
+                "flex-shrink-0 text-xs font-medium px-3 py-2 rounded-full transition-colors flex items-center gap-1.5",
                 activeFilter === cat.id ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:text-foreground hover:border-primary/40"
               )}
             >
-              {cat.emoji} {cat.name}
+              <CoverGlyph value={cat.emoji} className="h-3.5 w-3.5" />{cat.name}
             </button>
           ))}
         </div>
