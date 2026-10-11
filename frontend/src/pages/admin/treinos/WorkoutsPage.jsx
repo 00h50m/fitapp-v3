@@ -127,10 +127,16 @@ const WorkoutsPage = () => {
                   <div className="relative">
                     <CoverImage
                       src={workout.cover_image_url}
-                      color="hsl(var(--primary) / 0.15)"
+                      color="hsl(var(--primary) / 0.12)"
                       className="h-32"
                       alt={workout.title}
-                    />
+                    >
+                      {!workout.cover_image_url && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <ClipboardList className="h-9 w-9 text-primary/40" />
+                        </div>
+                      )}
+                    </CoverImage>
                     {workout.environment && ENV_LABEL[workout.environment] && (
                       <span className="absolute top-2 left-2 text-[10px] font-medium px-2 py-1 rounded-full bg-black/70 text-white">
                         {ENV_LABEL[workout.environment]}
