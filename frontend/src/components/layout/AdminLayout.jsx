@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
 import {
   LayoutDashboard, Users, LogOut, Menu, X,
-  Zap, ClipboardList, UserCog, Library, BookOpen, Settings, CreditCard, Palette,
+  Zap, ClipboardList, UserCog, Library, BookOpen, Settings, CreditCard, Palette, LayoutTemplate,
 } from "lucide-react";
 
 // Sidebar fiel ao protótipo do personal: agrupada em seções, sempre escura
@@ -33,6 +33,7 @@ const navGroups = [
   {
     label: "Marca",
     items: [
+      { title: "Página inicial", href: "/admin/home", icon: LayoutTemplate },
       { title: "Aparência do aplicativo", href: "/admin/aparencia", icon: Palette },
     ],
   },

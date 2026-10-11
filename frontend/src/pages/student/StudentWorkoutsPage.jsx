@@ -20,6 +20,9 @@ import { toast } from "sonner";
 import { usePlanPermission, FEATURES } from "@/lib/planPermissions";
 import { LockedFeature } from "@/components/ui/locked-feature";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
+import { getPublishedHomeSections } from "@/services/homeSectionsService";
+
+const HOME_SECTION_KEYS = ["banner", "categories_shortcut", "frequency_stats", "personal_program", "journeys", "saved"];
 
 // ── Constants ──────────────────────────────────────────────────
 const waLink = (phone, msg) => `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
@@ -193,6 +196,9 @@ const StudentWorkoutsPage = () => {
   const [savedWorkouts, setSavedWorkouts]   = useState([]);
   const [savedJourneys, setSavedJourneys]   = useState([]);
 
+  // Página inicial configurável pelo personal (ordem, visibilidade, público)
+  const [homeSections, setHomeSections] = useState([]);
+
   const isExpired = profile?.access_end ? new Date(profile.access_end + "T23:59") < new Date() : false;
 
   const loadWorkouts = useCallback(async () => {
@@ -250,6 +256,10 @@ const StudentWorkoutsPage = () => {
     return () => clearTimeout(t);
   }, [user?.id, authLoading]); // eslint-disable-line
 
+  useEffect(() => {
+    getPublishedHomeSections().then(setHomeSections).catch(() => {}); // sem config ainda -> mostra tudo, na ordem padrão
+  }, []);
+
   // Derived — treinos
   const activeWorkouts  = workouts.filter(w => !isExpiredWorkout(w));
   const expiredWorkouts = workouts.filter(w =>  isExpiredWorkout(w));
@@ -296,6 +306,21 @@ const StudentWorkoutsPage = () => {
   const myJourneys        = journeys.filter(j => studentJourneys.some(sj => sj.journey_id === j.id));
   const availableJourneys = journeys.filter(j => grantedIds.has(j.id) && !studentJourneys.some(sj => sj.journey_id === j.id));
   const lockedJourneys    = journeys.filter(j => !grantedIds.has(j.id));
+
+  // "Aluno novo" = ainda não tem treino nem jornada nem nunca treinou —
+  // usado pelo editor de página inicial pra decidir o que mostrar.
+  const studentAudience = (!hasPersonalWorkouts && myJourneys.length === 0 && sessions.length === 0) ? "new" : "active";
+  const homeSectionMap = Object.fromEntries(homeSections.map(s => [s.key, s]));
+  const isSectionOn = (key) => {
+    const s = homeSectionMap[key];
+    if (!s) return true; // sem config publicada ainda -> comportamento padrão (tudo visível)
+    if (!s.enabled) return false;
+    return s.audience === "all" || s.audience === studentAudience;
+  };
+  const sectionText = (key, field, fallback) => homeSectionMap[key]?.[field] || fallback;
+  const orderedSectionKeys = homeSections.length
+    ? homeSections.filter(s => HOME_SECTION_KEYS.includes(s.key)).map(s => s.key)
+    : HOME_SECTION_KEYS;
 
   const handleJourneySelect = (journey) => {
     const sj = getStudentJourney(journey.id);
@@ -374,239 +399,255 @@ const StudentWorkoutsPage = () => {
           </div>
         ) : (
           <div className="flex flex-col gap-6 pt-3">
-
-            {/* Hero de boas-vindas — sangra até a borda da tela, estilo editorial */}
-            <div className="relative overflow-hidden -mx-4 md:-mx-6 -mt-3 rounded-b-[28px] px-4 md:px-6 pt-7 pb-7 bg-gradient-to-br from-primary/25 via-primary/8 to-transparent">
-              <div className="absolute top-0 right-0 w-56 h-56 rounded-full bg-primary/15 blur-3xl -translate-y-1/3 translate-x-1/4 pointer-events-none" />
-              <div className="relative">
-                <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-foreground bg-background/60 backdrop-blur-md border border-border/50 rounded-full px-2.5 py-1 mb-4">
-                  <Sparkles className="h-3 w-3 text-primary" />{settings.banner_title}
-                </span>
-                <h1 className="text-2xl font-semibold leading-snug">
-                  {greeting()}, {(profile?.name || "Aluno").split(" ")[0]}.
-                </h1>
-                <p className="text-sm text-muted-foreground mt-1.5 max-w-[280px]">{settings.banner_subtitle}</p>
-              </div>
-            </div>
-
-            {/* Escolha sua jornada — atalho por categoria */}
-            {categories.length > 0 && (
-              <div>
-                <span className="text-[11px] text-muted-foreground uppercase tracking-wider">Escolha sua jornada</span>
-                <h2 className="text-lg font-semibold mt-1 mb-3">O que você quer treinar hoje?</h2>
-                <div className="grid grid-cols-2 gap-2.5">
-                  {categories.slice(0, 4).map(cat => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => navigate(`/student/catalog#cat-${cat.id}`)}
-                      className="rounded-2xl bg-card shadow-sm p-4 text-left min-h-[104px] flex flex-col justify-between hover:shadow-md transition-all"
-                    >
-                      <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <CoverGlyph value={cat.emoji} className="h-[18px] w-[18px] text-primary" />
-                      </div>
-                      <span>
-                        <span className="block text-sm font-semibold">{cat.name}</span>
-                        <span className="block text-[11px] text-muted-foreground mt-0.5">Ver jornadas</span>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Stats + frequência — exige Pro ou superior */}
-            {perm.can(FEATURES.FREQUENCY_TRACKING) ? (
-              <>
-                <div className="grid grid-cols-3 gap-2.5">
-                  {[
-                    { label: "Treinos",     value: activeWorkouts.length, color: "text-primary" },
-                    { label: "Essa semana", value: weekCount,             color: "text-foreground" },
-                    { label: streak >= 2 ? "🔥 Streak" : "Sequência", value: streak, color: "text-foreground" },
-                  ].map(({ label, value, color }) => (
-                    <div key={label} className="bg-card rounded-2xl shadow-sm p-4 text-center">
-                      <p className={cn("text-2xl font-black leading-none mb-1.5", color)}>{value}</p>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Tira semanal — visual, reforça a constância dia a dia */}
-                <div className="bg-card rounded-2xl shadow-sm px-4 py-3.5 flex items-center justify-between gap-1">
-                  {weekStrip.map(day => (
-                    <div key={day.dateStr} className="flex flex-col items-center gap-1.5">
-                      <span className="text-[9px] font-medium text-muted-foreground">{day.label}</span>
-                      <div className={cn(
-                        "h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors",
-                        day.done ? "bg-primary text-primary-foreground"
-                        : day.isToday ? "border-2 border-primary/40 text-primary"
-                        : "bg-muted text-muted-foreground/50"
-                      )}>
-                        {day.done ? "✓" : new Date(day.dateStr + "T12:00").getDate()}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <LockedFeature label="Frequência e sequência de treinos" requiredTierLabel={perm.minTierLabelFor(FEATURES.FREQUENCY_TRACKING)} />
-            )}
-
-            {/* ── MEU PROGRAMA (consultoria personalizada) ── */}
-            {hasPersonalWorkouts ? (
-              <div className="space-y-3">
-                <SectionLabel icon={Crown}>Meu Programa Personalizado</SectionLabel>
-                {todayWorkout && (
-                  <WorkoutCard workout={todayWorkout} isNext={true} isOngoing={ongoing?.workout_id===todayWorkout.id} alreadyToday={alreadyToday} sessions={sessions} navigate={navigate} onPdfClick={setPdfUrl} />
-                )}
-                {alreadyToday && (
-                  <div className="flex items-center gap-3.5 bg-green-500/8 border border-green-500/20 rounded-2xl px-4 py-4">
-                    <div className="h-10 w-10 rounded-full bg-green-500/15 flex items-center justify-center flex-shrink-0"><CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" /></div>
-                    <div>
-                      <p className="text-sm font-bold text-green-600 dark:text-green-400">Treino concluído hoje! 🏆</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{activeWorkouts.length > 1 ? "Amanhã começa o próximo." : "Repita quando quiser!"}</p>
-                    </div>
-                  </div>
-                )}
-                {activeWorkouts.length > 1 && (
-                  <div className="flex flex-col gap-2.5">
-                    {activeWorkouts.map((w, idx) => (
-                      <WorkoutCard key={w.id} workout={w} isNext={idx===nextIdx} isOngoing={ongoing?.workout_id===w.id} alreadyToday={alreadyToday} sessions={sessions} navigate={navigate} onPdfClick={setPdfUrl} />
-                    ))}
-                  </div>
-                )}
-                {expiredWorkouts.length > 0 && (
-                  <div>
-                    <button className="flex items-center gap-2 w-full mb-2" onClick={() => setShowExpired(p => !p)}>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Expirados ({expiredWorkouts.length})</p>
-                      <div className="flex-1 h-px bg-border/40" />
-                      {showExpired ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
-                    </button>
-                    {showExpired && <div className="flex flex-col gap-2.5">{expiredWorkouts.map(w => <WorkoutCard key={w.id} workout={w} isNext={false} isOngoing={false} alreadyToday={alreadyToday} sessions={sessions} navigate={navigate} onPdfClick={setPdfUrl} />)}</div>}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 rounded-2xl p-5">
-                <div className="flex items-start gap-3 mb-4">
-                  <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0"><Crown className="h-5 w-5 text-primary" /></div>
-                  <div>
-                    <p className="font-semibold text-sm">Consultoria Personalizada</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Treinos feitos especialmente para você, com acompanhamento do seu personal.</p>
-                  </div>
-                </div>
-                <Button className="w-full bg-green-600 hover:bg-green-500 text-white gap-2" onClick={() => window.open(waLink(settings.whatsapp, `Olá! Tenho interesse na consultoria personalizada do ${settings.display_name}. Pode me passar mais informações? 💪`), "_blank")}>
-                  <MessageCircle className="h-4 w-4" />Quero consultoria personalizada
-                </Button>
-              </div>
-            )}
-
-            {/* ── JORNADAS ── */}
-            {journeys.length > 0 && (
-              <div>
-                <SectionLabel icon={BookOpen}>Jornadas de Treino</SectionLabel>
-                <p className="text-xs text-muted-foreground mb-4 -mt-2">
-                  {hasPersonalWorkouts ? "Explore programas para complementar seu treino" : "Escolha uma jornada e comece seu programa"}
-                </p>
-
-                {myJourneys.length > 0 && (
-                  <div className="mb-5">
-                    <p className="text-xs font-medium text-primary mb-2">Em andamento</p>
-                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
-                      {myJourneys.map(j => <JourneyCard key={j.id} journey={j} studentJourney={getStudentJourney(j.id)} hasAccess={grantedIds.has(j.id)} onSelect={handleJourneySelect} />)}
-                    </div>
-                  </div>
-                )}
-
-                {categories.map(cat => {
-                  const catJourneys = availableJourneys.filter(j => j.category_id === cat.id);
-                  if (!catJourneys.length) return null;
-                  return (
-                    <div key={cat.id} className="mb-5">
-                      <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5"><CoverGlyph value={cat.emoji} className="h-3.5 w-3.5" />{cat.name}</p>
-                      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
-                        {catJourneys.map(j => <JourneyCard key={j.id} journey={j} studentJourney={getStudentJourney(j.id)} hasAccess={true} onSelect={handleJourneySelect} />)}
+            {orderedSectionKeys.map(key => {
+              switch (key) {
+                case "banner":
+                  return !isSectionOn("banner") ? null : (
+                    <div key="banner" className="relative overflow-hidden -mx-4 md:-mx-6 -mt-3 rounded-b-[28px] px-4 md:px-6 pt-7 pb-7 bg-gradient-to-br from-primary/25 via-primary/8 to-transparent">
+                      <div className="absolute top-0 right-0 w-56 h-56 rounded-full bg-primary/15 blur-3xl -translate-y-1/3 translate-x-1/4 pointer-events-none" />
+                      <div className="relative">
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-foreground bg-background/60 backdrop-blur-md border border-border/50 rounded-full px-2.5 py-1 mb-4">
+                          <Sparkles className="h-3 w-3 text-primary" />{settings.banner_title}
+                        </span>
+                        <h1 className="text-2xl font-semibold leading-snug">
+                          {greeting()}, {(profile?.name || "Aluno").split(" ")[0]}.
+                        </h1>
+                        <p className="text-sm text-muted-foreground mt-1.5 max-w-[280px]">{settings.banner_subtitle}</p>
                       </div>
                     </div>
                   );
-                })}
 
-                {availableJourneys.filter(j => !j.category_id).length > 0 && (
-                  <div className="mb-5">
-                    <p className="text-xs font-medium text-muted-foreground mb-2">Disponíveis</p>
-                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
-                      {availableJourneys.filter(j => !j.category_id).map(j => <JourneyCard key={j.id} journey={j} studentJourney={getStudentJourney(j.id)} hasAccess={true} onSelect={handleJourneySelect} />)}
+                case "categories_shortcut":
+                  return (categories.length === 0 || !isSectionOn("categories_shortcut")) ? null : (
+                    <div key="categories_shortcut">
+                      <span className="text-[11px] text-muted-foreground uppercase tracking-wider">{sectionText("categories_shortcut", "title", "Escolha sua jornada")}</span>
+                      <h2 className="text-lg font-semibold mt-1 mb-3">{sectionText("categories_shortcut", "subtitle", "O que você quer treinar hoje?")}</h2>
+                      <div className="grid grid-cols-2 gap-2.5">
+                        {categories.slice(0, 4).map(cat => (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => navigate(`/student/catalog#cat-${cat.id}`)}
+                            className="rounded-2xl bg-card shadow-sm p-4 text-left min-h-[104px] flex flex-col justify-between hover:shadow-md transition-all"
+                          >
+                            <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                              <CoverGlyph value={cat.emoji} className="h-[18px] w-[18px] text-primary" />
+                            </div>
+                            <span>
+                              <span className="block text-sm font-semibold">{cat.name}</span>
+                              <span className="block text-[11px] text-muted-foreground mt-0.5">Ver jornadas</span>
+                            </span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
 
-                {lockedJourneys.length > 0 && (
-                  <div className="mb-3">
-                    <p className="text-xs font-medium text-muted-foreground mb-2">🔒 Em breve</p>
-                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
-                      {lockedJourneys.map(j => <JourneyCard key={j.id} journey={j} studentJourney={null} hasAccess={false} onSelect={handleJourneySelect} />)}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ── SALVOS ── */}
-            {(savedWorkouts.length > 0 || savedJourneys.length > 0) && (
-              <div>
-                <SectionLabel icon={Bookmark}>Salvos</SectionLabel>
-
-                {savedJourneys.length > 0 && (
-                  <div className="mb-4">
-                    <p className="text-xs text-muted-foreground mb-2">Jornadas</p>
-                    <div className="space-y-2">
-                      {savedJourneys.map(sv => (
-                        <div key={sv.id}
-                          className="bg-card rounded-xl shadow-sm overflow-hidden flex cursor-pointer hover:shadow-md transition-all"
-                          onClick={() => navigate(`/student/journey/${sv.journey_id}`)}
-                        >
-                          <div className="w-16 h-16 flex-shrink-0 flex items-center justify-center"
-                            style={{ background: sv.journey?.cover_image_url ? "transparent" : `color-mix(in srgb, ${sv.journey?.cover_color ?? "#0F6E56"} 16%, transparent)` }}>
-                            {sv.journey?.cover_image_url
-                              ? <img src={sv.journey.cover_image_url} alt="" className="w-full h-full object-cover" />
-                              : <CoverGlyph value={sv.journey?.cover_emoji ?? DEFAULT_COVER_ICON} className="h-6 w-6" />}
+                case "frequency_stats":
+                  return !isSectionOn("frequency_stats") ? null : (
+                    <React.Fragment key="frequency_stats">
+                      {perm.can(FEATURES.FREQUENCY_TRACKING) ? (
+                        <>
+                          <div className="grid grid-cols-3 gap-2.5">
+                            {[
+                              { label: "Treinos",     value: activeWorkouts.length, color: "text-primary" },
+                              { label: "Essa semana", value: weekCount,             color: "text-foreground" },
+                              { label: streak >= 2 ? "🔥 Streak" : "Sequência", value: streak, color: "text-foreground" },
+                            ].map(({ label, value, color }) => (
+                              <div key={label} className="bg-card rounded-2xl shadow-sm p-4 text-center">
+                                <p className={cn("text-2xl font-black leading-none mb-1.5", color)}>{value}</p>
+                                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</p>
+                              </div>
+                            ))}
                           </div>
-                          <div className="flex-1 min-w-0 p-3 flex items-center justify-between">
-                            <p className="font-medium text-sm truncate">{sv.journey?.title ?? "Jornada"}</p>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 ml-2" />
+
+                          {/* Tira semanal — visual, reforça a constância dia a dia */}
+                          <div className="bg-card rounded-2xl shadow-sm px-4 py-3.5 flex items-center justify-between gap-1">
+                            {weekStrip.map(day => (
+                              <div key={day.dateStr} className="flex flex-col items-center gap-1.5">
+                                <span className="text-[9px] font-medium text-muted-foreground">{day.label}</span>
+                                <div className={cn(
+                                  "h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors",
+                                  day.done ? "bg-primary text-primary-foreground"
+                                  : day.isToday ? "border-2 border-primary/40 text-primary"
+                                  : "bg-muted text-muted-foreground/50"
+                                )}>
+                                  {day.done ? "✓" : new Date(day.dateStr + "T12:00").getDate()}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      ) : (
+                        <LockedFeature label="Frequência e sequência de treinos" requiredTierLabel={perm.minTierLabelFor(FEATURES.FREQUENCY_TRACKING)} />
+                      )}
+                    </React.Fragment>
+                  );
+
+                case "personal_program":
+                  return !isSectionOn("personal_program") ? null : (
+                    <React.Fragment key="personal_program">
+                      {hasPersonalWorkouts ? (
+                        <div className="space-y-3">
+                          <SectionLabel icon={Crown}>{sectionText("personal_program", "title", "Meu Programa Personalizado")}</SectionLabel>
+                          {todayWorkout && (
+                            <WorkoutCard workout={todayWorkout} isNext={true} isOngoing={ongoing?.workout_id===todayWorkout.id} alreadyToday={alreadyToday} sessions={sessions} navigate={navigate} onPdfClick={setPdfUrl} />
+                          )}
+                          {alreadyToday && isSectionOn("continue_workout") && (
+                            <div className="flex items-center gap-3.5 bg-green-500/8 border border-green-500/20 rounded-2xl px-4 py-4">
+                              <div className="h-10 w-10 rounded-full bg-green-500/15 flex items-center justify-center flex-shrink-0"><CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" /></div>
+                              <div>
+                                <p className="text-sm font-bold text-green-600 dark:text-green-400">Treino concluído hoje! 🏆</p>
+                                <p className="text-xs text-muted-foreground mt-0.5">{activeWorkouts.length > 1 ? "Amanhã começa o próximo." : "Repita quando quiser!"}</p>
+                              </div>
+                            </div>
+                          )}
+                          {activeWorkouts.length > 1 && (
+                            <div className="flex flex-col gap-2.5">
+                              {activeWorkouts.map((w, idx) => (
+                                <WorkoutCard key={w.id} workout={w} isNext={idx===nextIdx} isOngoing={ongoing?.workout_id===w.id} alreadyToday={alreadyToday} sessions={sessions} navigate={navigate} onPdfClick={setPdfUrl} />
+                              ))}
+                            </div>
+                          )}
+                          {expiredWorkouts.length > 0 && (
+                            <div>
+                              <button className="flex items-center gap-2 w-full mb-2" onClick={() => setShowExpired(p => !p)}>
+                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Expirados ({expiredWorkouts.length})</p>
+                                <div className="flex-1 h-px bg-border/40" />
+                                {showExpired ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
+                              </button>
+                              {showExpired && <div className="flex flex-col gap-2.5">{expiredWorkouts.map(w => <WorkoutCard key={w.id} workout={w} isNext={false} isOngoing={false} alreadyToday={alreadyToday} sessions={sessions} navigate={navigate} onPdfClick={setPdfUrl} />)}</div>}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 rounded-2xl p-5">
+                          <div className="flex items-start gap-3 mb-4">
+                            <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0"><Crown className="h-5 w-5 text-primary" /></div>
+                            <div>
+                              <p className="font-semibold text-sm">{sectionText("personal_program", "title", "Consultoria Personalizada")}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">{sectionText("personal_program", "subtitle", "Treinos feitos especialmente para você, com acompanhamento do seu personal.")}</p>
+                            </div>
+                          </div>
+                          <Button className="w-full bg-green-600 hover:bg-green-500 text-white gap-2" onClick={() => window.open(waLink(settings.whatsapp, `Olá! Tenho interesse na consultoria personalizada do ${settings.display_name}. Pode me passar mais informações? 💪`), "_blank")}>
+                            <MessageCircle className="h-4 w-4" />Quero consultoria personalizada
+                          </Button>
+                        </div>
+                      )}
+                    </React.Fragment>
+                  );
+
+                case "journeys":
+                  return (journeys.length === 0 || !isSectionOn("journeys")) ? null : (
+                    <div key="journeys">
+                      <SectionLabel icon={BookOpen}>{sectionText("journeys", "title", "Jornadas de Treino")}</SectionLabel>
+                      <p className="text-xs text-muted-foreground mb-4 -mt-2">
+                        {sectionText("journeys", "subtitle", hasPersonalWorkouts ? "Explore programas para complementar seu treino" : "Escolha uma jornada e comece seu programa")}
+                      </p>
+
+                      {myJourneys.length > 0 && (
+                        <div className="mb-5">
+                          <p className="text-xs font-medium text-primary mb-2">Em andamento</p>
+                          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+                            {myJourneys.map(j => <JourneyCard key={j.id} journey={j} studentJourney={getStudentJourney(j.id)} hasAccess={grantedIds.has(j.id)} onSelect={handleJourneySelect} />)}
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                      )}
 
-                {savedWorkouts.length > 0 && (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-2">Treinos</p>
-                    <div className="space-y-2">
-                      {savedWorkouts.map(sw => (
-                        <div key={sw.id}
-                          className="bg-card rounded-xl shadow-sm p-4 flex items-center gap-3 cursor-pointer hover:shadow-md transition-all"
-                          onClick={() => navigate(`/student/workout-preview/${sw.workout_template_id}`)}
-                        >
-                          <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
-                            <Dumbbell className="h-4 w-4 text-primary" />
+                      {categories.map(cat => {
+                        const catJourneys = availableJourneys.filter(j => j.category_id === cat.id);
+                        if (!catJourneys.length) return null;
+                        return (
+                          <div key={cat.id} className="mb-5">
+                            <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5"><CoverGlyph value={cat.emoji} className="h-3.5 w-3.5" />{cat.name}</p>
+                            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+                              {catJourneys.map(j => <JourneyCard key={j.id} journey={j} studentJourney={getStudentJourney(j.id)} hasAccess={true} onSelect={handleJourneySelect} />)}
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{sw.template?.title ?? "Treino"}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">Salvo em {new Date(sw.saved_at).toLocaleDateString("pt-BR")}</p>
+                        );
+                      })}
+
+                      {availableJourneys.filter(j => !j.category_id).length > 0 && (
+                        <div className="mb-5">
+                          <p className="text-xs font-medium text-muted-foreground mb-2">Disponíveis</p>
+                          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+                            {availableJourneys.filter(j => !j.category_id).map(j => <JourneyCard key={j.id} journey={j} studentJourney={getStudentJourney(j.id)} hasAccess={true} onSelect={handleJourneySelect} />)}
                           </div>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+                      )}
 
-            {/* Estado vazio */}
+                      {lockedJourneys.length > 0 && (
+                        <div className="mb-3">
+                          <p className="text-xs font-medium text-muted-foreground mb-2">🔒 Em breve</p>
+                          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+                            {lockedJourneys.map(j => <JourneyCard key={j.id} journey={j} studentJourney={null} hasAccess={false} onSelect={handleJourneySelect} />)}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+
+                case "saved":
+                  return ((savedWorkouts.length === 0 && savedJourneys.length === 0) || !isSectionOn("saved")) ? null : (
+                    <div key="saved">
+                      <SectionLabel icon={Bookmark}>{sectionText("saved", "title", "Salvos")}</SectionLabel>
+
+                      {savedJourneys.length > 0 && (
+                        <div className="mb-4">
+                          <p className="text-xs text-muted-foreground mb-2">Jornadas</p>
+                          <div className="space-y-2">
+                            {savedJourneys.map(sv => (
+                              <div key={sv.id}
+                                className="bg-card rounded-xl shadow-sm overflow-hidden flex cursor-pointer hover:shadow-md transition-all"
+                                onClick={() => navigate(`/student/journey/${sv.journey_id}`)}
+                              >
+                                <div className="w-16 h-16 flex-shrink-0 flex items-center justify-center"
+                                  style={{ background: sv.journey?.cover_image_url ? "transparent" : `color-mix(in srgb, ${sv.journey?.cover_color ?? "#0F6E56"} 16%, transparent)` }}>
+                                  {sv.journey?.cover_image_url
+                                    ? <img src={sv.journey.cover_image_url} alt="" className="w-full h-full object-cover" />
+                                    : <CoverGlyph value={sv.journey?.cover_emoji ?? DEFAULT_COVER_ICON} className="h-6 w-6" />}
+                                </div>
+                                <div className="flex-1 min-w-0 p-3 flex items-center justify-between">
+                                  <p className="font-medium text-sm truncate">{sv.journey?.title ?? "Jornada"}</p>
+                                  <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 ml-2" />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {savedWorkouts.length > 0 && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-2">Treinos</p>
+                          <div className="space-y-2">
+                            {savedWorkouts.map(sw => (
+                              <div key={sw.id}
+                                className="bg-card rounded-xl shadow-sm p-4 flex items-center gap-3 cursor-pointer hover:shadow-md transition-all"
+                                onClick={() => navigate(`/student/workout-preview/${sw.workout_template_id}`)}
+                              >
+                                <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+                                  <Dumbbell className="h-4 w-4 text-primary" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-sm truncate">{sw.template?.title ?? "Treino"}</p>
+                                  <p className="text-xs text-muted-foreground mt-0.5">Salvo em {new Date(sw.saved_at).toLocaleDateString("pt-BR")}</p>
+                                </div>
+                                <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+
+                default:
+                  return null;
+              }
+            })}
+
+            {/* Estado vazio — sempre por último, independente de configuração */}
             {!hasPersonalWorkouts && journeys.length === 0 && (
               <div className="flex flex-col items-center justify-center min-h-[40vh] text-center gap-4">
                 <div className="h-20 w-20 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center"><Dumbbell className="h-9 w-9 text-primary" /></div>
