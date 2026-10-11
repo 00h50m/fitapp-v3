@@ -110,7 +110,7 @@ const JourneyDetailPage = () => {
       {/* Hero */}
       <div className="relative h-56 overflow-hidden" style={{ background: hasCover ? "transparent" : journey.cover_color, filter: hasAccess ? "none" : "grayscale(60%)" }}>
         {hasCover
-          ? <img src={journey.cover_image_url} alt={journey.title} className="absolute inset-0 w-full h-full object-cover" />
+          ? <img src={journey.cover_image_url} alt={journey.title} className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: `center ${journey.cover_focal_y ?? 50}%` }} />
           : <div className="absolute inset-0 flex items-center justify-center"><CoverGlyph value={journey.cover_emoji} className="h-20 w-20 text-white/90" /></div>}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
         {!hasAccess && (

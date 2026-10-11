@@ -28,7 +28,7 @@ export const JourneyCard = ({ journey, studentJourney, hasAccess, onSelect, size
           style={{ background: hasCover ? "transparent" : journey.cover_color, filter: locked ? "grayscale(70%)" : "none" }}
         >
           {hasCover ? (
-            <img src={journey.cover_image_url} alt="" className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+            <img src={journey.cover_image_url} alt="" className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" style={{ objectPosition: `center ${journey.cover_focal_y ?? 50}%` }} />
           ) : (
             <CoverGlyph value={journey.cover_emoji} className="h-12 w-12 text-white" />
           )}

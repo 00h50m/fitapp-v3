@@ -35,6 +35,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { uploadCoverImage } from "@/lib/uploadCoverImage";
+import { FocalYSlider } from "@/components/ui/cover-position-picker";
 const blockTypeOptions = [
   { value: "single",  label: "Simples" },
   { value: "biset",   label: "Biset" },
@@ -64,6 +65,7 @@ const WorkoutEditorPage = () => {
   const [pdfFile, setPdfFile] = useState(null);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [coverImageUrl, setCoverImageUrl] = useState(null);
+  const [coverFocalY, setCoverFocalY] = useState(50);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [environment, setEnvironment] = useState("");
   const [saving, setSaving] = useState(false);
@@ -82,6 +84,7 @@ const WorkoutEditorPage = () => {
           setWorkoutDescription(tmpl.description || "");
           setPdfUrl(tmpl.pdf_url || null);
           setCoverImageUrl(tmpl.cover_image_url || null);
+          setCoverFocalY(tmpl.cover_focal_y ?? 50);
           setEnvironment(tmpl.environment || "");
         }
         const { data: blks, error: blkErr } = await supabase.from("workout_template_blocks").select("*").eq("template_id", id).order("order_index");
@@ -275,6 +278,7 @@ const WorkoutEditorPage = () => {
     try {
       const url = await uploadCoverImage(file, "templates");
       setCoverImageUrl(url);
+      setCoverFocalY(50);
       toast.success("Capa enviada!");
     } catch (err) {
       toast.error("Erro ao enviar capa: " + err.message);
@@ -303,6 +307,7 @@ const WorkoutEditorPage = () => {
           description: workoutDescription.trim() || null,
           pdf_url: finalPdfUrl || null,
           cover_image_url: coverImageUrl || null,
+          cover_focal_y: coverFocalY,
           environment: environment || null,
         }]);
         if (ie) throw ie;
@@ -322,6 +327,7 @@ const WorkoutEditorPage = () => {
           description: workoutDescription.trim() || null,
           pdf_url: finalPdfUrl || null,
           cover_image_url: coverImageUrl || null,
+          cover_focal_y: coverFocalY,
           environment: environment || null,
         }).eq("id", templateId);
         if (ue) throw ue;
@@ -562,12 +568,11 @@ const WorkoutEditorPage = () => {
                   {uploadingCover ? (
                     <div className="flex items-center justify-center gap-2 py-1"><Loader2 className="h-4 w-4 animate-spin text-primary" /><span className="text-xs text-muted-foreground">Enviando...</span></div>
                   ) : coverImageUrl ? (
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <img src={coverImageUrl} alt="Capa" className="h-8 w-8 rounded object-cover flex-shrink-0" />
-                        <span className="text-xs text-muted-foreground truncate">Capa definida</span>
+                    <div className="relative" onClick={e => e.stopPropagation()}>
+                      <div className="h-24 rounded-lg overflow-hidden">
+                        <img src={coverImageUrl} alt="Capa" className="w-full h-full object-cover" style={{ objectPosition: `center ${coverFocalY}%` }} />
                       </div>
-                      <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" onClick={(e) => { e.stopPropagation(); setCoverImageUrl(null); }}>
+                      <Button variant="ghost" size="icon" className="absolute top-1.5 right-1.5 h-6 w-6 bg-black/50 hover:bg-black/70 text-white" onClick={() => setCoverImageUrl(null)}>
                         <X className="h-3.5 w-3.5" />
                       </Button>
                     </div>
@@ -578,6 +583,9 @@ const WorkoutEditorPage = () => {
                     </div>
                   )}
                 </div>
+                {coverImageUrl && !uploadingCover && (
+                  <FocalYSlider value={coverFocalY} onChange={setCoverFocalY} />
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Ambiente</Label>

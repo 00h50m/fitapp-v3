@@ -43,7 +43,7 @@ const JourneyListRow = ({ journey, studentJourney, hasAccess, onSelect }) => {
         }}
       >
         {hasCover ? (
-          <img src={journey.cover_image_url} alt="" className="h-full w-full object-cover" />
+          <img src={journey.cover_image_url} alt="" className="h-full w-full object-cover" style={{ objectPosition: `center ${journey.cover_focal_y ?? 50}%` }} />
         ) : (
           <div style={{ color: tint }}><CoverGlyph value={journey.cover_emoji} className="h-5 w-5" /></div>
         )}

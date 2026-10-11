@@ -130,6 +130,7 @@ const WorkoutsPage = () => {
                       color="hsl(var(--primary) / 0.12)"
                       className="h-32"
                       alt={workout.title}
+                      focalY={workout.cover_focal_y}
                     >
                       {!workout.cover_image_url && (
                         <div className="absolute inset-0 flex items-center justify-center">

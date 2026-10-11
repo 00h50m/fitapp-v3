@@ -34,8 +34,8 @@ export async function getJourneyById(id) {
   return data;
 }
 
-export async function createJourney({ title, description, cover_emoji = "flame", cover_color = "#0F6E56", duration_days, difficulty = "intermediario", category_id }) {
-  const { data, error } = await supabase.from("journeys").insert({ title, description, cover_emoji, cover_color, duration_days, difficulty, category_id }).select().single();
+export async function createJourney({ title, description, cover_emoji = "flame", cover_color = "#0F6E56", cover_image_url = null, cover_focal_y = 50, duration_days, difficulty = "intermediario", category_id }) {
+  const { data, error } = await supabase.from("journeys").insert({ title, description, cover_emoji, cover_color, cover_image_url, cover_focal_y, duration_days, difficulty, category_id }).select().single();
   if (error) throw error;
   return data;
 }

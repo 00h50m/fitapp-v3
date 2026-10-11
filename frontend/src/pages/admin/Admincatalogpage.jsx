@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { uploadCoverImage } from "@/lib/uploadCoverImage";
 import { COVER_ICONS, DEFAULT_COVER_ICON, CoverGlyph } from "@/lib/coverIcons";
+import { FocalYSlider } from "@/components/ui/cover-position-picker";
 
 const DIFFICULTY_LABEL = {
   iniciante: { label: "Iniciante", color: "bg-green-500/15 text-green-600 dark:text-green-400" },
@@ -29,6 +30,7 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
     cover_emoji: journey?.cover_emoji ?? DEFAULT_COVER_ICON,
     cover_color: journey?.cover_color ?? "#0F6E56",
     cover_image_url: journey?.cover_image_url ?? "",
+    cover_focal_y: journey?.cover_focal_y ?? 50,
     duration_days: journey?.duration_days ?? "",
     difficulty: journey?.difficulty ?? "intermediario",
     category_id: journey?.category_id ?? "",
@@ -59,6 +61,7 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
     try {
       const url = await uploadCoverImage(file);
       set("cover_image_url", url);
+      set("cover_focal_y", 50);
       setCoverMode("image");
       toast.success("Imagem enviada!");
     } catch (err) {
@@ -103,7 +106,7 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
           >
             {coverMode === "image" && form.cover_image_url ? (
               <>
-                <img src={form.cover_image_url} alt="capa" className="absolute inset-0 w-full h-full object-cover" />
+                <img src={form.cover_image_url} alt="capa" className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: `center ${form.cover_focal_y}%` }} />
                 <button
                   className="absolute top-2 right-2 bg-black/60 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                   onClick={e => { e.stopPropagation(); set("cover_image_url", ""); setCoverMode("emoji"); }}
@@ -115,6 +118,11 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
               <CoverGlyph value={form.cover_emoji} className="h-12 w-12 text-white" />
             )}
           </div>
+
+          {/* Ajuste de enquadramento — só com foto */}
+          {coverMode === "image" && form.cover_image_url && (
+            <FocalYSlider value={form.cover_focal_y} onChange={v => set("cover_focal_y", v)} />
+          )}
 
           {/* Tabs: Ícone vs Foto */}
           <div className="flex gap-2">
@@ -300,7 +308,7 @@ const JourneyCard = ({ journey, onEdit, onDelete, onManageAccess }) => {
     <div className="bg-card rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-all group">
       <div className="h-28 flex items-center justify-center relative overflow-hidden" style={{ background: hasCover ? "transparent" : journey.cover_color }}>
         {hasCover ? (
-          <img src={journey.cover_image_url} alt={journey.title} className="absolute inset-0 w-full h-full object-cover" />
+          <img src={journey.cover_image_url} alt={journey.title} className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: `center ${journey.cover_focal_y ?? 50}%` }} />
         ) : (
           <CoverGlyph value={journey.cover_emoji} className="h-10 w-10 text-white" />
         )}

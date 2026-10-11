@@ -226,7 +226,7 @@ const WorkoutPreviewPage = () => {
       {/* Foto de capa — só aparece quando o treino tem uma cadastrada */}
       {template.cover_image_url && (
         <div className="relative h-48 -mt-px">
-          <img src={template.cover_image_url} alt={template.title} className="absolute inset-0 w-full h-full object-cover" />
+          <img src={template.cover_image_url} alt={template.title} className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: `center ${template.cover_focal_y ?? 50}%` }} />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
         </div>
       )}
