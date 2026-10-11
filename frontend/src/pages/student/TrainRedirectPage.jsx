@@ -71,7 +71,7 @@ const TrainRedirectPage = () => {
       if (!active.length) {
         const journeyWorkoutId = await tryStartFromActiveJourney(user.id).catch(() => null);
         if (cancelled) return;
-        if (journeyWorkoutId) { navigate(`/student/workout/${journeyWorkoutId}`, { replace: true }); return; }
+        if (journeyWorkoutId) { navigate(`/student/workout/${journeyWorkoutId}?autostart=1`, { replace: true }); return; }
         setEmpty(true);
         return;
       }
@@ -84,11 +84,12 @@ const TrainRedirectPage = () => {
       if (cancelled) return;
 
       const ongoing = (sessions || []).find(s => s.session_date === today && !s.finished);
-      const targetId = ongoing?.workout_id && active.some(w => w.id === ongoing.workout_id)
-        ? ongoing.workout_id
-        : active[getNextWorkoutIndex(active, sessions || [])].id;
+      const hasOngoing = ongoing?.workout_id && active.some(w => w.id === ongoing.workout_id);
+      const targetId = hasOngoing ? ongoing.workout_id : active[getNextWorkoutIndex(active, sessions || [])].id;
 
-      navigate(`/student/workout/${targetId}`, { replace: true });
+      // Sem sessão em andamento: a aba "Treino" já deixa o treino pronto pra
+      // execução, sem exigir um segundo toque em "Iniciar Treino" lá dentro.
+      navigate(`/student/workout/${targetId}${hasOngoing ? "" : "?autostart=1"}`, { replace: true });
     })();
     return () => { cancelled = true; };
   }, [user]); // eslint-disable-line

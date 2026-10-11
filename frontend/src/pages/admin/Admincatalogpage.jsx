@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { supabase } from "@/lib/supabase";
 import { getCategories, createCategory, deleteCategory, getJourneys, createJourney, updateJourney, deleteJourney, setJourneyWorkouts, getJourneyById } from "@/services/journeyService";
@@ -338,6 +339,7 @@ const JourneyCard = ({ journey, onEdit, onDelete, onManageAccess }) => {
 };
 
 const AdminCatalogPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [journeys, setJourneys] = useState([]);
   const [categories, setCategories] = useState([]);
   const [templates, setTemplates] = useState([]);
@@ -362,6 +364,15 @@ const AdminCatalogPage = () => {
   }, []);
 
   useEffect(() => { loadAll(); }, [loadAll]);
+
+  // Atalho permanente "Novo programa" — abre o modal direto.
+  useEffect(() => {
+    if (searchParams.get("new") === "1") {
+      setEditingJourney(null);
+      setShowJourneyModal(true);
+      setSearchParams(prev => { const next = new URLSearchParams(prev); next.delete("new"); return next; }, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleDelete = async (id) => {
     if (!confirm("Arquivar esta jornada?")) return;

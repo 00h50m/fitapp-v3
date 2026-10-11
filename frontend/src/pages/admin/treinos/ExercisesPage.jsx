@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -67,6 +68,7 @@ const muscleGroupColors = {
 };
 
 const ExercisesPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [exercises, setExercises] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -93,6 +95,16 @@ const ExercisesPage = () => {
   }, []);
 
   useEffect(() => { loadExercises(); }, [loadExercises]);
+
+  // Atalho permanente "Novo exercício" (ex: do painel geral) — abre o
+  // modal de criação direto, sem exigir passar pela lista primeiro.
+  useEffect(() => {
+    if (searchParams.get("new") === "1") {
+      setEditingExercise(null);
+      setShowModal(true);
+      setSearchParams(prev => { const next = new URLSearchParams(prev); next.delete("new"); return next; }, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const muscleGroupsPresent = [...new Set(exercises.map(e => e.muscle_group).filter(Boolean))].sort();
 

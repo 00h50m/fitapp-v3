@@ -43,8 +43,8 @@ const greeting = () => {
   return "Boa noite";
 };
 
-const StatCard = ({ title, value, icon: Icon, trend, trendLabel, loading }) => (
-  <Card className="bg-card">
+const StatCard = ({ title, value, icon: Icon, trend, trendLabel, loading, onClick }) => (
+  <Card className={cn("bg-card", onClick && "cursor-pointer hover:shadow-md transition-shadow")} onClick={onClick}>
     <CardContent className="p-5">
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
@@ -69,8 +69,11 @@ const StatCard = ({ title, value, icon: Icon, trend, trendLabel, loading }) => (
   </Card>
 );
 
-const ActivityItem = ({ name, action, time, icon: Icon, iconColor }) => (
-  <div className="flex items-center gap-3 py-3 border-b border-border/50 last:border-0">
+const ActivityItem = ({ name, action, time, icon: Icon, iconColor, onClick }) => (
+  <div
+    className={cn("flex items-center gap-3 py-3 border-b border-border/50 last:border-0", onClick && "cursor-pointer hover:bg-muted/30 -mx-2 px-2 rounded-lg transition-colors")}
+    onClick={onClick}
+  >
     <div className={cn("h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold border", avatarColor(name))}>
       {initials(name)}
     </div>
@@ -171,7 +174,8 @@ const DashboardPage = () => {
       ]);
       if (!mountedRef.current) return;
 
-      // Busca nomes dos alunos das sessions
+      // Busca nomes + id do perfil dos alunos das sessions (precisamos do id
+      // pra cada item do feed poder abrir a ficha do aluno direto)
       const sessionStudentIds = [...new Set((ra?.data || []).map(s => s.student_id))];
       let profileMap = {};
       if (sessionStudentIds.length > 0) {
@@ -180,15 +184,15 @@ const DashboardPage = () => {
           .select("id, user_id, name")
           .in("user_id", sessionStudentIds);
         (profilesData || []).forEach(p => {
-          profileMap[p.user_id] = p.name || p.id;
-          profileMap[p.id] = p.name || p.id;
+          profileMap[p.user_id] = { name: p.name || p.id, profileId: p.id };
         });
       }
 
       const feed = [
         ...(ra?.data || []).map(s => ({
           id: `s-${s.id}`,
-          name: profileMap[s.student_id] || "Aluno",
+          name: profileMap[s.student_id]?.name || "Aluno",
+          profileId: profileMap[s.student_id]?.profileId || null,
           action: "Finalizou treino",
           date: s.finished_at || s.started_at,
           icon: CheckCircle2,
@@ -197,6 +201,7 @@ const DashboardPage = () => {
         ...(rb?.data || []).map(s => ({
           id: `u-${s.id}`,
           name: s.name || s.id?.slice(0, 8) || "Novo Aluno",
+          profileId: s.id,
           action: "Novo cadastro",
           date: s.created_at,
           icon: UserPlus,
@@ -208,58 +213,80 @@ const DashboardPage = () => {
 
       // "Precisa da sua atenção" — prioridades reais computadas dos dados
       // que já temos (sem inventar insight que não dá pra calcular, tipo
-      // "mensagens sem resposta" do protótipo, que exigiria chat).
+      // "mensagens sem resposta" do protótipo, que exigiria chat). Cada item
+      // guarda profileId pra abrir a ficha do aluno com 1 clique.
       const [activeProfiles, renewalProfiles] = await Promise.all([
-        supabase.from("profiles").select("user_id, name").eq("role", "student").eq("is_active", true),
-        supabase.from("profiles").select("name, access_end").eq("role", "student").eq("is_active", true)
+        supabase.from("profiles").select("id, user_id, name").eq("role", "student").eq("is_active", true),
+        supabase.from("profiles").select("id, name, access_end").eq("role", "student").eq("is_active", true)
           .gte("access_end", today).lte("access_end", in7Days).order("access_end", { ascending: true }).limit(3),
       ]);
       if (!mountedRef.current) return;
 
-      const activeIds = (activeProfiles?.data || []).map(p => p.user_id).filter(Boolean);
+      const activeProfilesList = activeProfiles?.data || [];
+      const activeUserIds = activeProfilesList.map(p => p.user_id).filter(Boolean);
       let noTrainItems = [];
-      if (activeIds.length) {
-        const { data: recentSessions } = await supabase
-          .from("workout_sessions")
-          .select("student_id, session_date")
-          .eq("finished", true)
-          .in("student_id", activeIds)
-          .gte("session_date", new Date(Date.now() - 60 * 86400000).toISOString().split("T")[0])
-          .order("session_date", { ascending: false });
+      let noProgramItems = [];
+      if (activeProfilesList.length) {
+        const [{ data: recentSessions }, { data: activeWorkoutRows }, { data: activeJourneyRows }] = await Promise.all([
+          supabase.from("workout_sessions")
+            .select("student_id, session_date")
+            .eq("finished", true)
+            .in("student_id", activeUserIds)
+            .gte("session_date", new Date(Date.now() - 60 * 86400000).toISOString().split("T")[0])
+            .order("session_date", { ascending: false }),
+          supabase.from("student_workouts").select("student_id").eq("status", "active").in("student_id", activeUserIds),
+          supabase.from("student_journeys").select("student_id").eq("status", "active").in("student_id", activeProfilesList.map(p => p.id)),
+        ]);
         if (!mountedRef.current) return;
 
         const lastSessionByStudent = {};
         (recentSessions || []).forEach(s => {
           if (!lastSessionByStudent[s.student_id]) lastSessionByStudent[s.student_id] = s.session_date;
         });
-        const nameByUserId = Object.fromEntries((activeProfiles?.data || []).map(p => [p.user_id, p.name]));
+        const profileByUserId = Object.fromEntries(activeProfilesList.map(p => [p.user_id, p]));
 
-        noTrainItems = activeIds
+        noTrainItems = activeUserIds
           .map(uid => {
             const last = lastSessionByStudent[uid];
             const days = last ? Math.floor((Date.now() - new Date(last + "T12:00").getTime()) / 86400000) : null;
-            return { name: nameByUserId[uid] || "Aluno", days };
+            return { profile: profileByUserId[uid], days };
           })
           .filter(x => x.days === null || x.days >= 5)
           .sort((a, b) => (b.days ?? 999) - (a.days ?? 999))
           .slice(0, 3)
           .map(x => ({
-            id: `nt-${x.name}`,
-            title: x.days === null ? `${x.name} ainda não treinou` : `${x.name} está há ${x.days} dias sem treinar`,
+            id: `nt-${x.profile.id}`,
+            profileId: x.profile.id,
+            title: x.days === null ? `${x.profile.name} ainda não treinou` : `${x.profile.name} está há ${x.days} dias sem treinar`,
             subtitle: "Considere enviar um acompanhamento.",
+          }));
+
+        // Alunos ativos sem nenhum treino ou jornada atribuída — não dá nem
+        // pra "sem treinar há X dias" porque nunca houve nada pra treinar.
+        const hasWorkoutSet = new Set((activeWorkoutRows || []).map(w => w.student_id));
+        const hasJourneySet = new Set((activeJourneyRows || []).map(j => j.student_id));
+        noProgramItems = activeProfilesList
+          .filter(p => !hasWorkoutSet.has(p.user_id) && !hasJourneySet.has(p.id))
+          .slice(0, 3)
+          .map(p => ({
+            id: `np-${p.id}`,
+            profileId: p.id,
+            title: `${p.name || "Aluno"} não tem programa atribuído`,
+            subtitle: "Atribua um treino personalizado ou libere uma jornada.",
           }));
       }
 
       const renewalItems = (renewalProfiles?.data || []).map(p => {
         const days = Math.ceil((new Date(p.access_end + "T23:59") - Date.now()) / 86400000);
         return {
-          id: `rn-${p.name}-${p.access_end}`,
+          id: `rn-${p.id}`,
+          profileId: p.id,
           title: `Plano de ${p.name} vence em ${days}d`,
           subtitle: "Renovação pendente.",
         };
       });
 
-      if (mountedRef.current) setPriorities([...noTrainItems, ...renewalItems].slice(0, 4));
+      if (mountedRef.current) setPriorities([...renewalItems, ...noProgramItems, ...noTrainItems].slice(0, 4));
 
     } catch (err) {
       console.error("Dashboard error:", err?.message);
@@ -302,9 +329,9 @@ const DashboardPage = () => {
 
         {/* Stats — 100% dados reais, sem trend mockado */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard title="Total de Alunos"   value={stats.totalStudents}   icon={Users}     loading={loading} />
-          <StatCard title="Alunos Ativos"     value={stats.activeStudents}  icon={Activity}  loading={loading} />
-          <StatCard title="Exercícios"         value={stats.totalExercises}  icon={Dumbbell}  loading={loading} />
+          <StatCard title="Total de Alunos"   value={stats.totalStudents}   icon={Users}     loading={loading} onClick={() => navigate("/admin/alunos")} />
+          <StatCard title="Alunos Ativos"     value={stats.activeStudents}  icon={Activity}  loading={loading} onClick={() => navigate("/admin/alunos")} />
+          <StatCard title="Exercícios"         value={stats.totalExercises}  icon={Dumbbell}  loading={loading} onClick={() => navigate("/admin/treinos/exercicios")} />
           <StatCard
             title="Treinos Este Mês"
             value={stats.workoutsThisMonth}
@@ -314,6 +341,7 @@ const DashboardPage = () => {
             trendLabel={stats.workoutTrend != null
               ? `${stats.workoutTrend >= 0 ? "+" : ""}${stats.workoutTrend}% vs. mês anterior`
               : null}
+            onClick={() => navigate("/admin/treinos/personalizados")}
           />
         </div>
 
@@ -354,7 +382,8 @@ const DashboardPage = () => {
                 <div>
                   {activity.map(item => (
                     <ActivityItem key={item.id} name={item.name} action={item.action}
-                      time={fmtRelative(item.date)} icon={item.icon} iconColor={item.iconColor} />
+                      time={fmtRelative(item.date)} icon={item.icon} iconColor={item.iconColor}
+                      onClick={item.profileId ? () => navigate(`/admin/alunos/${item.profileId}`) : undefined} />
                   ))}
                 </div>
               )}
@@ -384,7 +413,11 @@ const DashboardPage = () => {
               ) : (
                 <div className="space-y-2.5">
                   {priorities.map(p => (
-                    <div key={p.id} className="flex items-start gap-2.5 bg-orange-500/5 border border-orange-500/15 rounded-xl p-3">
+                    <div
+                      key={p.id}
+                      className={cn("flex items-start gap-2.5 bg-orange-500/5 border border-orange-500/15 rounded-xl p-3", p.profileId && "cursor-pointer hover:bg-orange-500/10 transition-colors")}
+                      onClick={p.profileId ? () => navigate(`/admin/alunos/${p.profileId}`) : undefined}
+                    >
                       <div className="h-6 w-6 rounded-full bg-orange-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
                         <AlertCircle className="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" />
                       </div>
@@ -430,7 +463,7 @@ const DashboardPage = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-card">
+            <Card className="bg-card cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/admin/alunos")}>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-sm font-medium text-muted-foreground">Renovações Pendentes</p>

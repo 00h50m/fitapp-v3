@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,6 +47,7 @@ function fmtDate(val) {
 const TABS = ["Todos", "Ativos", "Expirados", "Inativos"];
 
 const CustomWorkoutsPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [workouts,      setWorkouts]      = useState([]);
   const [loading,       setLoading]       = useState(false);
   const [error,         setError]         = useState(null);
@@ -70,6 +72,15 @@ const CustomWorkoutsPage = () => {
   };
 
   useEffect(() => { load(); }, []);
+
+  // Atalho permanente "Criar treino personalizado" — abre o modal direto.
+  useEffect(() => {
+    if (searchParams.get("new") === "1") {
+      setEditing(null);
+      setShowModal(true);
+      setSearchParams(prev => { const next = new URLSearchParams(prev); next.delete("new"); return next; }, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   // Contadores por status real
   const counts = {

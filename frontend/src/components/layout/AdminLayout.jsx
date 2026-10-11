@@ -1,14 +1,31 @@
 import React, { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
 import {
   LayoutDashboard, Users, LogOut, Menu, X,
   Zap, ClipboardList, UserCog, Library, BookOpen, Settings, CreditCard, Palette, LayoutTemplate,
+  Plus, UserPlus, Dumbbell,
 } from "lucide-react";
+
+// Atalhos permanentes — acessíveis de qualquer tela do painel, não só da
+// Home. "new=1" é lido pelas páginas de destino pra abrir o modal de
+// criação direto, sem exigir passar pela lista primeiro.
+const SHORTCUTS = [
+  { label: "Novo aluno", href: "/admin/alunos/novo", icon: UserPlus },
+  { label: "Novo exercício", href: "/admin/treinos/exercicios?new=1", icon: Dumbbell },
+  { label: "Novo treino padrão", href: "/admin/treinos/editor/new", icon: ClipboardList },
+  { label: "Criar treino personalizado", href: "/admin/treinos/personalizados?new=1", icon: UserCog },
+  { label: "Novo programa", href: "/admin/catalog?new=1", icon: BookOpen },
+  { label: "Editar página inicial", href: "/admin/home", icon: LayoutTemplate },
+];
 
 // Sidebar fiel ao protótipo do personal: agrupada em seções, sempre escura
 // (não acompanha o tema claro/escuro do resto do app — é a "marca" do painel).
@@ -109,6 +126,7 @@ export const AdminSidebar = ({ isOpen, onToggle, onClose }) => {
 
 export const AdminHeader = ({ onMenuToggle }) => {
   const { profile, user } = useAuth();
+  const navigate = useNavigate();
   const displayName = profile?.name || user?.email?.split("@")[0] || "Admin";
   const displayEmail = user?.email || "";
   const initials = displayName.split(" ").slice(0, 2).map(w => w[0]?.toUpperCase() || "").join("") || "A";
@@ -117,6 +135,20 @@ export const AdminHeader = ({ onMenuToggle }) => {
       <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenuToggle}><Menu className="h-5 w-5" /></Button>
       <div className="hidden lg:block" />
       <div className="flex items-center gap-3">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="premium" size="sm" className="gap-1.5"><Plus className="h-4 w-4" />Criar</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="bg-card border-border w-56">
+            <DropdownMenuLabel className="text-xs text-muted-foreground">Atalhos</DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-border" />
+            {SHORTCUTS.map(s => (
+              <DropdownMenuItem key={s.href} className="gap-2 cursor-pointer" onClick={() => navigate(s.href)}>
+                <s.icon className="h-4 w-4 text-muted-foreground" />{s.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
         <div className="text-right hidden sm:block">
           <p className="text-sm font-medium text-foreground">{displayName}</p>
           <p className="text-xs text-muted-foreground">{displayEmail}</p>
