@@ -5,8 +5,8 @@ import { MobileContainer, MobileHeader, MobileContent } from "@/components/layou
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, Library, Bookmark, ChartNoAxesColumnIncreasing, MessageCircle, LogOut } from "lucide-react";
-import { PERSONAL_WHATSAPP } from "@/services/journeyService";
 import { PLAN_VALUE_LABEL } from "@/lib/planPermissions";
+import { useAppSettings } from "@/contexts/AppSettingsContext";
 
 const SettingRow = ({ icon: Icon, label, onClick }) => (
   <button
@@ -23,6 +23,7 @@ const SettingRow = ({ icon: Icon, label, onClick }) => (
 const StudentProfilePage = () => {
   const navigate = useNavigate();
   const { profile, logout } = useAuth();
+  const { settings } = useAppSettings();
 
   return (
     <MobileContainer className="pb-24">
@@ -50,7 +51,7 @@ const StudentProfilePage = () => {
         <SettingRow
           icon={MessageCircle}
           label="Falar com o personal"
-          onClick={() => window.open(`https://wa.me/${PERSONAL_WHATSAPP}?text=${encodeURIComponent("Olá! Preciso falar com meu personal.")}`, "_blank")}
+          onClick={() => window.open(`https://wa.me/${settings.whatsapp}?text=${encodeURIComponent("Olá! Preciso falar com meu personal.")}`, "_blank")}
         />
 
         <Button

@@ -2,6 +2,7 @@ import "./App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { AppSettingsProvider } from "@/contexts/AppSettingsContext";
 import { ProtectedRoute, AdminRoute, PublicRoute } from "@/components/auth/ProtectedRoutes";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -24,6 +25,7 @@ import AdminAlunoDetailPage from "@/pages/admin/AdminAlunoDetailPage.jsx";
 import CreateStudentPage from "@/pages/admin/CreateStudentPage";
 import AdminCatalogPage from "@/pages/admin/Admincatalogpage";
 import PlansPage from "@/pages/admin/PlansPage";
+import AppearancePage from "@/pages/admin/AppearancePage";
 import {
   ExercisesPage as TreinosExercisesPage,
   WorkoutsPage,
@@ -72,6 +74,7 @@ function AppRoutes() {
       <Route path="/admin/treinos/personalizados" element={<AdminRoute><CustomWorkoutsPage /></AdminRoute>} />
       <Route path="/admin/catalog" element={<AdminRoute><AdminCatalogPage /></AdminRoute>} />
       <Route path="/admin/planos" element={<AdminRoute><PlansPage /></AdminRoute>} />
+      <Route path="/admin/aparencia" element={<AdminRoute><AppearancePage /></AdminRoute>} />
       <Route path="/" element={<RedirectByRole />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
@@ -81,15 +84,17 @@ function AppRoutes() {
 function App() {
   return (
     <ThemeProvider>
-      <div className="App">
-        <BrowserRouter>
-          <AuthProvider>
-            <AppRoutes />
-          </AuthProvider>
-        </BrowserRouter>
-        <ThemeToggle className="fixed bottom-20 right-4 z-50 shadow-lg md:bottom-4" />
-        <Toaster position="top-center" richColors closeButton />
-      </div>
+      <AppSettingsProvider>
+        <div className="App">
+          <BrowserRouter>
+            <AuthProvider>
+              <AppRoutes />
+            </AuthProvider>
+          </BrowserRouter>
+          <ThemeToggle className="fixed bottom-20 right-4 z-50 shadow-lg md:bottom-4" />
+          <Toaster position="top-center" richColors closeButton />
+        </div>
+      </AppSettingsProvider>
     </ThemeProvider>
   );
 }

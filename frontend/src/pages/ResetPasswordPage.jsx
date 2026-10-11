@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Zap, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useAppSettings } from '@/contexts/AppSettingsContext';
 
 // Extrai o token de recuperação da URL vinda do email do Supabase.
 // detectSessionInUrl está desligado no client global (de propósito, pra não
@@ -40,6 +41,7 @@ const ResetPasswordPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const { settings } = useAppSettings();
 
   useEffect(() => {
     openRecoverySession().then(ok => {
@@ -75,10 +77,14 @@ const ResetPasswordPage = () => {
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="w-full max-w-sm space-y-8">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shadow-lg">
-            <Zap className="h-8 w-8 text-primary-foreground" />
-          </div>
-          <h1 className="text-2xl font-bold text-foreground">Santana Method</h1>
+          {settings.logo_url ? (
+            <img src={settings.logo_url} alt="" className="h-14 w-14 rounded-xl object-cover" />
+          ) : (
+            <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shadow-lg">
+              <Zap className="h-8 w-8 text-primary-foreground" />
+            </div>
+          )}
+          <h1 className="text-2xl font-bold text-foreground">{settings.display_name}</h1>
         </div>
 
         {checking ? (

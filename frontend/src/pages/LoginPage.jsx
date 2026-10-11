@@ -5,6 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Zap, Loader2, AlertCircle } from 'lucide-react';
+import { useAppSettings } from '@/contexts/AppSettingsContext';
+
+const BrandMark = ({ logoUrl, size = "h-9 w-9", iconSize = "h-5 w-5" }) => logoUrl ? (
+  <img src={logoUrl} alt="" className={`${size} rounded-lg object-cover flex-shrink-0`} />
+) : (
+  <div className={`${size} rounded-lg bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shadow-lg flex-shrink-0`}>
+    <Zap className={`${iconSize} text-primary-foreground`} />
+  </div>
+);
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -13,6 +22,7 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { settings } = useAppSettings();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -57,10 +67,8 @@ const LoginPage = () => {
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
           {/* Logo topo */}
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shadow-lg">
-              <Zap className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="text-foreground font-bold text-lg tracking-tight">Santana Method</span>
+            <BrandMark logoUrl={settings.logo_url} />
+            <span className="text-foreground font-bold text-lg tracking-tight">{settings.display_name}</span>
           </div>
 
           {/* Texto central */}
@@ -103,7 +111,7 @@ const LoginPage = () => {
           </div>
 
           {/* Rodapé */}
-          <p className="text-muted-foreground/70 text-xs">© 2025 Santana Method. Todos os direitos reservados.</p>
+          <p className="text-muted-foreground/70 text-xs">© {new Date().getFullYear()} {settings.display_name}. Todos os direitos reservados.</p>
         </div>
 
         {/* Linha vertical divisória com glow */}
@@ -116,10 +124,8 @@ const LoginPage = () => {
 
           {/* Logo mobile */}
           <div className="flex flex-col items-center gap-3 lg:hidden">
-            <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shadow-lg">
-              <Zap className="h-8 w-8 text-primary-foreground" />
-            </div>
-            <h1 className="text-2xl font-bold text-foreground">Santana Method</h1>
+            <BrandMark logoUrl={settings.logo_url} size="h-14 w-14" iconSize="h-8 w-8" />
+            <h1 className="text-2xl font-bold text-foreground">{settings.display_name}</h1>
           </div>
 
           {/* Header desktop */}
@@ -190,7 +196,7 @@ const LoginPage = () => {
           {/* Linha decorativa */}
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-border" />
-            <span className="text-muted-foreground/70 text-xs">Santana Method</span>
+            <span className="text-muted-foreground/70 text-xs">{settings.display_name}</span>
             <div className="flex-1 h-px bg-border" />
           </div>
 

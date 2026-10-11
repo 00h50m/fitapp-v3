@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
-import { getJourneyById, getStudentJourneys, enrollStudentInJourney, getGrantedJourneyIds, PERSONAL_WHATSAPP } from "@/services/journeyService";
+import { getJourneyById, getStudentJourneys, enrollStudentInJourney, getGrantedJourneyIds } from "@/services/journeyService";
 import { Button } from "@/components/ui/button";
 import { Bookmark, BookmarkCheck, ChevronLeft, ChevronRight, CheckCircle2, Loader2, Lock, MessageCircle, Play, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -11,10 +11,11 @@ import { DIFFICULTY_LABEL } from "@/lib/difficultyLabels";
 import { CoverGlyph } from "@/lib/coverIcons";
 import { usePlanPermission, FEATURES } from "@/lib/planPermissions";
 import { LockedFeature } from "@/components/ui/locked-feature";
+import { useAppSettings } from "@/contexts/AppSettingsContext";
 
-function openWhatsApp(journeyTitle) {
+function openWhatsApp(whatsapp, journeyTitle) {
   const msg = encodeURIComponent(`Olá! Tenho interesse em liberar acesso à jornada "${journeyTitle}". Poderia me ajudar?`);
-  window.open(`https://wa.me/${PERSONAL_WHATSAPP}?text=${msg}`, "_blank");
+  window.open(`https://wa.me/${whatsapp}?text=${msg}`, "_blank");
 }
 
 const JourneyDetailPage = () => {
@@ -22,6 +23,7 @@ const JourneyDetailPage = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const perm = usePlanPermission(profile);
+  const { settings } = useAppSettings();
 
   const [journey, setJourney]               = useState(null);
   const [studentJourney, setStudentJourney] = useState(null);
@@ -142,7 +144,7 @@ const JourneyDetailPage = () => {
         {/* Título */}
         <div>
           <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-primary bg-primary/10 rounded-full px-2.5 py-1 mb-2">
-            <Zap className="h-3 w-3" />Método do seu personal
+            <Zap className="h-3 w-3" />{settings.banner_title}
           </span>
           <h1 className="text-2xl font-semibold">{journey.title}</h1>
           {journey.description && <p className="text-sm text-muted-foreground mt-1">{journey.description}</p>}
@@ -183,7 +185,7 @@ const JourneyDetailPage = () => {
           <div className="bg-secondary/60 rounded-xl p-4 text-center space-y-3">
             <p className="text-sm font-medium">Jornada bloqueada</p>
             <p className="text-xs text-muted-foreground">Fale com seu personal para liberar o acesso.</p>
-            <Button className="w-full bg-green-600 hover:bg-green-500 text-white" onClick={() => openWhatsApp(journey.title)}>
+            <Button className="w-full bg-green-600 hover:bg-green-500 text-white" onClick={() => openWhatsApp(settings.whatsapp, journey.title)}>
               <MessageCircle className="h-4 w-4 mr-2" />Falar com o personal
             </Button>
           </div>

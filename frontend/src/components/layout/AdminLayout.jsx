@@ -4,9 +4,10 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAppSettings } from "@/contexts/AppSettingsContext";
 import {
   LayoutDashboard, Users, LogOut, Menu, X,
-  Zap, ClipboardList, UserCog, Library, BookOpen, Settings, CreditCard,
+  Zap, ClipboardList, UserCog, Library, BookOpen, Settings, CreditCard, Palette,
 } from "lucide-react";
 
 // Sidebar fiel ao protótipo do personal: agrupada em seções, sempre escura
@@ -29,11 +30,18 @@ const navGroups = [
       { title: "Planos e acessos", href: "/admin/planos", icon: CreditCard },
     ],
   },
+  {
+    label: "Marca",
+    items: [
+      { title: "Aparência do aplicativo", href: "/admin/aparencia", icon: Palette },
+    ],
+  },
 ];
 
 export const AdminSidebar = ({ isOpen, onToggle, onClose }) => {
   const location = useLocation();
   const { logout } = useAuth();
+  const { settings } = useAppSettings();
 
   const handleClose = () => { if (window.innerWidth < 1024) onClose(); };
   const handleLogout = async () => { await logout(); window.location.href = "/login"; };
@@ -48,11 +56,15 @@ export const AdminSidebar = ({ isOpen, onToggle, onClose }) => {
       )}>
         <div className="h-16 px-6 flex items-center justify-between border-b border-white/10 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shadow-glow">
-              <Zap className="h-5 w-5 text-primary-foreground" />
-            </div>
+            {settings.logo_url ? (
+              <img src={settings.logo_url} alt="" className="h-9 w-9 rounded-lg object-cover flex-shrink-0" />
+            ) : (
+              <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shadow-glow flex-shrink-0">
+                <Zap className="h-5 w-5 text-primary-foreground" />
+              </div>
+            )}
             <div>
-              <h1 className="font-display font-bold text-white text-lg leading-none">Santana Method</h1>
+              <h1 className="font-display font-bold text-white text-lg leading-none">{settings.display_name}</h1>
               <span className="text-[10px] text-primary font-medium uppercase tracking-wider">Painel de gestão</span>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { MobileContainer, MobileHeader, MobileContent, MobileFooter } from "@/components/layout/MobileContainer";
@@ -15,9 +15,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { incrementJourneyProgress, getStudentJourneys, PERSONAL_WHATSAPP } from "@/services/journeyService";
+import { incrementJourneyProgress, getStudentJourneys } from "@/services/journeyService";
 import { usePlanPermission, FEATURES } from "@/lib/planPermissions";
 import { LockedFeature } from "@/components/ui/locked-feature";
+import { useAppSettings } from "@/contexts/AppSettingsContext";
 
 const blockTypeConfig = {
   normal:   { label: "Normal",    color: "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30" },
@@ -393,8 +394,10 @@ const ExerciseDetailModal = ({ exercise, onClose }) => {
 const StudentWorkoutPage = () => {
   const { id: workoutId } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, profile, logout, loading: authLoading } = useAuth();
   const perm = usePlanPermission(profile);
+  const { settings } = useAppSettings();
 
   const [workout, setWorkout]       = useState(null);
   const [blocks, setBlocks]         = useState([]);
@@ -501,6 +504,18 @@ const StudentWorkoutPage = () => {
     if (user?.id && workoutId) loadWorkout();
     else setLoading(false);
   }, [user?.id, workoutId, authLoading]); // eslint-disable-line
+
+  // Vem da Home com "?autostart=1" (ação "Treinar agora"): inicia a sessão
+  // sozinho, sem exigir um segundo toque em "Iniciar Treino" aqui dentro.
+  const autostartedRef = useRef(false);
+  useEffect(() => {
+    if (autostartedRef.current) return;
+    if (loading || isExpired || error) return;
+    if (searchParams.get("autostart") !== "1") return;
+    autostartedRef.current = true;
+    setSearchParams(prev => { const next = new URLSearchParams(prev); next.delete("autostart"); return next; }, { replace: true });
+    if (!activeSession && perm.can(FEATURES.FINISH_WORKOUT)) handleStart();
+  }, [loading, isExpired, error, activeSession, searchParams]); // eslint-disable-line
 
   const toggleBlock = blockId => { setExpandedBlocks(prev => { const next = new Set(prev); next.has(blockId) ? next.delete(blockId) : next.add(blockId); return next; }); };
 
@@ -633,7 +648,7 @@ const StudentWorkoutPage = () => {
           <div className="flex flex-col items-center justify-center py-16 px-6 text-center space-y-5">
             <div className="h-24 w-24 rounded-full bg-destructive/10 border border-destructive/20 flex items-center justify-center"><Lock className="h-11 w-11 text-destructive/70" /></div>
             <div className="space-y-2"><h2 className="text-2xl font-bold">Treino Expirado</h2><p className="text-sm text-muted-foreground">{workout?.end_date ? `Expirou em ${new Date(workout.end_date+"T12:00:00").toLocaleDateString("pt-BR")}.` : "Não disponível."}</p></div>
-            <Button variant="premium" className="w-full max-w-[260px] gap-2 py-6" onClick={() => window.open(`https://wa.me/${PERSONAL_WHATSAPP}?text=${encodeURIComponent("Olá! Meu treino expirou. 🏋️")}`, "_blank")}>Falar com o Personal</Button>
+            <Button variant="premium" className="w-full max-w-[260px] gap-2 py-6" onClick={() => window.open(`https://wa.me/${settings.whatsapp}?text=${encodeURIComponent("Olá! Meu treino expirou. 🏋️")}`, "_blank")}>Falar com o Personal</Button>
             <Button variant="outline" onClick={() => navigate("/student")} className="w-full max-w-[260px]"><ChevronLeft className="h-4 w-4 mr-1" />Voltar</Button>
           </div>
         ) : error ? (

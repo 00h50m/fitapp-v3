@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Zap, Loader2, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { useAppSettings } from '@/contexts/AppSettingsContext';
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
@@ -12,6 +13,7 @@ const ForgotPasswordPage = () => {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const { requestPasswordReset } = useAuth();
+  const { settings } = useAppSettings();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,10 +33,14 @@ const ForgotPasswordPage = () => {
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="w-full max-w-sm space-y-8">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shadow-lg">
-            <Zap className="h-8 w-8 text-primary-foreground" />
-          </div>
-          <h1 className="text-2xl font-bold text-foreground">Santana Method</h1>
+          {settings.logo_url ? (
+            <img src={settings.logo_url} alt="" className="h-14 w-14 rounded-xl object-cover" />
+          ) : (
+            <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shadow-lg">
+              <Zap className="h-8 w-8 text-primary-foreground" />
+            </div>
+          )}
+          <h1 className="text-2xl font-bold text-foreground">{settings.display_name}</h1>
         </div>
 
         {sent ? (

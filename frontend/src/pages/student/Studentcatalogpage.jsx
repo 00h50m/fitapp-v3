@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { getJourneys, getCategories, getStudentJourneys, getGrantedJourneyIds, PERSONAL_WHATSAPP } from "@/services/journeyService";
+import { getJourneys, getCategories, getStudentJourneys, getGrantedJourneyIds } from "@/services/journeyService";
 import { Button } from "@/components/ui/button";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Loader2, BookOpen, ChevronRight, CheckCircle2, Lock, MessageCircle, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { CoverGlyph } from "@/lib/coverIcons";
+import { useAppSettings } from "@/contexts/AppSettingsContext";
 
-function openWhatsApp(journeyTitle) {
+function openWhatsApp(whatsapp, journeyTitle) {
   const msg = encodeURIComponent(`Olá! Tenho interesse em liberar acesso à jornada "${journeyTitle}". Poderia me ajudar?`);
-  window.open(`https://wa.me/${PERSONAL_WHATSAPP}?text=${msg}`, "_blank");
+  window.open(`https://wa.me/${whatsapp}?text=${msg}`, "_blank");
 }
 
 // ── Card de lista plana ("Programas", fiel ao protótipo) ────────
@@ -81,6 +82,7 @@ const JourneyListRow = ({ journey, studentJourney, hasAccess, onSelect }) => {
 // ── Página principal ───────────────────────────────────────────
 const StudentCatalogPage = () => {
   const navigate = useNavigate();
+  const { settings } = useAppSettings();
   const [journeys, setJourneys] = useState([]);
   const [categories, setCategories] = useState([]);
   const [studentJourneys, setStudentJourneys] = useState([]);
@@ -211,7 +213,7 @@ const StudentCatalogPage = () => {
 
           <div className="bg-card/60 border border-dashed border-border rounded-2xl p-5 text-center space-y-3">
             <p className="text-sm text-muted-foreground">Quer mais jornadas liberadas pra você?</p>
-            <Button variant="outline" size="sm" className="gap-2" onClick={() => openWhatsApp("novas jornadas disponíveis")}>
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => openWhatsApp(settings.whatsapp, "novas jornadas disponíveis")}>
               <MessageCircle className="h-4 w-4" />Falar com o personal
             </Button>
           </div>

@@ -14,14 +14,15 @@ import {
   X, MessageCircle, BookOpen, Crown, Bookmark, BookmarkCheck, Sparkles,
 } from "lucide-react";
 import { CoverGlyph, DEFAULT_COVER_ICON } from "@/lib/coverIcons";
-import { getJourneys, getCategories, getStudentJourneys, getGrantedJourneyIds, enrollStudentInJourney, PERSONAL_WHATSAPP } from "@/services/journeyService";
+import { getJourneys, getCategories, getStudentJourneys, getGrantedJourneyIds, enrollStudentInJourney } from "@/services/journeyService";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { usePlanPermission, FEATURES } from "@/lib/planPermissions";
 import { LockedFeature } from "@/components/ui/locked-feature";
+import { useAppSettings } from "@/contexts/AppSettingsContext";
 
 // ── Constants ──────────────────────────────────────────────────
-const waLink = (msg) => `https://wa.me/${PERSONAL_WHATSAPP}?text=${encodeURIComponent(msg)}`;
+const waLink = (phone, msg) => `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
 const todayStr = () => new Date().toISOString().split("T")[0];
 const greeting = () => {
   const h = new Date().getHours();
@@ -171,6 +172,7 @@ const StudentWorkoutsPage = () => {
   const navigate = useNavigate();
   const { user, profile, logout, loading: authLoading } = useAuth();
   const perm = usePlanPermission(profile);
+  const { settings } = useAppSettings();
 
   // Treinos personalizados
   const [workouts, setWorkouts]   = useState([]);
@@ -300,7 +302,7 @@ const StudentWorkoutsPage = () => {
     const hasAccess = grantedIds.has(journey.id);
     if (!hasAccess) {
       const msg = encodeURIComponent(`Olá! Tenho interesse em liberar acesso à jornada "${journey.title}". Poderia me ajudar?`);
-      window.open(`https://wa.me/${PERSONAL_WHATSAPP}?text=${msg}`, "_blank");
+      window.open(`https://wa.me/${settings.whatsapp}?text=${msg}`, "_blank");
       return;
     }
     navigate(`/student/journey/${journey.id}`);
@@ -332,7 +334,7 @@ const StudentWorkoutsPage = () => {
               <p className="text-sm text-muted-foreground max-w-[260px]">Seu plano expirou em <span className="text-foreground font-semibold">{profile?.access_end ? new Date(profile.access_end+"T12:00").toLocaleDateString("pt-BR") : "—"}</span>. Fale com seu personal para renovar!</p>
             </div>
             <div className="flex flex-col gap-3 w-full max-w-[260px]">
-              <Button variant="premium" className="w-full gap-2 py-6" onClick={() => window.open(waLink("Olá! Gostaria de renovar meu plano no Santana Method. 🏋️"), "_blank")}><WhatsAppIcon />Falar com o Personal</Button>
+              <Button variant="premium" className="w-full gap-2 py-6" onClick={() => window.open(waLink(settings.whatsapp, `Olá! Gostaria de renovar meu plano no ${settings.display_name}. 🏋️`), "_blank")}><WhatsAppIcon />Falar com o Personal</Button>
               <Button variant="outline" className="w-full" onClick={async () => { await logout(); }}>Sair da conta</Button>
             </div>
           </div>
@@ -378,12 +380,12 @@ const StudentWorkoutsPage = () => {
               <div className="absolute top-0 right-0 w-56 h-56 rounded-full bg-primary/15 blur-3xl -translate-y-1/3 translate-x-1/4 pointer-events-none" />
               <div className="relative">
                 <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-foreground bg-background/60 backdrop-blur-md border border-border/50 rounded-full px-2.5 py-1 mb-4">
-                  <Sparkles className="h-3 w-3 text-primary" />Método do seu personal
+                  <Sparkles className="h-3 w-3 text-primary" />{settings.banner_title}
                 </span>
                 <h1 className="text-2xl font-semibold leading-snug">
                   {greeting()}, {(profile?.name || "Aluno").split(" ")[0]}.
                 </h1>
-                <p className="text-sm text-muted-foreground mt-1.5 max-w-[280px]">Resultado não vem de treino aleatório — vamos pro treino de hoje?</p>
+                <p className="text-sm text-muted-foreground mt-1.5 max-w-[280px]">{settings.banner_subtitle}</p>
               </div>
             </div>
 
@@ -493,7 +495,7 @@ const StudentWorkoutsPage = () => {
                     <p className="text-xs text-muted-foreground mt-0.5">Treinos feitos especialmente para você, com acompanhamento do seu personal.</p>
                   </div>
                 </div>
-                <Button className="w-full bg-green-600 hover:bg-green-500 text-white gap-2" onClick={() => window.open(waLink("Olá! Tenho interesse na consultoria personalizada do Santana Method. Pode me passar mais informações? 💪"), "_blank")}>
+                <Button className="w-full bg-green-600 hover:bg-green-500 text-white gap-2" onClick={() => window.open(waLink(settings.whatsapp, `Olá! Tenho interesse na consultoria personalizada do ${settings.display_name}. Pode me passar mais informações? 💪`), "_blank")}>
                   <MessageCircle className="h-4 w-4" />Quero consultoria personalizada
                 </Button>
               </div>
@@ -612,7 +614,7 @@ const StudentWorkoutsPage = () => {
                   <h2 className="text-xl font-bold">Nenhum treino ainda</h2>
                   <p className="text-sm text-muted-foreground mt-1 max-w-[240px]">Seu personal ainda não configurou seus treinos.</p>
                 </div>
-                <Button variant="outline" className="gap-2" onClick={() => window.open(waLink("Olá! Estou aguardando meu treino no Santana Method. 💪"), "_blank")}><WhatsAppIcon />Avisar o Personal</Button>
+                <Button variant="outline" className="gap-2" onClick={() => window.open(waLink(settings.whatsapp, `Olá! Estou aguardando meu treino no ${settings.display_name}. 💪`), "_blank")}><WhatsAppIcon />Avisar o Personal</Button>
               </div>
             )}
 
@@ -628,7 +630,10 @@ const StudentWorkoutsPage = () => {
             className="w-full flex items-center gap-3 rounded-2xl bg-primary text-primary-foreground px-4 py-3.5 shadow-lg active:scale-[0.99] transition-transform"
             onClick={() => {
               const target = ongoing ? (workouts.find(w => w.id === ongoing.workout_id) || todayWorkout) : todayWorkout;
-              navigate(`/student/workout/${target.id}`);
+              // Sem sessão em andamento ainda: pede pro treino já abrir iniciado,
+              // sem exigir um segundo toque em "Iniciar Treino" lá dentro.
+              const suffix = ongoing ? "" : "?autostart=1";
+              navigate(`/student/workout/${target.id}${suffix}`);
             }}
           >
             <div className="h-9 w-9 rounded-full bg-primary-foreground/15 flex items-center justify-center flex-shrink-0">
