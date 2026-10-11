@@ -209,7 +209,7 @@ const LoadTrackingModal = ({ exercise, sessionId, studentId, workoutId, restSeco
     setSaving(idx);
     try {
       const s = sets[idx];
-      await supabase.from("workout_exercise_logs").upsert({
+      const { error } = await supabase.from("workout_exercise_logs").upsert({
         session_id: sessionId,
         student_workout_id: workoutId,
         student_id: studentId,
@@ -219,6 +219,7 @@ const LoadTrackingModal = ({ exercise, sessionId, studentId, workoutId, restSeco
         actual_reps: s.reps ? Number(s.reps) : null,
         completed_at: new Date().toISOString(),
       }, { onConflict: "session_id,exercise_row_id,set_number" });
+      if (error) throw error;
       setSets(prev => prev.map((x, i) => i === idx ? { ...x, done: true } : x));
       onComplete?.(exercise.exercise_row_id, s.num, s.kg, s.reps);
       if (s.kg && personalBest && Number(s.kg) > personalBest) {
@@ -513,7 +514,8 @@ const StudentWorkoutPage = () => {
         set_number: i + 1,
         completed_at: new Date().toISOString(),
       }));
-      await supabase.from("workout_exercise_logs").upsert(rows, { onConflict: "session_id,exercise_row_id,set_number" });
+      const { error } = await supabase.from("workout_exercise_logs").upsert(rows, { onConflict: "session_id,exercise_row_id,set_number" });
+      if (error) throw error;
       setCompletedExercises(prev => new Set([...prev, ex.exercise_row_id]));
       setCompletedSets(prev => {
         const next = { ...prev };
