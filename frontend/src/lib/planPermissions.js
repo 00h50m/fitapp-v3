@@ -33,7 +33,21 @@ export const FEATURES = {
   CHAT: "chat",                         // chat direto com o personal
 };
 
-const TIER_FEATURES = {
+export const FEATURE_LABEL = {
+  [FEATURES.VIEW_CONTENT]: "PDF, vídeos e instruções dos exercícios",
+  [FEATURES.SAVE_PROGRAM]: "Salvar programas e treinos",
+  [FEATURES.MARK_EXERCISE]: "Marcar exercícios como concluídos",
+  [FEATURES.FINISH_WORKOUT]: "Iniciar e finalizar treino",
+  [FEATURES.FREQUENCY_TRACKING]: "Frequência, sequência e jornadas",
+  [FEATURES.SESSION_HISTORY]: "Histórico de sessões concluídas",
+  [FEATURES.LOAD_LOGGING]: "Registro de carga e repetições por série",
+  [FEATURES.LOAD_HISTORY]: "Histórico de cargas por exercício",
+  [FEATURES.PHOTOS_MEASUREMENTS]: "Fotos e medidas de evolução",
+  [FEATURES.COACH_FEEDBACK]: "Feedback do personal",
+  [FEATURES.CHAT]: "Chat direto com o personal",
+};
+
+export const TIER_FEATURES = {
   essencial: [
     FEATURES.VIEW_CONTENT,
     FEATURES.SAVE_PROGRAM,
@@ -74,6 +88,16 @@ export function canUseFeature(planValue, feature) {
 // Menor tier (entre os definidos) que já libera a feature — usado nas mensagens de bloqueio.
 export function minTierForFeature(feature) {
   return Object.keys(TIER_FEATURES).find(tier => TIER_FEATURES[tier].includes(feature)) || null;
+}
+
+// Features que o tier adiciona em relação ao tier anterior — usado nas
+// telas que exibem "o que cada plano libera" (ex.: admin/PlansPage).
+const TIER_ORDER = ["essencial", "pro", "consultoria"];
+export function getTierOwnFeatures(tier) {
+  const idx = TIER_ORDER.indexOf(tier);
+  if (idx <= 0) return TIER_FEATURES[tier] || [];
+  const previous = new Set(TIER_FEATURES[TIER_ORDER[idx - 1]] || []);
+  return (TIER_FEATURES[tier] || []).filter(f => !previous.has(f));
 }
 
 export function usePlanPermission(profile) {

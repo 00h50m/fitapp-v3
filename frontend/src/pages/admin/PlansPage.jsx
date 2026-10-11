@@ -4,17 +4,17 @@ import { Button } from "@/components/ui/button";
 import { CreditCard, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { getTierOwnFeatures, FEATURE_LABEL } from "@/lib/planPermissions";
 
-// Vitrine visual dos planos, fiel ao protótipo. Sem lógica de bloqueio de
-// recursos ainda — isso é decisão de negócio em aberto (hoje todo aluno já
-// tem acesso completo). Essa tela só documenta o que cada plano promete.
+// Vitrine visual dos planos. As features exibidas vêm da mesma matriz
+// central (lib/planPermissions.js) que bloqueia de verdade no frontend e no
+// backend — não há uma segunda lista de regras para manter sincronizada.
 const PLANS = [
   {
     key: "essencial",
     tag: "Entrada",
     name: "Essencial",
     description: "Conteúdo guiado para quem quer começar sem acompanhamento.",
-    features: ["Programas em PDF", "Vídeos dos exercícios"],
     highlight: false,
   },
   {
@@ -22,7 +22,6 @@ const PLANS = [
     tag: "Mais escolhido",
     name: "Pro",
     description: "Execução dentro do app com controle de conclusão.",
-    features: ["Tudo do Essencial", "Check de exercícios", "Frequência e sequência"],
     highlight: true,
   },
   {
@@ -30,10 +29,9 @@ const PLANS = [
     tag: "Completo",
     name: "Consultoria",
     description: "Acompanhamento individual e decisões baseadas na evolução.",
-    features: ["Tudo do Pro", "Registro de carga", "Fotos, medidas e chat"],
     highlight: false,
   },
-];
+].map(plan => ({ ...plan, features: getTierOwnFeatures(plan.key).map(f => FEATURE_LABEL[f]) }));
 
 const PlansPage = () => {
   return (
@@ -64,6 +62,12 @@ const PlansPage = () => {
               <h2 className="text-lg font-semibold">{plan.name}</h2>
               <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
               <div className="space-y-2 mt-4">
+                {plan.key !== "essencial" && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                    <span>Tudo do {plan.key === "pro" ? "Essencial" : "Pro"}</span>
+                  </div>
+                )}
                 {plan.features.map(f => (
                   <div key={f} className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-primary flex-shrink-0" />
@@ -74,7 +78,7 @@ const PlansPage = () => {
               <Button
                 variant="outline"
                 className="w-full mt-5"
-                onClick={() => toast("Edição de recursos por plano ainda não está disponível.")}
+                onClick={() => toast("Edição de recursos por plano ainda não está disponível — a matriz hoje é fixa no código.")}
               >
                 Editar recursos
               </Button>
@@ -83,7 +87,7 @@ const PlansPage = () => {
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Essa tela é só um painel visual por enquanto — nenhum recurso do app é bloqueado por plano hoje.
+          Esses recursos já são bloqueados de verdade (frontend e backend) conforme o plano de cada aluno. Editar essa matriz pela tela ainda não está disponível — hoje ela vive em código (lib/planPermissions.js).
         </p>
       </div>
     </AdminLayout>
