@@ -12,7 +12,7 @@ import { useAppSettings } from "@/contexts/AppSettingsContext";
 import {
   LayoutDashboard, Users, LogOut, Menu, X,
   Zap, ClipboardList, UserCog, Library, BookOpen, Settings, CreditCard, Palette, LayoutTemplate,
-  Plus, UserPlus, Dumbbell,
+  Plus, UserPlus, Dumbbell, GraduationCap,
 } from "lucide-react";
 
 // Atalhos permanentes — acessíveis de qualquer tela do painel, não só da
@@ -45,6 +45,7 @@ const navGroups = [
       { title: "Personalizados", href: "/admin/treinos/personalizados", icon: UserCog },
       { title: "Catálogo", href: "/admin/catalog", icon: BookOpen },
       { title: "Planos e acessos", href: "/admin/planos", icon: CreditCard },
+      { title: "Área do iniciante", href: "/admin/conteudos", icon: GraduationCap },
     ],
   },
   {

@@ -11,7 +11,7 @@ import {
   User, Dumbbell, LogOut, Loader2, RefreshCw, ChevronRight,
   AlertCircle, Trophy, Calendar, Play, CheckCircle2, Lock,
   FileText, ArrowRight, Star, Clock, ChevronDown, ChevronUp,
-  X, MessageCircle, BookOpen, Crown, Bookmark, BookmarkCheck, Sparkles,
+  X, MessageCircle, BookOpen, Crown, Bookmark, BookmarkCheck, Sparkles, Compass,
 } from "lucide-react";
 import { CoverGlyph, DEFAULT_COVER_ICON } from "@/lib/coverIcons";
 import { getJourneys, getCategories, getStudentJourneys, getGrantedJourneyIds, enrollStudentInJourney } from "@/services/journeyService";
@@ -23,7 +23,7 @@ import { useAppSettings } from "@/contexts/AppSettingsContext";
 import { getPublishedHomeSections } from "@/services/homeSectionsService";
 import { OnboardingFlow } from "@/components/student/OnboardingFlow";
 
-const HOME_SECTION_KEYS = ["banner", "categories_shortcut", "frequency_stats", "personal_program", "journeys", "saved"];
+const HOME_SECTION_KEYS = ["banner", "beginner_cta", "categories_shortcut", "frequency_stats", "personal_program", "journeys", "saved"];
 
 // ── Constants ──────────────────────────────────────────────────
 const waLink = (phone, msg) => `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
@@ -420,6 +420,23 @@ const StudentWorkoutsPage = () => {
                         <p className="text-sm text-muted-foreground mt-1.5 max-w-[280px]">{settings.banner_subtitle}</p>
                       </div>
                     </div>
+                  );
+
+                case "beginner_cta":
+                  return !isSectionOn("beginner_cta") ? null : (
+                    <button
+                      key="beginner_cta"
+                      type="button"
+                      onClick={() => navigate("/student/comece-por-aqui")}
+                      className="w-full flex items-center gap-3 rounded-2xl bg-primary/5 border border-primary/20 p-4 text-left"
+                    >
+                      <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0"><Compass className="h-4 w-4 text-primary" /></div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold">{sectionText("beginner_cta", "title", "Comece por aqui")}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{sectionText("beginner_cta", "subtitle", "O essencial antes do seu primeiro treino")}</p>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    </button>
                   );
 
                 case "categories_shortcut":

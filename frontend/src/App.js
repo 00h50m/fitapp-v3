@@ -19,6 +19,8 @@ import WorkoutPreviewPage  from "@/pages/student/WorkoutPreviewPage";
 import StudentProfilePage  from "@/pages/student/StudentProfilePage";
 import StudentEvolutionPage from "@/pages/student/StudentEvolutionPage";
 import StudentHelpPage from "@/pages/student/StudentHelpPage";
+import StudentBeginnerPage from "@/pages/student/StudentBeginnerPage";
+import BeginnerContentPage from "@/pages/admin/BeginnerContentPage";
 import TrainRedirectPage from "@/pages/student/TrainRedirectPage";
 import DashboardPage from "@/pages/admin/DashboardPage";
 import AdminAlunosPage from "@/pages/admin/AdminAlunosPage";
@@ -64,6 +66,7 @@ function AppRoutes() {
       <Route path="/student/profile" element={<ProtectedRoute><StudentProfilePage /></ProtectedRoute>} />
       <Route path="/student/evolution" element={<ProtectedRoute><StudentEvolutionPage /></ProtectedRoute>} />
       <Route path="/student/ajuda" element={<ProtectedRoute><StudentHelpPage /></ProtectedRoute>} />
+      <Route path="/student/comece-por-aqui" element={<ProtectedRoute><StudentBeginnerPage /></ProtectedRoute>} />
       <Route path="/app" element={<Navigate to="/student" replace />} />
       <Route path="/student/workouts" element={<Navigate to="/student" replace />} />
       <Route path="/admin" element={<AdminRoute><DashboardPage /></AdminRoute>} />
@@ -79,6 +82,7 @@ function AppRoutes() {
       <Route path="/admin/planos" element={<AdminRoute><PlansPage /></AdminRoute>} />
       <Route path="/admin/aparencia" element={<AdminRoute><AppearancePage /></AdminRoute>} />
       <Route path="/admin/home" element={<AdminRoute><HomeEditorPage /></AdminRoute>} />
+      <Route path="/admin/conteudos" element={<AdminRoute><BeginnerContentPage /></AdminRoute>} />
       <Route path="/" element={<RedirectByRole />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

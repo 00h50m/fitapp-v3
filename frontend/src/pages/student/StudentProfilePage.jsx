@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { MobileContainer, MobileHeader, MobileContent } from "@/components/layout/MobileContainer";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Library, Bookmark, ChartNoAxesColumnIncreasing, MessageCircle, LogOut, HelpCircle } from "lucide-react";
+import { ChevronRight, Library, Bookmark, ChartNoAxesColumnIncreasing, MessageCircle, LogOut, HelpCircle, Compass } from "lucide-react";
 import { PLAN_VALUE_LABEL } from "@/lib/planPermissions";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
 
@@ -45,6 +45,7 @@ const StudentProfilePage = () => {
           </div>
         </div>
 
+        <SettingRow icon={Compass} label="Comece por aqui" onClick={() => navigate("/student/comece-por-aqui")} />
         <SettingRow icon={Library} label="Jornadas e programas" onClick={() => navigate("/student/catalog")} />
         <SettingRow icon={Bookmark} label="Treinos ativos" onClick={() => navigate("/student")} />
         <SettingRow icon={ChartNoAxesColumnIncreasing} label="Minha evolução" onClick={() => navigate("/student/evolution")} />

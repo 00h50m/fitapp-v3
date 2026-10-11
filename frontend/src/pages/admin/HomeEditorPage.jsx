@@ -13,6 +13,7 @@ import {
 
 const SECTION_LABEL = {
   banner: "Banner principal",
+  beginner_cta: "Comece por aqui (só pra aluno novo)",
   continue_workout: "Próximo treino / continuar treino",
   frequency_stats: "Estatísticas e frequência",
   categories_shortcut: "Atalho de categorias",
