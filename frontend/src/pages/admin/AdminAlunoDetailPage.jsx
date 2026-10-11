@@ -274,7 +274,7 @@ const AdminAlunoDetailPage = () => {
   return (
     <AdminLayout>
       <div className="space-y-5 animate-fade-in max-w-3xl mx-auto pb-10">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate("/admin/alunos")}>
               <ArrowLeft className="h-4 w-4" />
@@ -287,7 +287,7 @@ const AdminAlunoDetailPage = () => {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center flex-wrap gap-2 flex-shrink-0">
             <Button variant="outline" size="sm" className="gap-1.5 text-xs text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => setShowDeleteDialog(true)}>
               <Trash2 className="h-3.5 w-3.5" />Excluir
             </Button>

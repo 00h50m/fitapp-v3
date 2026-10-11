@@ -106,7 +106,7 @@ const BeginnerContentPage = () => {
             </h1>
             <p className="text-muted-foreground mt-1">Conteúdos que aparecem em "Comece por aqui" pro aluno.</p>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center flex-wrap gap-2 flex-shrink-0">
             <Button variant="outline" size="sm" className="gap-1.5" onClick={handleAdd}><Plus className="h-3.5 w-3.5" />Novo</Button>
             <Button variant="premium" size="sm" onClick={handleSave} disabled={saving}>
               {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Salvar"}

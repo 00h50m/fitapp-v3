@@ -125,7 +125,7 @@ const HomeEditorPage = () => {
             </h1>
             <p className="text-muted-foreground mt-1">Ative, reordene e edite as seções que o aluno vê ao abrir o app.</p>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center flex-wrap gap-2 flex-shrink-0">
             <Button variant="outline" size="sm" onClick={handleDiscard}>Descartar</Button>
             <Button variant="outline" size="sm" className="gap-1.5" onClick={handleSaveDraft} disabled={saving}>
               {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}Salvar rascunho
