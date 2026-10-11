@@ -14,13 +14,77 @@ import {
 import {
   ArrowLeft, Save, Loader2, AlertCircle, RefreshCw,
   User, Calendar, Dumbbell, FileText, BookOpen, Check, Plus,
-  Clock, Shield, ShieldOff, Trophy, Trash2,
+  Clock, Shield, ShieldOff, Trophy, Trash2, Ruler, Camera,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { getJourneys, getGrantedJourneyIds, grantJourneyAccess, revokeJourneyAccess } from "@/services/journeyService";
 import { CoverGlyph } from "@/lib/coverIcons";
+import { getBodyAssessments, getProgressPhotos } from "@/services/evolutionService";
+import { getPlanTier } from "@/lib/planPermissions";
+
+const ASSESSMENT_FIELD_LABEL = {
+  weight_kg: "Peso", body_fat_pct: "% Gordura", waist_cm: "Cintura",
+  chest_cm: "Peito", hip_cm: "Quadril", arm_cm: "Braço", thigh_cm: "Coxa",
+};
+
+// Evolução (medidas + fotos) só existe de fato para quem está em Consultoria
+// — pra quem não está, essas tabelas simplesmente não têm linhas (bloqueio
+// real no banco), então a seção abaixo fica vazia em vez de mostrar erro.
+const EvolutionSection = ({ profileId, plan }) => {
+  const [assessments, setAssessments] = useState([]);
+  const [photos, setPhotos] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!profileId) return;
+    (async () => {
+      setLoading(true);
+      try {
+        const [a, p] = await Promise.all([getBodyAssessments(profileId), getProgressPhotos(profileId)]);
+        setAssessments(a); setPhotos(p);
+      } catch { /* aluno sem evolução registrada ainda */ }
+      finally { setLoading(false); }
+    })();
+  }, [profileId]);
+
+  if (getPlanTier(plan) !== "consultoria") return null;
+  if (loading) return <Card><CardContent className="py-8 flex justify-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></CardContent></Card>;
+  if (assessments.length === 0 && photos.length === 0) return null;
+
+  const latest = assessments[0];
+
+  return (
+    <Card>
+      <CardHeader className="pb-3"><CardTitle className="text-sm flex items-center gap-2"><Ruler className="h-4 w-4 text-primary" />Evolução</CardTitle></CardHeader>
+      <CardContent className="space-y-4">
+        {latest && (
+          <div>
+            <p className="text-xs text-muted-foreground mb-1.5">Última medida — {new Date(latest.assessed_at + "T12:00").toLocaleDateString("pt-BR")}</p>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+              {Object.entries(ASSESSMENT_FIELD_LABEL).filter(([k]) => latest[k] != null).map(([k, label]) => (
+                <span key={k}><span className="font-semibold">{latest[k]}</span> <span className="text-muted-foreground text-xs">{label}</span></span>
+              ))}
+            </div>
+          </div>
+        )}
+        {photos.length > 0 && (
+          <div>
+            <p className="text-xs text-muted-foreground mb-1.5 flex items-center gap-1.5"><Camera className="h-3.5 w-3.5" />{photos.length} foto{photos.length !== 1 ? "s" : ""} de progresso</p>
+            <div className="grid grid-cols-6 gap-1.5">
+              {photos.slice(0, 6).map(p => (
+                <div key={p.id} className="aspect-square rounded-lg overflow-hidden bg-muted">
+                  {p.signedUrl && <img src={p.signedUrl} alt="" className="w-full h-full object-cover" />}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
 const SEL = "w-full bg-muted border border-border text-foreground rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
 
@@ -356,6 +420,8 @@ const AdminAlunoDetailPage = () => {
             </CardContent>
           </Card>
         )}
+
+        <EvolutionSection profileId={profile.id} plan={form.plan} />
 
         <Button variant="premium" className="w-full gap-2" onClick={handleSave} disabled={saving || !changed}>
           {saving ? <><Loader2 className="h-4 w-4 animate-spin" />Salvando...</> : <><Save className="h-4 w-4" />Salvar Alterações</>}
