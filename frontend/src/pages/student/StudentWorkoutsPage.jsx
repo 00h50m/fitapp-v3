@@ -394,7 +394,7 @@ const StudentWorkoutsPage = () => {
                       key={cat.id}
                       type="button"
                       onClick={() => navigate(`/student/catalog#cat-${cat.id}`)}
-                      className="rounded-2xl bg-card border border-border p-4 text-left min-h-[104px] flex flex-col justify-between hover:border-primary/40 transition-colors"
+                      className="rounded-2xl bg-card shadow-sm p-4 text-left min-h-[104px] flex flex-col justify-between hover:shadow-md transition-all"
                     >
                       <span className="text-2xl">{cat.emoji}</span>
                       <span>

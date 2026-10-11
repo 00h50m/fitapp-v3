@@ -143,25 +143,8 @@ const CustomWorkoutsPage = () => {
           </Button>
         </div>
 
-        {/* Stats clicáveis */}
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { label: "Total",    value: counts.Todos,     color: "text-foreground",  tab: "Todos" },
-            { label: "Ativos",   value: counts.Ativos,    color: "text-green-600 dark:text-green-400",   tab: "Ativos" },
-            { label: "Expirados",value: counts.Expirados, color: "text-destructive", tab: "Expirados" },
-          ].map(s => (
-            <Card key={s.tab} className="bg-card border-border cursor-pointer hover:border-primary/30 transition-colors"
-              onClick={() => setTab(s.tab)}>
-              <CardContent className="p-4 text-center">
-                <p className={cn("text-2xl font-bold", s.color)}>{s.value}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
         {/* Tabela */}
-        <Card className="bg-card border-border">
+        <Card className="bg-card">
           <CardHeader className="pb-0">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
               <CardTitle className="text-base font-display">Treinos Atribuídos</CardTitle>

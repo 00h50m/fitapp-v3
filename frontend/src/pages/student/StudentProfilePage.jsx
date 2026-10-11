@@ -13,7 +13,7 @@ const SettingRow = ({ icon: Icon, label, onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    className="w-full flex items-center gap-3 rounded-2xl bg-card border border-border p-4 text-left mb-2 hover:border-primary/40 transition-colors"
+    className="w-full flex items-center gap-3 rounded-2xl bg-card shadow-sm p-4 text-left mb-2 hover:shadow-md transition-all"
   >
     <Icon className="h-[18px] w-[18px] text-muted-foreground flex-shrink-0" />
     <span className="flex-1 text-sm font-medium">{label}</span>
@@ -33,7 +33,7 @@ const StudentProfilePage = () => {
       </MobileHeader>
 
       <MobileContent>
-        <div className="rounded-2xl bg-card border border-border p-4 flex items-center gap-3 mb-5">
+        <div className="rounded-2xl bg-card shadow-sm p-4 flex items-center gap-3 mb-5">
           <div className="h-14 w-14 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-lg font-bold text-primary flex-shrink-0">
             {(profile?.name || "A").trim().charAt(0).toUpperCase()}
           </div>
