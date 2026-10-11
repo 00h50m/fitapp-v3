@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { DIFFICULTY_LABEL } from "@/lib/difficultyLabels";
 import { CoverGlyph } from "@/lib/coverIcons";
+import { usePlanPermission, FEATURES } from "@/lib/planPermissions";
+import { LockedFeature } from "@/components/ui/locked-feature";
 
 function openWhatsApp(journeyTitle) {
   const msg = encodeURIComponent(`Olá! Tenho interesse em liberar acesso à jornada "${journeyTitle}". Poderia me ajudar?`);
@@ -18,7 +20,8 @@ function openWhatsApp(journeyTitle) {
 const JourneyDetailPage = () => {
   const { id: journeyId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const perm = usePlanPermission(profile);
 
   const [journey, setJourney]               = useState(null);
   const [studentJourney, setStudentJourney] = useState(null);
@@ -74,6 +77,7 @@ const JourneyDetailPage = () => {
   };
 
   const handleEnroll = async () => {
+    if (!perm.can(FEATURES.FREQUENCY_TRACKING)) { toast(`Disponível no plano ${perm.minTierLabelFor(FEATURES.FREQUENCY_TRACKING)} ou superior 🔒`); return; }
     setEnrolling(true);
     try {
       await enrollStudentInJourney(profileId, journeyId);
@@ -187,9 +191,13 @@ const JourneyDetailPage = () => {
 
         {/* CTA iniciar se liberada e ainda não iniciou */}
         {hasAccess && !studentJourney && (
-          <Button className="w-full gap-2" onClick={handleEnroll} disabled={enrolling}>
-            {enrolling ? <><Loader2 className="h-4 w-4 animate-spin" />Iniciando...</> : <><Play className="h-4 w-4" />Iniciar jornada</>}
-          </Button>
+          perm.can(FEATURES.FREQUENCY_TRACKING) ? (
+            <Button className="w-full gap-2" onClick={handleEnroll} disabled={enrolling}>
+              {enrolling ? <><Loader2 className="h-4 w-4 animate-spin" />Iniciando...</> : <><Play className="h-4 w-4" />Iniciar jornada</>}
+            </Button>
+          ) : (
+            <LockedFeature label="Iniciar e acompanhar jornada" requiredTierLabel={perm.minTierLabelFor(FEATURES.FREQUENCY_TRACKING)} />
+          )
         )}
 
         {/* Lista de treinos */}

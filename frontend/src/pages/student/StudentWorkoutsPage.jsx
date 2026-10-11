@@ -17,6 +17,8 @@ import { CoverGlyph, DEFAULT_COVER_ICON } from "@/lib/coverIcons";
 import { getJourneys, getCategories, getStudentJourneys, getGrantedJourneyIds, enrollStudentInJourney, PERSONAL_WHATSAPP } from "@/services/journeyService";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { usePlanPermission, FEATURES } from "@/lib/planPermissions";
+import { LockedFeature } from "@/components/ui/locked-feature";
 
 // ── Constants ──────────────────────────────────────────────────
 const waLink = (msg) => `https://wa.me/${PERSONAL_WHATSAPP}?text=${encodeURIComponent(msg)}`;
@@ -168,6 +170,7 @@ const WorkoutCard = ({ workout, isNext, isOngoing, alreadyToday, sessions, navig
 const StudentWorkoutsPage = () => {
   const navigate = useNavigate();
   const { user, profile, logout, loading: authLoading } = useAuth();
+  const perm = usePlanPermission(profile);
 
   // Treinos personalizados
   const [workouts, setWorkouts]   = useState([]);
@@ -410,36 +413,42 @@ const StudentWorkoutsPage = () => {
               </div>
             )}
 
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-2.5">
-              {[
-                { label: "Treinos",     value: activeWorkouts.length, color: "text-primary" },
-                { label: "Essa semana", value: weekCount,             color: "text-foreground" },
-                { label: streak >= 2 ? "🔥 Streak" : "Sequência", value: streak, color: "text-foreground" },
-              ].map(({ label, value, color }) => (
-                <div key={label} className="bg-card rounded-2xl shadow-sm p-4 text-center">
-                  <p className={cn("text-2xl font-black leading-none mb-1.5", color)}>{value}</p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</p>
+            {/* Stats + frequência — exige Pro ou superior */}
+            {perm.can(FEATURES.FREQUENCY_TRACKING) ? (
+              <>
+                <div className="grid grid-cols-3 gap-2.5">
+                  {[
+                    { label: "Treinos",     value: activeWorkouts.length, color: "text-primary" },
+                    { label: "Essa semana", value: weekCount,             color: "text-foreground" },
+                    { label: streak >= 2 ? "🔥 Streak" : "Sequência", value: streak, color: "text-foreground" },
+                  ].map(({ label, value, color }) => (
+                    <div key={label} className="bg-card rounded-2xl shadow-sm p-4 text-center">
+                      <p className={cn("text-2xl font-black leading-none mb-1.5", color)}>{value}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
 
-            {/* Tira semanal — visual, reforça a constância dia a dia */}
-            <div className="bg-card rounded-2xl shadow-sm px-4 py-3.5 flex items-center justify-between gap-1">
-              {weekStrip.map(day => (
-                <div key={day.dateStr} className="flex flex-col items-center gap-1.5">
-                  <span className="text-[9px] font-medium text-muted-foreground">{day.label}</span>
-                  <div className={cn(
-                    "h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors",
-                    day.done ? "bg-primary text-primary-foreground"
-                    : day.isToday ? "border-2 border-primary/40 text-primary"
-                    : "bg-muted text-muted-foreground/50"
-                  )}>
-                    {day.done ? "✓" : new Date(day.dateStr + "T12:00").getDate()}
-                  </div>
+                {/* Tira semanal — visual, reforça a constância dia a dia */}
+                <div className="bg-card rounded-2xl shadow-sm px-4 py-3.5 flex items-center justify-between gap-1">
+                  {weekStrip.map(day => (
+                    <div key={day.dateStr} className="flex flex-col items-center gap-1.5">
+                      <span className="text-[9px] font-medium text-muted-foreground">{day.label}</span>
+                      <div className={cn(
+                        "h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors",
+                        day.done ? "bg-primary text-primary-foreground"
+                        : day.isToday ? "border-2 border-primary/40 text-primary"
+                        : "bg-muted text-muted-foreground/50"
+                      )}>
+                        {day.done ? "✓" : new Date(day.dateStr + "T12:00").getDate()}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            ) : (
+              <LockedFeature label="Frequência e sequência de treinos" requiredTierLabel={perm.minTierLabelFor(FEATURES.FREQUENCY_TRACKING)} />
+            )}
 
             {/* ── MEU PROGRAMA (consultoria personalizada) ── */}
             {hasPersonalWorkouts ? (
@@ -623,11 +632,11 @@ const StudentWorkoutsPage = () => {
             }}
           >
             <div className="h-9 w-9 rounded-full bg-primary-foreground/15 flex items-center justify-center flex-shrink-0">
-              {ongoing ? <Play className="h-4 w-4" /> : alreadyToday ? <RefreshCw className="h-4 w-4" /> : <Dumbbell className="h-4 w-4" />}
+              {!perm.can(FEATURES.FINISH_WORKOUT) ? <FileText className="h-4 w-4" /> : ongoing ? <Play className="h-4 w-4" /> : alreadyToday ? <RefreshCw className="h-4 w-4" /> : <Dumbbell className="h-4 w-4" />}
             </div>
             <div className="flex-1 min-w-0 text-left">
               <p className="font-bold text-sm leading-tight">
-                {ongoing ? "Continuar treino" : alreadyToday ? "Repetir treino" : "Iniciar treino de hoje"}
+                {!perm.can(FEATURES.FINISH_WORKOUT) ? "Ver treino de hoje" : ongoing ? "Continuar treino" : alreadyToday ? "Repetir treino" : "Iniciar treino de hoje"}
               </p>
               <p className="text-xs opacity-75 truncate mt-0.5">{todayWorkout.title}</p>
             </div>
