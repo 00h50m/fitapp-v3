@@ -1,8 +1,10 @@
 import React from "react";
-import { CheckCircle2, Zap, Lock } from "lucide-react";
+import { CheckCircle2, Zap, Lock, House, Dumbbell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DIFFICULTY_LABEL } from "@/lib/difficultyLabels";
 import { CoverGlyph } from "@/lib/coverIcons";
+
+const ENV_ICON = { casa: House, academia: Dumbbell };
 
 const SIZE_CLASSES = {
   sm: { card: "w-32", cover: "h-48" },
@@ -19,6 +21,7 @@ export const JourneyCard = ({ journey, studentJourney, hasAccess, onSelect, size
   const locked = !hasAccess;
   const hasCover = !!journey.cover_image_url;
   const { card, cover } = SIZE_CLASSES[size] ?? SIZE_CLASSES.sm;
+  const EnvIcon = ENV_ICON[journey.environment];
 
   return (
     <div className={cn("flex-shrink-0 cursor-pointer group", card)} onClick={() => onSelect(journey)}>
@@ -55,6 +58,12 @@ export const JourneyCard = ({ journey, studentJourney, hasAccess, onSelect, size
           <div className="absolute top-2 left-2 bg-primary/90 rounded-full px-2 py-0.5 flex items-center gap-1">
             <Zap className="h-3 w-3 text-white" />
             <span className="text-[10px] text-white font-medium">Ativa</span>
+          </div>
+        )}
+
+        {EnvIcon && (
+          <div className="absolute top-2 right-2 bg-black/50 rounded-full p-1">
+            <EnvIcon className="h-3 w-3 text-white/90" />
           </div>
         )}
 

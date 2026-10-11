@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { getJourneys, getCategories, getStudentJourneys, getGrantedJourneyIds } from "@/services/journeyService";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { BottomNav } from "@/components/layout/BottomNav";
-import { Loader2, BookOpen, ChevronRight, CheckCircle2, Lock, MessageCircle, ArrowLeft } from "lucide-react";
+import { JourneyCard } from "@/components/student/JourneyCard";
+import { Loader2, BookOpen, ChevronRight, CheckCircle2, Lock, MessageCircle, ArrowLeft, Search } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { CoverGlyph } from "@/lib/coverIcons";
@@ -15,10 +17,7 @@ function openWhatsApp(whatsapp, journeyTitle) {
   window.open(`https://wa.me/${whatsapp}?text=${msg}`, "_blank");
 }
 
-// ── Card de lista plana ("Programas", fiel ao protótipo) ────────
-// Cada jornada é seu próprio cartão flutuante (não uma linha de tabela),
-// com selo de ícone em tom suave da cor da jornada — igual ao .feature
-// do protótipo (ícone em quadrado 42px com fundo tingido a 16%).
+// ── Linha de card (usada só na busca por texto — lista plana) ──────
 const JourneyListRow = ({ journey, studentJourney, hasAccess, onSelect }) => {
   const isActive = studentJourney?.status === "active";
   const isDone = studentJourney?.status === "completed";
@@ -79,6 +78,21 @@ const JourneyListRow = ({ journey, studentJourney, hasAccess, onSelect }) => {
   );
 };
 
+// ── Fileira editorial (rolagem horizontal, estilo plataforma de conteúdo) ──
+const JourneyRow = ({ title, journeys, getStudentJourney, grantedIds, onSelect }) => {
+  if (!journeys.length) return null;
+  return (
+    <div className="mb-6">
+      <p className="text-sm font-semibold text-foreground mb-2.5">{title}</p>
+      <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none">
+        {journeys.map(j => (
+          <JourneyCard key={j.id} journey={j} studentJourney={getStudentJourney(j.id)} hasAccess={grantedIds.has(j.id)} onSelect={onSelect} size="md" />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // ── Página principal ───────────────────────────────────────────
 const StudentCatalogPage = () => {
   const navigate = useNavigate();
@@ -88,7 +102,7 @@ const StudentCatalogPage = () => {
   const [studentJourneys, setStudentJourneys] = useState([]);
   const [grantedIds, setGrantedIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState("all"); // "all" | "mine" | categoryId
+  const [search, setSearch] = useState("");
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -109,22 +123,35 @@ const StudentCatalogPage = () => {
   useEffect(() => { loadAll(); }, [loadAll]);
 
   // Aplica o filtro indicado na URL (vindo do atalho "O que você quer treinar hoje?" da Home)
+  const [jumpToCategory, setJumpToCategory] = useState(null);
   useEffect(() => {
     if (loading) return;
     const hash = window.location.hash;
-    if (hash?.startsWith("#cat-")) setActiveFilter(hash.replace("#cat-", ""));
+    if (hash?.startsWith("#cat-")) setJumpToCategory(hash.replace("#cat-", ""));
   }, [loading]);
+  useEffect(() => {
+    if (!jumpToCategory) return;
+    const el = document.getElementById(`cat-${jumpToCategory}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [jumpToCategory, journeys]);
 
+  const getStudentJourney = (id) => studentJourneys.find(sj => sj.journey_id === id) ?? null;
   const myJourneys = journeys.filter(j => studentJourneys.some(sj => sj.journey_id === j.id));
+  const availableJourneys = journeys.filter(j => grantedIds.has(j.id) && !studentJourneys.some(sj => sj.journey_id === j.id));
+  const lockedJourneys = journeys.filter(j => !grantedIds.has(j.id));
+  const newJourneys = journeys.slice(0, 8); // getJourneys() já ordena por created_at desc
+  const noEquipmentJourneys = journeys.filter(j => j.equipment === "sem_equipamento" && grantedIds.has(j.id));
+  const beginnerJourneys = journeys.filter(j => j.difficulty === "iniciante" && grantedIds.has(j.id));
 
-  // Chips só para categorias que de fato têm jornada cadastrada
-  const chipCategories = categories.filter(cat => journeys.some(j => j.category_id === cat.id));
+  const handleSelect = (journey) => {
+    const hasAccess = grantedIds.has(journey.id);
+    if (!hasAccess) { openWhatsApp(settings.whatsapp, journey.title); return; }
+    navigate(`/student/journey/${journey.id}`);
+  };
 
-  const filteredJourneys = journeys.filter(j => {
-    if (activeFilter === "all") return true;
-    if (activeFilter === "mine") return studentJourneys.some(sj => sj.journey_id === j.id);
-    return j.category_id === activeFilter;
-  });
+  const searchResults = search.trim()
+    ? journeys.filter(j => j.title.toLowerCase().includes(search.trim().toLowerCase()))
+    : null;
 
   return (
     <div className="min-h-screen bg-background pb-24 w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto">
@@ -140,80 +167,74 @@ const StudentCatalogPage = () => {
         </div>
       </div>
 
-      {/* Título grande, fiel ao protótipo */}
       <div className="px-4 pt-5 pb-1">
-        <h2 className="text-2xl font-display font-bold text-foreground">Jornadas</h2>
-        <p className="text-sm text-muted-foreground mt-1">Programas completos para cada objetivo e rotina.</p>
+        <h2 className="text-2xl font-display font-bold text-foreground">Programas</h2>
+        <p className="text-sm text-muted-foreground mt-1">Encontre o programa certo pro seu objetivo e sua rotina.</p>
       </div>
 
-      {/* Chips de filtro (lista plana filtrável, fiel ao protótipo) */}
-      {!loading && (
-        <div className="flex gap-2 overflow-x-auto px-4 pt-2 pb-1 scrollbar-none">
-          <button
-            type="button"
-            onClick={() => setActiveFilter("all")}
-            className={cn(
-              "flex-shrink-0 text-xs font-medium px-3 py-2 rounded-full transition-colors",
-              activeFilter === "all" ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:text-foreground hover:border-primary/40"
-            )}
-          >
-            Todas
-          </button>
-          {myJourneys.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setActiveFilter("mine")}
-              className={cn(
-                "flex-shrink-0 text-xs font-medium px-3 py-2 rounded-full transition-colors",
-                activeFilter === "mine" ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:text-foreground hover:border-primary/40"
-              )}
-            >
-              Minhas
-            </button>
-          )}
-          {chipCategories.map(cat => (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => setActiveFilter(cat.id)}
-              className={cn(
-                "flex-shrink-0 text-xs font-medium px-3 py-2 rounded-full transition-colors flex items-center gap-1.5",
-                activeFilter === cat.id ? "bg-primary text-primary-foreground" : "bg-card border border-border text-muted-foreground hover:text-foreground hover:border-primary/40"
-              )}
-            >
-              <CoverGlyph value={cat.emoji} className="h-3.5 w-3.5" />{cat.name}
-            </button>
-          ))}
+      <div className="px-4 pt-3 pb-2">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar programa..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="pl-10 bg-card border-border"
+          />
         </div>
-      )}
+      </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-24"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
       ) : journeys.length === 0 ? (
         <div className="text-center py-24 text-muted-foreground px-4">
           <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-20" />
-          <p className="text-sm">Nenhuma jornada disponível ainda.</p>
+          <p className="text-sm">Nenhum programa disponível ainda.</p>
         </div>
-      ) : filteredJourneys.length === 0 ? (
-        <div className="text-center py-24 text-muted-foreground px-4">
-          <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-20" />
-          <p className="text-sm">Nenhuma jornada nesse filtro ainda.</p>
+      ) : searchResults !== null ? (
+        // Busca ativa: lista plana filtrada
+        <div className="px-4 pt-2 space-y-3">
+          {searchResults.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-12">Nenhum programa encontrado pra "{search}".</p>
+          ) : searchResults.map(j => (
+            <JourneyListRow key={j.id} journey={j} studentJourney={getStudentJourney(j.id)} hasAccess={grantedIds.has(j.id)} onSelect={handleSelect} />
+          ))}
         </div>
       ) : (
-        <div className="px-4 pt-3 space-y-3">
-          {filteredJourneys.map(j => (
-            <JourneyListRow
-              key={j.id}
-              journey={j}
-              studentJourney={studentJourneys.find(sj => sj.journey_id === j.id) ?? null}
-              hasAccess={grantedIds.has(j.id)}
-              onSelect={(journey) => navigate(`/student/journey/${journey.id}`)}
-            />
-          ))}
+        // Navegação editorial, por organização, estilo plataforma de conteúdo
+        <div className="px-4 pt-3">
+          <JourneyRow title="Em andamento" journeys={myJourneys} getStudentJourney={getStudentJourney} grantedIds={grantedIds} onSelect={handleSelect} />
+          <JourneyRow title="Novos programas" journeys={newJourneys} getStudentJourney={getStudentJourney} grantedIds={grantedIds} onSelect={handleSelect} />
+          <JourneyRow title="Comece por aqui" journeys={beginnerJourneys} getStudentJourney={getStudentJourney} grantedIds={grantedIds} onSelect={handleSelect} />
+          <JourneyRow title="Sem equipamentos" journeys={noEquipmentJourneys} getStudentJourney={getStudentJourney} grantedIds={grantedIds} onSelect={handleSelect} />
 
-          <div className="bg-card/60 border border-dashed border-border rounded-2xl p-5 text-center space-y-3">
-            <p className="text-sm text-muted-foreground">Quer mais jornadas liberadas pra você?</p>
-            <Button variant="outline" size="sm" className="gap-2" onClick={() => openWhatsApp(settings.whatsapp, "novas jornadas disponíveis")}>
+          {categories.map(cat => {
+            const catJourneys = availableJourneys.filter(j => j.category_id === cat.id);
+            if (!catJourneys.length) return null;
+            return (
+              <div id={`cat-${cat.id}`} key={cat.id}>
+                <JourneyRow
+                  title={cat.name}
+                  journeys={catJourneys}
+                  getStudentJourney={getStudentJourney}
+                  grantedIds={grantedIds}
+                  onSelect={handleSelect}
+                />
+              </div>
+            );
+          })}
+
+          {availableJourneys.filter(j => !j.category_id).length > 0 && (
+            <JourneyRow title="Disponíveis" journeys={availableJourneys.filter(j => !j.category_id)} getStudentJourney={getStudentJourney} grantedIds={grantedIds} onSelect={handleSelect} />
+          )}
+
+          {lockedJourneys.length > 0 && (
+            <JourneyRow title="🔒 Em breve" journeys={lockedJourneys} getStudentJourney={() => null} grantedIds={new Set()} onSelect={handleSelect} />
+          )}
+
+          <div className="bg-card/60 border border-dashed border-border rounded-2xl p-5 text-center space-y-3 mt-2">
+            <p className="text-sm text-muted-foreground">Quer mais programas liberados pra você?</p>
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => openWhatsApp(settings.whatsapp, "novos programas disponíveis")}>
               <MessageCircle className="h-4 w-4" />Falar com o personal
             </Button>
           </div>

@@ -13,6 +13,9 @@ import { usePlanPermission, FEATURES } from "@/lib/planPermissions";
 import { LockedFeature } from "@/components/ui/locked-feature";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
 
+const ENVIRONMENT_LABEL = { casa: "🏠 Casa", academia: "🏋️ Academia", misto: "Casa e academia" };
+const EQUIPMENT_LABEL = { com_equipamento: "Com equipamento", sem_equipamento: "Sem equipamento" };
+
 function openWhatsApp(whatsapp, journeyTitle) {
   const msg = encodeURIComponent(`Olá! Tenho interesse em liberar acesso à jornada "${journeyTitle}". Poderia me ajudar?`);
   window.open(`https://wa.me/${whatsapp}?text=${msg}`, "_blank");
@@ -165,6 +168,20 @@ const JourneyDetailPage = () => {
             <p className="text-xs text-muted-foreground">Nível</p>
           </div>
         </div>
+        {(journey.environment || journey.equipment) && (
+          <div className="flex gap-2">
+            {journey.environment && (
+              <span className="flex-1 bg-card rounded-xl shadow-sm p-2.5 text-center text-xs font-medium text-muted-foreground">
+                {ENVIRONMENT_LABEL[journey.environment] ?? journey.environment}
+              </span>
+            )}
+            {journey.equipment && (
+              <span className="flex-1 bg-card rounded-xl shadow-sm p-2.5 text-center text-xs font-medium text-muted-foreground">
+                {EQUIPMENT_LABEL[journey.equipment] ?? journey.equipment}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Progresso */}
         {isActive && (

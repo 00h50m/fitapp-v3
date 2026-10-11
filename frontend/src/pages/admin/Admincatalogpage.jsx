@@ -35,6 +35,8 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
     duration_days: journey?.duration_days ?? "",
     difficulty: journey?.difficulty ?? "intermediario",
     category_id: journey?.category_id ?? "",
+    environment: journey?.environment ?? "",
+    equipment: journey?.equipment ?? "",
   });
   const [selectedWorkouts, setSelectedWorkouts] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -80,6 +82,8 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
         ...form,
         duration_days: form.duration_days ? Number(form.duration_days) : null,
         category_id: form.category_id || null,
+        environment: form.environment || null,
+        equipment: form.equipment || null,
         cover_image_url: coverMode === "image" ? form.cover_image_url : null,
       };
       const saved = isEdit ? await updateJourney(journey.id, payload) : await createJourney(payload);
@@ -204,6 +208,29 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
               <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Selecionar categoria" /></SelectTrigger>
               <SelectContent>{categories.map(c => <SelectItem key={c.id} value={c.id}><span className="flex items-center gap-1.5"><CoverGlyph value={c.emoji} className="h-3.5 w-3.5" />{c.name}</span></SelectItem>)}</SelectContent>
             </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Local</p>
+              <Select value={form.environment} onValueChange={v => set("environment", v)}>
+                <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Não especificado" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="casa">Casa</SelectItem>
+                  <SelectItem value="academia">Academia</SelectItem>
+                  <SelectItem value="misto">Misto</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Equipamento</p>
+              <Select value={form.equipment} onValueChange={v => set("equipment", v)}>
+                <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Não especificado" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="com_equipamento">Com equipamento</SelectItem>
+                  <SelectItem value="sem_equipamento">Sem equipamento</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div>
             <p className="text-xs text-muted-foreground mb-2">Treinos da jornada ({selectedWorkouts.length} selecionados)</p>
