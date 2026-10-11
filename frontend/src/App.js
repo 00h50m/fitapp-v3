@@ -18,6 +18,7 @@ import JourneyDetailPage   from "@/pages/student/JourneyDetailPage";
 import WorkoutPreviewPage  from "@/pages/student/WorkoutPreviewPage";
 import StudentProfilePage  from "@/pages/student/StudentProfilePage";
 import StudentEvolutionPage from "@/pages/student/StudentEvolutionPage";
+import StudentHelpPage from "@/pages/student/StudentHelpPage";
 import TrainRedirectPage from "@/pages/student/TrainRedirectPage";
 import DashboardPage from "@/pages/admin/DashboardPage";
 import AdminAlunosPage from "@/pages/admin/AdminAlunosPage";
@@ -62,6 +63,7 @@ function AppRoutes() {
       <Route path="/student/workout-preview/:id" element={<ProtectedRoute><WorkoutPreviewPage /></ProtectedRoute>} />
       <Route path="/student/profile" element={<ProtectedRoute><StudentProfilePage /></ProtectedRoute>} />
       <Route path="/student/evolution" element={<ProtectedRoute><StudentEvolutionPage /></ProtectedRoute>} />
+      <Route path="/student/ajuda" element={<ProtectedRoute><StudentHelpPage /></ProtectedRoute>} />
       <Route path="/app" element={<Navigate to="/student" replace />} />
       <Route path="/student/workouts" element={<Navigate to="/student" replace />} />
       <Route path="/admin" element={<AdminRoute><DashboardPage /></AdminRoute>} />

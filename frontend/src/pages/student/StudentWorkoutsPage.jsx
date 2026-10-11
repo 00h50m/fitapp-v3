@@ -21,6 +21,7 @@ import { usePlanPermission, FEATURES } from "@/lib/planPermissions";
 import { LockedFeature } from "@/components/ui/locked-feature";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
 import { getPublishedHomeSections } from "@/services/homeSectionsService";
+import { OnboardingFlow } from "@/components/student/OnboardingFlow";
 
 const HOME_SECTION_KEYS = ["banner", "categories_shortcut", "frequency_stats", "personal_program", "journeys", "saved"];
 
@@ -198,6 +199,10 @@ const StudentWorkoutsPage = () => {
 
   // Página inicial configurável pelo personal (ordem, visibilidade, público)
   const [homeSections, setHomeSections] = useState([]);
+
+  // Onboarding — "pular" só fecha nesta sessão (não persiste), por isso
+  // controlamos com um state local além do profile.onboarding_completed_at.
+  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
 
   const isExpired = profile?.access_end ? new Date(profile.access_end + "T23:59") < new Date() : false;
 
@@ -692,6 +697,9 @@ const StudentWorkoutsPage = () => {
       )}
 
       {pdfUrl && <PdfModal url={pdfUrl} onClose={() => setPdfUrl(null)} />}
+      {!loading && !profile?.onboarding_completed_at && !onboardingDismissed && (
+        <OnboardingFlow profile={profile} onClose={() => setOnboardingDismissed(true)} />
+      )}
       <BottomNav />
     </MobileContainer>
   );
