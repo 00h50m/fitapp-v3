@@ -8,10 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   User, Dumbbell, LogOut, Loader2, ChevronLeft, ChevronDown, ChevronUp,
   CheckCircle2, Clock, Repeat, Layers, Video, Play, RefreshCw, Trophy,
   AlertCircle, Lock, FileText, X, HelpCircle, Zap, Weight, StickyNote,
-  Timer, History, BarChart2,
+  Timer, History, BarChart2, MoreHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -193,16 +196,20 @@ const LoadHistoryModal = ({ exerciseName, exerciseRowId, onClose }) => {
 };
 
 // ── Modal de registro de cargas ────────────────────────────────
-const LoadTrackingModal = ({ exercise, sessionId, studentId, workoutId, restSeconds, lastLog, personalBest, onClose, onComplete }) => {
+const LoadTrackingModal = ({ exercise, sessionId, studentId, workoutId, restSeconds, lastLog, completedSetLogs, personalBest, onClose, onComplete }) => {
   const numSets = Number(exercise.sets) || 1;
-  // Pré-preenche com a carga/reps da última sessão desse exercício, assim o
-  // aluno só confirma (ou ajusta) em vez de digitar tudo de novo toda vez.
-  const [sets, setSets] = useState(Array.from({ length: numSets }, (_, i) => ({
-    num: i + 1,
-    kg: lastLog?.kg ?? "",
-    reps: lastLog?.reps ?? "",
-    done: false,
-  })));
+  // Retoma exatamente de onde parou: série já lançada hoje reabre marcada
+  // como feita, com o valor real que foi salvo — não com o prefill genérico.
+  const [sets, setSets] = useState(Array.from({ length: numSets }, (_, i) => {
+    const num = i + 1;
+    const already = completedSetLogs?.[num];
+    return {
+      num,
+      kg: already ? (already.kg ?? "") : (lastLog?.kg ?? ""),
+      reps: already ? (already.reps ?? "") : (lastLog?.reps ?? ""),
+      done: !!already,
+    };
+  }));
   const [saving, setSaving] = useState(null);
   const [showTimer, setShowTimer] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(restSeconds || 60);
@@ -417,6 +424,7 @@ const StudentWorkoutPage = () => {
   const [historyExercise, setHistoryExercise] = useState(null);
   const [trackingExercise, setTrackingExercise] = useState(null); // modal de registro de carga
   const [lastLogs, setLastLogs]     = useState({});
+  const [sessionSetLogs, setSessionSetLogs] = useState({}); // exercise_row_id -> { set_number -> {kg, reps} }, já lançado hoje
   const [personalBests, setPersonalBests] = useState({}); // maior carga já registrada por exercício (recorde pessoal)
   const [sessionVolume, setSessionVolume] = useState(0);  // soma de carga × reps das séries registradas nesta sessão
   const [tick, setTick]             = useState(Date.now()); // atualiza o cronômetro de duração do treino
@@ -470,22 +478,24 @@ const StudentWorkoutPage = () => {
         const { data: logs } = await supabase.from("workout_exercise_logs").select("exercise_row_id, set_number, actual_load, actual_reps").eq("session_id", session.id);
         if (logs?.length) {
           const setsMap = {};
-          const doneEx = new Set();
-          const logsMap = {};
+          const setLogsMap = {}; // exercise_row_id -> { set_number -> {kg, reps} }, pra retomar exatamente onde parou
           let volume = 0;
           for (const log of logs) {
             if (!setsMap[log.exercise_row_id]) setsMap[log.exercise_row_id] = new Set();
             setsMap[log.exercise_row_id].add(log.set_number);
-            logsMap[log.exercise_row_id] = { kg: log.actual_load, reps: log.actual_reps };
+            if (!setLogsMap[log.exercise_row_id]) setLogsMap[log.exercise_row_id] = {};
+            setLogsMap[log.exercise_row_id][log.set_number] = { kg: log.actual_load, reps: log.actual_reps };
             const kgNum = Number(log.actual_load), repsNum = Number(log.actual_reps);
             if (kgNum > 0 && repsNum > 0) volume += kgNum * repsNum;
           }
           setCompletedSets(setsMap);
-          setLastLogs(logsMap);
+          setSessionSetLogs(setLogsMap);
           setSessionVolume(volume);
         }
       }
 
+      // Referência da última sessão concluída (sugestão de progressão de carga,
+      // "última vez: Xkg") — não confundir com o que já foi feito HOJE (sessionSetLogs).
       const { data: lastSession } = await supabase.from("workout_sessions").select("id").eq("student_id", user.id).eq("workout_id", workoutId).eq("finished", true).order("session_date", { ascending: false }).limit(1).maybeSingle();
       if (lastSession) {
         const { data: prevLogs } = await supabase.from("workout_exercise_logs").select("exercise_row_id, actual_load, actual_reps").eq("session_id", lastSession.id);
@@ -552,6 +562,10 @@ const StudentWorkoutPage = () => {
       next[exerciseRowId] = new Set([...next[exerciseRowId], setNum]);
       return next;
     });
+    setSessionSetLogs(prev => ({
+      ...prev,
+      [exerciseRowId]: { ...prev[exerciseRowId], [setNum]: { kg, reps } },
+    }));
     const kgNum = Number(kg), repsNum = Number(reps);
     if (kgNum > 0 && repsNum > 0) setSessionVolume(prev => prev + kgNum * repsNum);
     if (kgNum > 0) setPersonalBests(prev => (!prev[exerciseRowId] || kgNum > prev[exerciseRowId]) ? { ...prev, [exerciseRowId]: kgNum } : prev);
@@ -564,7 +578,7 @@ const StudentWorkoutPage = () => {
       const today = new Date().toISOString().split("T")[0];
       const { data: todaySession } = await supabase.from("workout_sessions").select("*").eq("student_id", user.id).eq("workout_id", workoutId).eq("session_date", today).maybeSingle();
       if (todaySession) {
-        if (todaySession.finished) { await supabase.from("workout_sessions").update({ status: "active", finished: false, started_at: new Date().toISOString() }).eq("id", todaySession.id); setActiveSession({ ...todaySession, status: "active", finished: false }); setCompletedSets({}); setCompletedExercises(new Set()); setSessionVolume(0); toast.success("Novo ciclo! 💪"); }
+        if (todaySession.finished) { await supabase.from("workout_sessions").update({ status: "active", finished: false, started_at: new Date().toISOString() }).eq("id", todaySession.id); setActiveSession({ ...todaySession, status: "active", finished: false }); setCompletedSets({}); setCompletedExercises(new Set()); setSessionSetLogs({}); setSessionVolume(0); toast.success("Novo ciclo! 💪"); }
         else { setActiveSession(todaySession); toast.success("Treino retomado! 💪"); }
         return;
       }
@@ -572,7 +586,7 @@ const StudentWorkoutPage = () => {
       if (otherActive) await supabase.from("workout_sessions").update({ status: "finished", finished: true, finished_at: new Date().toISOString() }).eq("id", otherActive.id);
       await supabase.from("workout_sessions").insert({ student_id: user.id, workout_id: workoutId, session_date: today, started_at: new Date().toISOString(), status: "active", finished: false });
       const { data: newSession } = await supabase.from("workout_sessions").select("*").eq("student_id", user.id).eq("workout_id", workoutId).eq("session_date", today).maybeSingle();
-      if (newSession) { setActiveSession(newSession); setCompletedSets({}); setCompletedExercises(new Set()); setSessionVolume(0); toast.success("Treino iniciado! 💪"); }
+      if (newSession) { setActiveSession(newSession); setCompletedSets({}); setCompletedExercises(new Set()); setSessionSetLogs({}); setSessionVolume(0); toast.success("Treino iniciado! 💪"); }
       else throw new Error("Sessão não encontrada.");
     } catch (err) { toast.error("Erro ao iniciar: " + err.message); }
     finally { setStarting(false); }
@@ -737,7 +751,7 @@ const StudentWorkoutPage = () => {
                               {/* Obs */}
                               {ex.obs && <div className="flex items-start gap-1.5 mt-2 ml-10"><StickyNote className="h-3 w-3 text-primary flex-shrink-0 mt-0.5" /><p className="text-xs text-muted-foreground">{ex.obs}</p></div>}
 
-                              {/* Ações — pills com rótulo, estilo editorial */}
+                              {/* Ações — só o essencial visível; o resto fica no menu "⋯" */}
                               <div className="flex flex-wrap items-center gap-1.5 mt-3 ml-10">
                                 {(ytId || ex.gif_url) && (
                                   <button className="inline-flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
@@ -745,30 +759,40 @@ const StudentWorkoutPage = () => {
                                     <Play className="h-3.5 w-3.5" />{ytId ? "Vídeo" : "GIF"}
                                   </button>
                                 )}
-                                {perm.can(FEATURES.LOAD_HISTORY) ? (
-                                  <button className="inline-flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
-                                    onClick={() => setHistoryExercise({ name: ex.exercise_name, rowId: ex.exercise_row_id })}>
-                                    <History className="h-3.5 w-3.5" />Histórico
+                                {!exDone && perm.can(FEATURES.FINISH_WORKOUT) && perm.can(FEATURES.LOAD_LOGGING) && (
+                                  <button
+                                    className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs text-primary hover:bg-primary/15 transition-colors font-medium"
+                                    onClick={() => setTrackingExercise(ex)}
+                                  >
+                                    <BarChart2 className="h-3.5 w-3.5" />Registrar cargas
                                   </button>
-                                ) : (
-                                  <LockedFeature compact label="Histórico" requiredTierLabel={perm.minTierLabelFor(FEATURES.LOAD_HISTORY)} />
                                 )}
-                                <button className="inline-flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
-                                  onClick={() => setDetailExercise(ex)}>
-                                  <HelpCircle className="h-3.5 w-3.5" />Detalhes
-                                </button>
-                                {!exDone && perm.can(FEATURES.FINISH_WORKOUT) && (
-                                  perm.can(FEATURES.LOAD_LOGGING) ? (
-                                    <button
-                                      className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs text-primary hover:bg-primary/15 transition-colors font-medium"
-                                      onClick={() => setTrackingExercise(ex)}
-                                    >
-                                      <BarChart2 className="h-3.5 w-3.5" />Registrar cargas
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <button className="inline-flex items-center justify-center rounded-lg bg-muted h-8 w-8 text-muted-foreground hover:text-primary transition-colors" aria-label="Mais ações">
+                                      <MoreHorizontal className="h-3.5 w-3.5" />
                                     </button>
-                                  ) : (
-                                    <LockedFeature compact label="Registrar cargas" requiredTierLabel={perm.minTierLabelFor(FEATURES.LOAD_LOGGING)} />
-                                  )
-                                )}
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="start" className="bg-card border-border">
+                                    <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => setDetailExercise(ex)}>
+                                      <HelpCircle className="h-3.5 w-3.5" />Detalhes
+                                    </DropdownMenuItem>
+                                    {perm.can(FEATURES.LOAD_HISTORY) ? (
+                                      <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => setHistoryExercise({ name: ex.exercise_name, rowId: ex.exercise_row_id })}>
+                                        <History className="h-3.5 w-3.5" />Histórico
+                                      </DropdownMenuItem>
+                                    ) : (
+                                      <DropdownMenuItem disabled className="gap-2 opacity-60">
+                                        <Lock className="h-3.5 w-3.5" />Histórico — plano {perm.minTierLabelFor(FEATURES.LOAD_HISTORY)}
+                                      </DropdownMenuItem>
+                                    )}
+                                    {!exDone && perm.can(FEATURES.FINISH_WORKOUT) && !perm.can(FEATURES.LOAD_LOGGING) && (
+                                      <DropdownMenuItem disabled className="gap-2 opacity-60">
+                                        <Lock className="h-3.5 w-3.5" />Registrar cargas — plano {perm.minTierLabelFor(FEATURES.LOAD_LOGGING)}
+                                      </DropdownMenuItem>
+                                    )}
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </div>
 
                               {/* Vídeo inline */}
@@ -839,6 +863,7 @@ const StudentWorkoutPage = () => {
           workoutId={workoutId}
           restSeconds={trackingExercise.rest_seconds || 60}
           lastLog={lastLogs[trackingExercise.exercise_row_id]}
+          completedSetLogs={sessionSetLogs[trackingExercise.exercise_row_id]}
           personalBest={personalBests[trackingExercise.exercise_row_id]}
           onClose={() => setTrackingExercise(null)}
           onComplete={(rowId, setNum, kg, reps) => {
