@@ -6,6 +6,7 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Trophy, Flame, Target, Calendar, Ruler, Camera, Plus, X, Trash2 } from "lucide-react";
+import { EvolutionSkeleton } from "@/components/student/LoadingSkeletons";
 import { usePlanPermission, FEATURES } from "@/lib/planPermissions";
 import { LockedFeature } from "@/components/ui/locked-feature";
 import {
@@ -260,9 +261,7 @@ const StudentEvolutionPage = () => {
 
       <MobileContent>
         {loading ? (
-          <div className="flex items-center justify-center py-24">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
+          <EvolutionSkeleton />
         ) : (
           <>
             {!perm.can(FEATURES.FREQUENCY_TRACKING) ? (

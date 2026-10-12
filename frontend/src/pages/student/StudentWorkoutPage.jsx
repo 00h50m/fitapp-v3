@@ -22,6 +22,7 @@ import { incrementJourneyProgress, getStudentJourneys } from "@/services/journey
 import { usePlanPermission, FEATURES } from "@/lib/planPermissions";
 import { LockedFeature } from "@/components/ui/locked-feature";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
+import { WorkoutSkeleton } from "@/components/student/LoadingSkeletons";
 
 const blockTypeConfig = {
   normal:   { label: "Normal",    color: "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30" },
@@ -657,7 +658,7 @@ const StudentWorkoutPage = () => {
       </MobileHeader>
 
       <MobileContent className="pb-32">
-        {loading ? <div className="flex items-center justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+        {loading ? <WorkoutSkeleton />
         : isExpired ? (
           <div className="flex flex-col items-center justify-center py-16 px-6 text-center space-y-5">
             <div className="h-24 w-24 rounded-full bg-destructive/10 border border-destructive/20 flex items-center justify-center"><Lock className="h-11 w-11 text-destructive/70" /></div>

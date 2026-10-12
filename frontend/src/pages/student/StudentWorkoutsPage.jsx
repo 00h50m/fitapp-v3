@@ -22,6 +22,7 @@ import { LockedFeature } from "@/components/ui/locked-feature";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
 import { getPublishedHomeSections } from "@/services/homeSectionsService";
 import { OnboardingFlow } from "@/components/student/OnboardingFlow";
+import { HomeSkeleton } from "@/components/student/LoadingSkeletons";
 
 const HOME_SECTION_KEYS = ["banner", "beginner_cta", "categories_shortcut", "frequency_stats", "personal_program", "journeys", "saved"];
 
@@ -395,7 +396,7 @@ const StudentWorkoutsPage = () => {
 
       <MobileContent className="pb-32 px-4">
         {loading ? (
-          <div className="flex items-center justify-center py-24"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+          <HomeSkeleton />
         ) : error ? (
           <div className="flex flex-col items-center py-16 gap-4 text-center">
             <AlertCircle className="h-10 w-10 text-destructive" />

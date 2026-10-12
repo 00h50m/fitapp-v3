@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { CoverGlyph } from "@/lib/coverIcons";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
+import { CatalogSkeleton } from "@/components/student/LoadingSkeletons";
 
 function openWhatsApp(whatsapp, journeyTitle) {
   const msg = encodeURIComponent(`Olá! Tenho interesse em liberar acesso à jornada "${journeyTitle}". Poderia me ajudar?`);
@@ -185,7 +186,7 @@ const StudentCatalogPage = () => {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-24"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+        <CatalogSkeleton />
       ) : journeys.length === 0 ? (
         <div className="text-center py-24 text-muted-foreground px-4">
           <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-20" />

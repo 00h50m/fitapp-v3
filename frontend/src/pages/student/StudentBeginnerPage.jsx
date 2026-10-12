@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { MobileContainer, MobileHeader, MobileContent } from "@/components/layout/MobileContainer";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronDown, Compass, Loader2, ArrowRight } from "lucide-react";
+import { ChevronLeft, ChevronDown, Compass, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getBeginnerContents, CONTEXT_LABEL } from "@/services/beginnerContentService";
+import { ListSkeleton } from "@/components/student/LoadingSkeletons";
 
 const StudentBeginnerPage = () => {
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ const StudentBeginnerPage = () => {
 
       <MobileContent>
         {loading ? (
-          <div className="flex items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          <ListSkeleton rows={5} />
         ) : contents.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
             <Compass className="h-10 w-10 text-muted-foreground/30" />
