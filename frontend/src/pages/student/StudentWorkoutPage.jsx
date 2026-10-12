@@ -14,7 +14,7 @@ import {
   User, Dumbbell, LogOut, Loader2, ChevronLeft, ChevronDown, ChevronUp,
   CheckCircle2, Clock, Repeat, Layers, Video, Play, RefreshCw, Trophy,
   AlertCircle, Lock, FileText, X, HelpCircle, Zap, Weight, StickyNote,
-  Timer, History, BarChart2, MoreHorizontal,
+  Timer, History, BarChart2, MoreHorizontal, ImageOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -371,7 +371,19 @@ const ExerciseDetailModal = ({ exercise, onClose }) => {
           {ytId && <div className="aspect-video bg-black w-full"><iframe src={`https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1`} className="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen title={exercise.exercise_name} /></div>}
           {!ytId && exercise.gif_url && (
             <div className="w-full bg-black">
-              <img src={exercise.gif_url} alt={exercise.exercise_name} className="w-full" />
+              <img
+                src={exercise.gif_url}
+                alt={exercise.exercise_name}
+                className="w-full"
+                onError={e => {
+                  e.currentTarget.style.display = "none";
+                  e.currentTarget.nextElementSibling.style.display = "flex";
+                  e.currentTarget.nextElementSibling.nextElementSibling.style.display = "none";
+                }}
+              />
+              <div className="hidden items-center justify-center gap-2 py-10 text-xs text-muted-foreground/70">
+                <ImageOff className="h-4 w-4" />Imagem indisponível no momento
+              </div>
               <p className="text-[10px] text-muted-foreground/70 text-center py-1">© Gym visual — gymvisual.com</p>
             </div>
           )}
@@ -804,7 +816,19 @@ const StudentWorkoutPage = () => {
                               )}
                               {expandedVideos.has(ex.exercise_row_id) && !ytId && ex.gif_url && (
                                 <div className="mt-3 rounded-xl overflow-hidden bg-black">
-                                  <img src={ex.gif_url} alt={ex.exercise_name} className="w-full" />
+                                  <img
+                                    src={ex.gif_url}
+                                    alt={ex.exercise_name}
+                                    className="w-full"
+                                    onError={e => {
+                                      e.currentTarget.style.display = "none";
+                                      e.currentTarget.nextElementSibling.style.display = "flex";
+                                      e.currentTarget.nextElementSibling.nextElementSibling.style.display = "none";
+                                    }}
+                                  />
+                                  <div className="hidden items-center justify-center gap-2 py-8 text-xs text-muted-foreground/70">
+                                    <ImageOff className="h-4 w-4" />Imagem indisponível no momento
+                                  </div>
                                   <p className="text-[10px] text-muted-foreground/70 text-center py-1 bg-card">© Gym visual — gymvisual.com</p>
                                 </div>
                               )}

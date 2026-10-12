@@ -228,9 +228,21 @@ const ExerciseFormModal = ({ isOpen, onClose, onSave, exercise }) => {
             />
             <p className="text-[11px] text-muted-foreground">
               Se o exercício tiver vídeo do YouTube, ele aparece primeiro pro aluno; o GIF é usado quando não há vídeo.
+              Cole o link direto do arquivo (termina em .gif, .jpg, .png — não o link da página onde você achou a imagem).
             </p>
             {form.gif_url && (
-              <img src={form.gif_url} alt="Pré-visualização do GIF" className="mt-2 rounded-xl max-h-40 border border-border" />
+              <>
+                <img
+                  src={form.gif_url}
+                  alt="Pré-visualização do GIF"
+                  className="mt-2 rounded-xl max-h-40 border border-border"
+                  onError={e => { e.currentTarget.style.display = "none"; e.currentTarget.nextElementSibling.style.display = "block"; }}
+                  onLoad={e => { e.currentTarget.style.display = "block"; e.currentTarget.nextElementSibling.style.display = "none"; }}
+                />
+                <p className="hidden mt-2 text-xs text-red-400">
+                  Não consegui carregar essa imagem — confirme que o link é direto pro arquivo (não uma página), e que o site permite abrir a imagem de fora dele.
+                </p>
+              </>
             )}
           </div>
 

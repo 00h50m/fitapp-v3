@@ -144,7 +144,15 @@ const ExerciseSelectorModal = ({ isOpen, onClose, onSelect, selectedIds = [] }) 
         {showGifPreview && (
           <div className="px-5 pb-3">
             <div className="rounded-lg overflow-hidden bg-muted border border-border">
-              <img src={previewVideo.gif_url} alt={previewVideo.title} className="w-full max-h-64 object-contain" />
+              <img
+                src={previewVideo.gif_url}
+                alt={previewVideo.title}
+                className="w-full max-h-64 object-contain"
+                onError={e => { e.currentTarget.style.display = "none"; e.currentTarget.nextElementSibling.style.display = "flex"; }}
+              />
+              <div className="hidden items-center justify-center gap-2 py-10 text-xs text-muted-foreground/70">
+                Imagem indisponível
+              </div>
             </div>
             <p className="text-xs text-muted-foreground mt-1 text-center">
               Pré-visualização: {previewVideo.title} · © Gym visual
