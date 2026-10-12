@@ -10,6 +10,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { usePlanPermission, FEATURES } from "@/lib/planPermissions";
+import { LockedFeature } from "@/components/ui/locked-feature";
+import { WorkoutSkeleton } from "@/components/student/LoadingSkeletons";
 
 const PDFJS_CDN    = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
 const PDFJS_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -82,7 +85,8 @@ const blockTypeConfig = {
 const WorkoutPreviewPage = () => {
   const { id: templateId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const perm = usePlanPermission(profile);
 
   const [template, setTemplate]       = useState(null);
   const [blocks, setBlocks]           = useState([]);
@@ -149,6 +153,7 @@ const WorkoutPreviewPage = () => {
   };
 
   const handleStartWorkout = async () => {
+    if (!perm.can(FEATURES.FINISH_WORKOUT)) { toast(`Disponível no plano ${perm.minTierLabelFor(FEATURES.FINISH_WORKOUT)} ou superior 🔒`); return; }
     try {
       const { data: sw } = await supabase
         .from("student_workouts").select("id")
@@ -181,8 +186,8 @@ const WorkoutPreviewPage = () => {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    <div className="min-h-screen bg-background w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto px-4 pt-4">
+      <WorkoutSkeleton />
     </div>
   );
 
@@ -258,18 +263,26 @@ const WorkoutPreviewPage = () => {
           </div>
         </div>
 
-        {/* Benefícios — valoriza o acompanhamento individual do personal */}
+        {/* Benefícios — valoriza o acompanhamento individual do personal, sem
+            prometer recurso que o plano atual do aluno não libera */}
         <div className="bg-card rounded-2xl shadow-sm p-4 space-y-2.5">
           {[
             { icon: CheckCircle2, text: "Montado especialmente pelo seu personal" },
             { icon: Video, text: "Demonstração em vídeo ou GIF em cada exercício" },
-            { icon: Weight, text: "Progressão de carga registrada a cada treino" },
           ].map(({ icon: Icon, text }) => (
             <div key={text} className="flex items-start gap-2.5">
               <Icon className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
               <p className="text-sm">{text}</p>
             </div>
           ))}
+          {perm.can(FEATURES.LOAD_LOGGING) ? (
+            <div className="flex items-start gap-2.5">
+              <Weight className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+              <p className="text-sm">Progressão de carga registrada a cada treino</p>
+            </div>
+          ) : (
+            <LockedFeature compact label="Registro de carga por série" requiredTierLabel={perm.minTierLabelFor(FEATURES.LOAD_LOGGING)} />
+          )}
         </div>
 
         {saved && (
@@ -349,9 +362,15 @@ const WorkoutPreviewPage = () => {
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : saved ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
             {saved ? "Salvo" : "Salvar"}
           </Button>
-          <Button className="flex-1 gap-2" onClick={handleStartWorkout}>
-            <Play className="h-4 w-4" />Treinar agora
-          </Button>
+          {perm.can(FEATURES.FINISH_WORKOUT) ? (
+            <Button className="flex-1 gap-2" onClick={handleStartWorkout}>
+              <Play className="h-4 w-4" />Treinar agora
+            </Button>
+          ) : (
+            <div className="flex-1">
+              <LockedFeature label="Iniciar e acompanhar treino" requiredTierLabel={perm.minTierLabelFor(FEATURES.FINISH_WORKOUT)} />
+            </div>
+          )}
         </div>
       </div>
 
