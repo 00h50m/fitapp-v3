@@ -137,12 +137,15 @@ const StudentCatalogPage = () => {
   }, [jumpToCategory, journeys]);
 
   const getStudentJourney = (id) => studentJourneys.find(sj => sj.journey_id === id) ?? null;
-  const myJourneys = journeys.filter(j => studentJourneys.some(sj => sj.journey_id === j.id));
-  const availableJourneys = journeys.filter(j => grantedIds.has(j.id) && !studentJourneys.some(sj => sj.journey_id === j.id));
+  const myJourneyIds = new Set(studentJourneys.map(sj => sj.journey_id));
+  const myJourneys = journeys.filter(j => myJourneyIds.has(j.id));
+  const availableJourneys = journeys.filter(j => grantedIds.has(j.id) && !myJourneyIds.has(j.id));
   const lockedJourneys = journeys.filter(j => !grantedIds.has(j.id));
-  const newJourneys = journeys.slice(0, 8); // getJourneys() já ordena por created_at desc
-  const noEquipmentJourneys = journeys.filter(j => j.equipment === "sem_equipamento" && grantedIds.has(j.id));
-  const beginnerJourneys = journeys.filter(j => j.difficulty === "iniciante" && grantedIds.has(j.id));
+  // Exclui o que o aluno já está fazendo (isso já aparece em "Em andamento") — senão
+  // as fileiras de baixo viram repetição das mesmas jornadas de cima.
+  const newJourneys = journeys.filter(j => !myJourneyIds.has(j.id)).slice(0, 8); // getJourneys() já ordena por created_at desc
+  const noEquipmentJourneys = journeys.filter(j => j.equipment === "sem_equipamento" && grantedIds.has(j.id) && !myJourneyIds.has(j.id));
+  const beginnerJourneys = journeys.filter(j => j.difficulty === "iniciante" && grantedIds.has(j.id) && !myJourneyIds.has(j.id));
 
   const handleSelect = (journey) => {
     const hasAccess = grantedIds.has(journey.id);
