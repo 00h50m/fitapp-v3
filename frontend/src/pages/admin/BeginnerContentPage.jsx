@@ -21,8 +21,8 @@ const ContentRow = ({ item, onChange, onDelete, onMove, isFirst, isLast }) => (
       <button disabled={isLast} onClick={() => onMove(1)} className="h-6 w-6 rounded-md bg-muted flex items-center justify-center disabled:opacity-30"><ChevronDown className="h-3.5 w-3.5" /></button>
     </div>
     <div className="flex-1 min-w-0 space-y-2">
-      <div className="flex items-center justify-between gap-2">
-        <Input value={item.title} onChange={e => onChange({ title: e.target.value })} className="h-8 text-sm font-medium flex-1" />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Input value={item.title} onChange={e => onChange({ title: e.target.value })} className="h-8 text-sm font-medium flex-1 basis-full sm:basis-auto" />
         <select className={SEL} value={item.context} onChange={e => onChange({ context: e.target.value })}>
           {Object.entries(CONTEXT_LABEL).map(([val, label]) => <option key={val} value={val}>{label}</option>)}
         </select>

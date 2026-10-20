@@ -675,7 +675,7 @@ const WorkoutEditorPage = () => {
                 {blocks.map((block, blockIndex) => (
                   <Card key={block.id} className="bg-muted/30 border-border">
                     <CardHeader className="pb-3">
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-wrap items-center gap-3">
                         {/* Reorder buttons */}
                         <div className="flex flex-col gap-0.5">
                           <Button
@@ -699,7 +699,7 @@ const WorkoutEditorPage = () => {
                         </div>
 
                         {/* Block header */}
-                        <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div className="w-full sm:flex-1 grid grid-cols-2 md:grid-cols-4 gap-3">
                           <div className="space-y-1">
                             <Label className="text-xs">Nome do Bloco</Label>
                             <Input

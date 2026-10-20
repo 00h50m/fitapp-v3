@@ -309,6 +309,9 @@ const StudentEvolutionPage = () => {
                   <div className="flex-1 h-px bg-border/50" />
                 </div>
                 <div className="space-y-2 mb-6">
+                  {recentes.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-6">Nenhum treino concluído ainda.</p>
+                  )}
                   {recentes.map(s => (
                     <div key={s.id} className="flex items-center gap-3 bg-card rounded-2xl shadow-sm px-4 py-3">
                       <div className="h-9 w-9 rounded-full bg-green-500/15 flex items-center justify-center flex-shrink-0">

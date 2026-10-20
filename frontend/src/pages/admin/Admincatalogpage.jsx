@@ -343,7 +343,7 @@ const JourneyCard = ({ journey, onEdit, onDelete, onManageAccess }) => {
       </div>
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-1">
-          <h3 className="font-medium text-sm leading-tight">{journey.title}</h3>
+          <h3 className="font-medium text-sm leading-tight flex-1 min-w-0 truncate">{journey.title}</h3>
           <span className={cn("text-xs px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0", diff.color)}>{diff.label}</span>
         </div>
         {journey.category && (
