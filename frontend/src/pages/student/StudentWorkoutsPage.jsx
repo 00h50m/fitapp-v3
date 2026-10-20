@@ -274,6 +274,9 @@ const StudentWorkoutsPage = () => {
   const alreadyToday = trainedToday(sessions);
   const ongoing      = activeSessionToday(sessions);
   const todayWorkout = activeWorkouts[nextIdx] || null;
+  // Os "outros treinos ativos" não devem incluir o de hoje — ele já aparece
+  // em destaque acima, com o card maior.
+  const otherActiveWorkouts = activeWorkouts.filter((_, idx) => idx !== nextIdx);
 
   const weekCount = sessions.filter(s => {
     if (!s.finished) return false;
@@ -525,10 +528,10 @@ const StudentWorkoutsPage = () => {
                               </div>
                             </div>
                           )}
-                          {activeWorkouts.length > 1 && (
+                          {otherActiveWorkouts.length > 0 && (
                             <div className="flex flex-col gap-2.5">
-                              {activeWorkouts.map((w, idx) => (
-                                <WorkoutCard key={w.id} workout={w} isNext={idx===nextIdx} isOngoing={ongoing?.workout_id===w.id} alreadyToday={alreadyToday} sessions={sessions} navigate={navigate} onPdfClick={setPdfUrl} />
+                              {otherActiveWorkouts.map(w => (
+                                <WorkoutCard key={w.id} workout={w} isNext={false} isOngoing={ongoing?.workout_id===w.id} alreadyToday={alreadyToday} sessions={sessions} navigate={navigate} onPdfClick={setPdfUrl} />
                               ))}
                             </div>
                           )}
