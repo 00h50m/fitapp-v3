@@ -48,7 +48,7 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
     if (isEdit && journey?.id) {
       setLoadingWorkouts(true);
       getJourneyById(journey.id)
-        .then(data => setSelectedWorkouts((data?.journey_workouts ?? []).map(jw => jw.workout_template_id)))
+        .then(data => setSelectedWorkouts((data?.journey_workouts ?? []).map(jw => jw.workout_template_id).filter(Boolean)))
         .finally(() => setLoadingWorkouts(false));
     }
   }, [isEdit, journey?.id]);
