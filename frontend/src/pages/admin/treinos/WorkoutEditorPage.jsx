@@ -54,6 +54,10 @@ const blockTypeColors = {
   circuit: "bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/30",
 };
 
+// Blocos novos (ainda não salvos) usam esse prefixo no id local — distingue
+// "preciso inserir" de "já existe no banco, preciso atualizar pelo id real".
+const isTempBlockId = (id) => typeof id === "string" && id.startsWith("block_");
+
 const WorkoutEditorPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -104,7 +108,7 @@ const WorkoutEditorPage = () => {
             type: b.block_type || "single", rounds: 1,
             rest_after: b.rest_after_block_seconds || 60, order: b.order_index || 0,
             exercises: (exs||[]).filter(e => e.block_id === b.id).map(e => ({
-              exercise_id: e.exercise_id, sets: e.sets || 3, reps: e.reps || "10-12",
+              id: e.id, exercise_id: e.exercise_id, sets: e.sets || 3, reps: e.reps || "10-12",
               rest: e.rest_seconds || 60, tempo: e.tempo || "", notes: e.notes || "",
             })),
           })));
@@ -333,88 +337,121 @@ const WorkoutEditorPage = () => {
         if (ue) throw ue;
       }
 
-      // Salva blocos e exercícios via fetch direto (evita body stream do SDK)
+      // Salva blocos e exercícios atualizando pelo id de cada um em vez de
+      // apagar tudo e recriar. Um treino já atribuído a algum aluno tem seus
+      // blocos/exercícios referenciados pela cópia do aluno (FK) — apagar tudo
+      // falhava (ou, sem checar o erro, duplicava tudo ao inserir por cima
+      // mesmo assim). Agora só insere o que é novo, atualiza o que já existe
+      // pelo próprio id, e só remove o que realmente saiu da lista — e, se a
+      // remoção esbarrar na mesma trava (bloco/exercício em uso), avisa em vez
+      // de travar o salvamento inteiro.
+      let warning = null;
       if (templateId && blocks.length > 0) {
-        const { error: delErr } = await supabase.from("workout_template_blocks").delete().eq("template_id", templateId);
-        if (delErr) {
-          // Acontece quando este treino já foi atribuído a algum aluno — a cópia do
-          // aluno referencia os blocos antigos, e o banco recusa apagá-los (FK).
-          // Sem essa checagem, o código seguia e inseria os blocos novos por cima,
-          // duplicando tudo a cada salvamento.
-          throw new Error("Não foi possível atualizar os blocos: este treino já foi atribuído a um ou mais alunos, então os blocos antigos não podem ser removidos. " + delErr.message);
-        }
-
         const { data: { session } } = await supabase.auth.getSession();
         const token = session?.access_token || supabaseAnonKey;
-
         const headers = {
           "Content-Type": "application/json",
           "apikey": supabaseAnonKey,
           "Authorization": `Bearer ${token}`,
           "Prefer": "return=representation",
         };
-
-        // Insere todos os blocos de uma vez
-        // Mapeia tipo do editor para valor aceito pelo banco
         const typeMap = { single: "normal", biset: "biset", triset: "triset", circuit: "circuit", dropset: "dropset" };
         const validTypes = ["normal","biset","triset","circuit","dropset","giantset","superset"];
-        const blocksPayload = blocks.map((b, i) => ({
-          template_id: templateId,
-          title: b.label,
-          block_label: b.label,
-          block_type: typeMap[b.type] || (validTypes.includes(b.type) ? b.type : "normal"),
-          rest_after_block_seconds: Number(b.rest_after) || 60,
-          order_index: i,
-        }));
+        const blockType = (b) => typeMap[b.type] || (validTypes.includes(b.type) ? b.type : "normal");
+        let skippedRemoval = false;
 
-        const bRes = await fetch(`${supabaseUrl}/rest/v1/workout_template_blocks`, {
-          method: "POST", headers,
-          body: JSON.stringify(blocksPayload),
-        });
-        const bText = await bRes.text();
-        if (!bRes.ok) throw new Error("Erro ao salvar blocos: " + bText);
-        const savedBlocks_raw = bText;
-        const savedBlocks = JSON.parse(savedBlocks_raw);
-
-        // Para cada bloco, insere exercícios
-        const allExercises = [];
-        for (const savedBlock of savedBlocks) {
-          const orig = blocks[savedBlock.order_index];
-          if (!orig?.exercises?.length) continue;
-          orig.exercises.forEach((ex, j) => {
-            allExercises.push({
-              template_id: templateId,
-              block_id: savedBlock.id,
-              exercise_id: ex.exercise_id,
-              sets: Number(ex.sets) || 3,
-              reps: String(ex.reps || "10-12"),
-              rest_seconds: Number(ex.rest) || 60,
-              tempo: ex.tempo || null,
-              notes: ex.notes || null,
-              order_index: j,
-            });
-          });
+        // 1) Blocos que saíram da lista localmente: tenta apagar (e seus
+        //    exercícios); se estiver em uso por um aluno, mantém e avisa depois.
+        const { data: existingBlocks } = await supabase.from("workout_template_blocks").select("id").eq("template_id", templateId);
+        const currentBlockIds = new Set(blocks.filter(b => !isTempBlockId(b.id)).map(b => b.id));
+        for (const eb of existingBlocks || []) {
+          if (currentBlockIds.has(eb.id)) continue;
+          await supabase.from("workout_template_exercises").delete().eq("block_id", eb.id);
+          const { error } = await supabase.from("workout_template_blocks").delete().eq("id", eb.id);
+          if (error) skippedRemoval = true;
         }
 
-        if (allExercises.length > 0) {
+        // 2) Blocos que já existiam: atualiza os campos pelo próprio id.
+        const blockIdMap = {};
+        for (let i = 0; i < blocks.length; i++) {
+          const b = blocks[i];
+          if (isTempBlockId(b.id)) continue;
+          const { error } = await supabase.from("workout_template_blocks").update({
+            title: b.label, block_label: b.label, block_type: blockType(b),
+            rest_after_block_seconds: Number(b.rest_after) || 60, order_index: i,
+          }).eq("id", b.id);
+          if (error) throw error;
+          blockIdMap[b.id] = b.id;
+        }
+
+        // 3) Blocos novos (adicionados nesta edição): insere de uma vez.
+        const newBlocks = blocks.filter(b => isTempBlockId(b.id));
+        if (newBlocks.length) {
+          const payload = newBlocks.map(b => ({
+            template_id: templateId, title: b.label, block_label: b.label,
+            block_type: blockType(b), rest_after_block_seconds: Number(b.rest_after) || 60,
+            order_index: blocks.indexOf(b),
+          }));
+          const res = await fetch(`${supabaseUrl}/rest/v1/workout_template_blocks`, {
+            method: "POST", headers, body: JSON.stringify(payload),
+          });
+          const text = await res.text();
+          if (!res.ok) throw new Error("Erro ao criar blocos novos: " + text);
+          const saved = JSON.parse(text);
+          newBlocks.forEach((b, idx) => { blockIdMap[b.id] = saved[idx]?.id; });
+        }
+
+        // 4) Exercícios de cada bloco: mesma lógica — remove o que saiu (se der),
+        //    atualiza o que já existe pelo id, insere o que é novo.
+        const exercisesToInsert = [];
+        for (const b of blocks) {
+          const realBlockId = blockIdMap[b.id];
+          if (!realBlockId) continue;
+
+          if (!isTempBlockId(b.id)) {
+            const { data: existingEx } = await supabase.from("workout_template_exercises").select("id").eq("block_id", realBlockId);
+            const currentExIds = new Set(b.exercises.filter(e => e.id).map(e => e.id));
+            for (const ee of existingEx || []) {
+              if (currentExIds.has(ee.id)) continue;
+              const { error } = await supabase.from("workout_template_exercises").delete().eq("id", ee.id);
+              if (error) skippedRemoval = true;
+            }
+          }
+
+          for (let j = 0; j < b.exercises.length; j++) {
+            const ex = b.exercises[j];
+            const payload = {
+              sets: Number(ex.sets) || 3, reps: String(ex.reps || "10-12"),
+              rest_seconds: Number(ex.rest) || 60, tempo: ex.tempo || null,
+              notes: ex.notes || null, order_index: j,
+            };
+            if (ex.id) {
+              const { error } = await supabase.from("workout_template_exercises").update(payload).eq("id", ex.id);
+              if (error) throw error;
+            } else {
+              exercisesToInsert.push({ template_id: templateId, block_id: realBlockId, exercise_id: ex.exercise_id, ...payload });
+            }
+          }
+        }
+
+        if (exercisesToInsert.length > 0) {
           const eRes = await fetch(`${supabaseUrl}/rest/v1/workout_template_exercises`, {
             method: "POST",
             headers: { ...headers, "Prefer": "return=minimal" },
-            body: JSON.stringify(allExercises),
+            body: JSON.stringify(exercisesToInsert),
           });
-          const eText = await eRes.text();
           if (!eRes.ok) {
-            // Antes: erro só ia pro console e o usuário via "Treino salvo!" mesmo
-            // com 0 exercícios gravados. Agora interrompe o fluxo e mostra o erro real.
-            console.error("[save] exercises error:", eRes.status, eText);
-            throw new Error(`Os blocos foram salvos, mas os exercícios não (${eRes.status}): ${eText}`);
-          } else {
+            const eText = await eRes.text();
+            throw new Error(`Os blocos foram salvos, mas alguns exercícios novos não (${eRes.status}): ${eText}`);
           }
+        }
+
+        if (skippedRemoval) {
+          warning = "Treino salvo! Alguns blocos/exercícios que você removeu já foram usados por um aluno e não puderam ser excluídos — eles continuam aparecendo aqui.";
         }
       }
 
-      console.log("[Editor] saved templateId:", templateId, "blocks:", blocks.length);
-      toast.success(isNew ? "Treino criado!" : "Treino salvo!");
+      toast.success(warning || (isNew ? "Treino criado!" : "Treino salvo!"));
       navigate("/admin/treinos/templates");
     } catch (err) {
       console.error(err);
