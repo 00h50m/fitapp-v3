@@ -30,6 +30,7 @@ import AdminCatalogPage from "@/pages/admin/Admincatalogpage";
 import PlansPage from "@/pages/admin/PlansPage";
 import AppearancePage from "@/pages/admin/AppearancePage";
 import HomeEditorPage from "@/pages/admin/HomeEditorPage";
+import ConfiguracoesPage from "@/pages/admin/ConfiguracoesPage";
 import {
   ExercisesPage as TreinosExercisesPage,
   WorkoutsPage,
@@ -83,6 +84,7 @@ function AppRoutes() {
       <Route path="/admin/aparencia" element={<AdminRoute><AppearancePage /></AdminRoute>} />
       <Route path="/admin/home" element={<AdminRoute><HomeEditorPage /></AdminRoute>} />
       <Route path="/admin/conteudos" element={<AdminRoute><BeginnerContentPage /></AdminRoute>} />
+      <Route path="/admin/configuracoes" element={<AdminRoute><ConfiguracoesPage /></AdminRoute>} />
       <Route path="/" element={<RedirectByRole />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

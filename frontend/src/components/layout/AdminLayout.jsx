@@ -113,9 +113,9 @@ export const AdminSidebar = ({ isOpen, onToggle, onClose }) => {
           </nav>
         </ScrollArea>
         <div className="p-3 border-t border-white/10 space-y-0.5 flex-shrink-0">
-          <button className="flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 transition-colors">
+          <NavLink to="/admin/configuracoes" className="flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 transition-colors">
             <Settings className="h-[18px] w-[18px] text-white/40" />Configurações
-          </button>
+          </NavLink>
           <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-sm font-medium text-white/60 hover:text-destructive hover:bg-destructive/10 transition-colors">
             <LogOut className="h-[18px] w-[18px]" />Sair
           </button>
