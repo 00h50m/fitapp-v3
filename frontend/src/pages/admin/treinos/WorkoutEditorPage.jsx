@@ -44,6 +44,10 @@ const blockTypeOptions = [
   { value: "dropset", label: "Drop Set" },
 ];
 const getBlockTypeLabel = (v) => blockTypeOptions.find(o => o.value === v)?.label || v;
+// O banco guarda "normal" para o tipo que a UI chama de "Simples" (único valor
+// legado que ainda aparece em dados antigos) — sem isso o <Select> recebe um
+// valor que não bate com nenhuma option e fica em branco.
+const blockTypeFromDb = (v) => (v === "normal" ? "single" : blockTypeOptions.some(o => o.value === v) ? v : "single");
 import ExerciseSelectorModal from "@/components/treinos/ExerciseSelectorModal";
 
 // Block type colors
@@ -105,7 +109,7 @@ const WorkoutEditorPage = () => {
           }
           setBlocks(blks.map(b => ({
             id: b.id, label: b.title || b.block_label || "Bloco",
-            type: b.block_type || "single", rounds: 1,
+            type: blockTypeFromDb(b.block_type), rounds: 1,
             rest_after: b.rest_after_block_seconds || 60, order: b.order_index || 0,
             exercises: (exs||[]).filter(e => e.block_id === b.id).map(e => ({
               id: e.id, exercise_id: e.exercise_id, sets: e.sets || 3, reps: e.reps || "10-12",
