@@ -335,7 +335,14 @@ const WorkoutEditorPage = () => {
 
       // Salva blocos e exercícios via fetch direto (evita body stream do SDK)
       if (templateId && blocks.length > 0) {
-        await supabase.from("workout_template_blocks").delete().eq("template_id", templateId);
+        const { error: delErr } = await supabase.from("workout_template_blocks").delete().eq("template_id", templateId);
+        if (delErr) {
+          // Acontece quando este treino já foi atribuído a algum aluno — a cópia do
+          // aluno referencia os blocos antigos, e o banco recusa apagá-los (FK).
+          // Sem essa checagem, o código seguia e inseria os blocos novos por cima,
+          // duplicando tudo a cada salvamento.
+          throw new Error("Não foi possível atualizar os blocos: este treino já foi atribuído a um ou mais alunos, então os blocos antigos não podem ser removidos. " + delErr.message);
+        }
 
         const { data: { session } } = await supabase.auth.getSession();
         const token = session?.access_token || supabaseAnonKey;
