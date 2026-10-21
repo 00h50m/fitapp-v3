@@ -214,14 +214,14 @@ const WorkoutPreviewPage = () => {
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {template.pdf_url && (
-            <button onClick={() => setShowPdf(true)} className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary transition-colors">
+            <button onClick={() => setShowPdf(true)} className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-colors">
               <FileText className="h-4 w-4" />
             </button>
           )}
           <button
             onClick={handleSave}
             disabled={saving}
-            className={cn("h-8 w-8 rounded-lg flex items-center justify-center transition-all", saved ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground hover:text-primary")}
+            className={cn("h-8 w-8 rounded-lg flex items-center justify-center transition-all", saved ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground hover:text-primary")}
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : saved ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
           </button>

@@ -182,7 +182,7 @@ const LoadHistoryModal = ({ exerciseName, exerciseRowId, onClose }) => {
               <p className="text-xs font-medium text-muted-foreground mb-2">{new Date(date+"T12:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short",year:"numeric"})}</p>
               <div className="space-y-1">
                 {entries.map((e, i) => (
-                  <div key={i} className="flex items-center justify-between bg-secondary rounded-lg px-3 py-2">
+                  <div key={i} className="flex items-center justify-between bg-muted rounded-lg px-3 py-2">
                     <span className="text-xs text-muted-foreground">Série {e.set_number ?? i+1}</span>
                     <span className="text-sm font-medium">{e.actual_load ? `${e.actual_load}kg` : "—"}{e.actual_reps ? ` × ${e.actual_reps}` : ""}</span>
                   </div>
@@ -308,8 +308,8 @@ const LoadTrackingModal = ({ exercise, sessionId, studentId, workoutId, restSeco
 
           {/* Séries */}
           {sets.map((s, idx) => (
-            <div key={idx} className={cn("flex items-center gap-2 py-1 px-1 rounded-xl transition-all", s.done && "opacity-50 bg-green-500/5")}>
-              <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 border", s.done ? "bg-green-400 border-green-400 text-black" : "bg-muted border-border text-muted-foreground")}>
+            <div key={idx} className={cn("flex items-center gap-2 py-1 px-1 rounded-xl transition-all", s.done && "opacity-50")}>
+              <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 border", s.done ? "bg-success border-success text-success-foreground" : "bg-muted border-border text-muted-foreground")}>
                 {s.done ? "✓" : s.num}
               </div>
               <Input
@@ -318,7 +318,7 @@ const LoadTrackingModal = ({ exercise, sessionId, studentId, workoutId, restSeco
                 value={s.kg}
                 onChange={e => setSets(prev => prev.map((x,i) => i===idx ? {...x, kg: e.target.value} : x))}
                 disabled={s.done}
-                className="h-8 text-sm text-center bg-secondary border-border flex-1 min-w-0"
+                className="h-8 text-sm text-center bg-muted border-border flex-1 min-w-0"
               />
               <Input
                 type="number"
@@ -326,12 +326,12 @@ const LoadTrackingModal = ({ exercise, sessionId, studentId, workoutId, restSeco
                 value={s.reps}
                 onChange={e => setSets(prev => prev.map((x,i) => i===idx ? {...x, reps: e.target.value} : x))}
                 disabled={s.done}
-                className="h-8 text-sm text-center bg-secondary border-border flex-1 min-w-0"
+                className="h-8 text-sm text-center bg-muted border-border flex-1 min-w-0"
               />
               <Button
                 size="sm"
                 variant={s.done ? "ghost" : "outline"}
-                className={cn("h-8 w-9 p-0 flex-shrink-0", s.done && "text-green-600 dark:text-green-400")}
+                className={cn("h-8 w-9 p-0 flex-shrink-0", s.done && "text-success")}
                 onClick={() => handleSetDone(idx)}
                 disabled={s.done || saving === idx}
               >
@@ -344,7 +344,7 @@ const LoadTrackingModal = ({ exercise, sessionId, studentId, workoutId, restSeco
         {/* Footer */}
         <div className="p-4 border-t border-border flex-shrink-0">
           {allDone ? (
-            <Button className="w-full gap-2 bg-green-500 hover:bg-green-600" onClick={onClose}>
+            <Button className="w-full gap-2 bg-success hover:bg-success/90 text-success-foreground" onClick={onClose}>
               <CheckCircle2 className="h-4 w-4" />Exercício concluído!
             </Button>
           ) : (
@@ -484,8 +484,13 @@ const StudentWorkoutPage = () => {
         setPersonalBests(bests);
       }
 
+      // Carrega a sessão de hoje independente de já ter sido finalizada — um
+      // "Finalizar Mesmo Assim" com exercício faltando não pode virar sessão
+      // invisível: reabrir o treino precisa mostrar o progresso real de hoje
+      // (senão o handleStart acha que não há sessão e oferece "Novo ciclo",
+      // zerando silenciosamente o que já foi registrado).
       const today = new Date().toISOString().split("T")[0];
-      const { data: session } = await supabase.from("workout_sessions").select("*").eq("student_id", user.id).eq("workout_id", workoutId).eq("session_date", today).eq("finished", false).maybeSingle();
+      const { data: session } = await supabase.from("workout_sessions").select("*").eq("student_id", user.id).eq("workout_id", workoutId).eq("session_date", today).maybeSingle();
       if (session) {
         setActiveSession(session);
         const { data: logs } = await supabase.from("workout_exercise_logs").select("exercise_row_id, set_number, actual_load, actual_reps").eq("session_id", session.id);
@@ -697,9 +702,9 @@ const StudentWorkoutPage = () => {
                     <span className="font-bold">{doneExercises}/{totalExercises} exercícios</span>
                   </div>
                 </div>
-                <div className="h-2.5 rounded-full bg-muted overflow-hidden"><div className={cn("h-full rounded-full transition-all", progressPct===100?"bg-green-400":"bg-primary")} style={{ width: `${progressPct}%` }} /></div>
+                <div className="h-2.5 rounded-full bg-muted overflow-hidden"><div className={cn("h-full rounded-full transition-all", progressPct===100?"bg-success":"bg-primary")} style={{ width: `${progressPct}%` }} /></div>
                 {sessionVolume > 0 && <p className="text-xs text-muted-foreground flex items-center gap-1"><Weight className="h-3 w-3" />Volume total: <span className="font-semibold text-foreground">{Math.round(sessionVolume).toLocaleString("pt-BR")}kg</span></p>}
-                {progressPct===100 && <p className="text-xs text-center text-green-600 dark:text-green-400 font-semibold">🏆 Todos os exercícios concluídos!</p>}
+                {progressPct===100 && <p className="text-xs text-center text-success font-semibold">🏆 Todos os exercícios concluídos!</p>}
               </div>
             )}
 
@@ -709,14 +714,14 @@ const StudentWorkoutPage = () => {
                 const blockDone = isBlockCompleted(block);
                 const typeCfg = blockTypeConfig[block.block_type] || blockTypeConfig.normal;
                 return (
-                  <Card key={block.block_id} className={cn("border overflow-hidden rounded-2xl", blockDone ? "bg-green-500/5 border-green-500/30" : "bg-card border-border")}>
+                  <Card key={block.block_id} className={cn("border overflow-hidden rounded-2xl", blockDone ? "bg-card border-success/30" : "bg-card border-border")}>
                     <div className="flex items-center justify-between px-4 py-4 cursor-pointer" onClick={() => toggleBlock(block.block_id)}>
                       <div className="flex items-center gap-3">
-                        <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center border flex-shrink-0", blockDone ? "bg-green-500/10 border-green-500/30" : "bg-primary/10 border-primary/20")}>
-                          {blockDone ? <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" /> : <Layers className="h-4 w-4 text-primary" />}
+                        <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center border flex-shrink-0", blockDone ? "bg-success/10 border-success/30" : "bg-primary/10 border-primary/20")}>
+                          {blockDone ? <CheckCircle2 className="h-5 w-5 text-success" /> : <Layers className="h-4 w-4 text-primary" />}
                         </div>
                         <div>
-                          <p className={cn("font-semibold text-base", blockDone ? "text-green-600 dark:text-green-400" : "text-foreground")}>{block.block_label || `Bloco ${String.fromCharCode(64+(blocks.indexOf(block)+1))}`}</p>
+                          <p className={cn("font-semibold text-base", blockDone ? "text-success" : "text-foreground")}>{block.block_label || `Bloco ${String.fromCharCode(64+(blocks.indexOf(block)+1))}`}</p>
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className={cn("text-[10px] font-medium px-1.5 py-0.5 rounded border", typeCfg.color)}>{typeCfg.label}</span>
                             <span className="text-[10px] text-muted-foreground">{block.exercises.length} exerc.</span>
@@ -734,18 +739,18 @@ const StudentWorkoutPage = () => {
                           const best = personalBests[ex.exercise_row_id];
                           const ytId = getYoutubeId(ex.video_url);
                           return (
-                            <div key={ex.exercise_row_id || idx} className={cn("px-4 py-4 transition-colors", exDone && "bg-green-500/5")}>
+                            <div key={ex.exercise_row_id || idx} className="px-4 py-4 transition-colors">
                               {/* Nome + status */}
                               <div className="flex items-start gap-3">
                                 {/* Check circular */}
-                                <div className={cn("w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all", exDone ? "border-green-400 bg-green-400" : perm.can(FEATURES.MARK_EXERCISE) ? "border-muted-foreground/40 hover:border-primary/60 cursor-pointer" : "border-muted-foreground/20 cursor-pointer")}
+                                <div className={cn("w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all", exDone ? "border-success bg-success" : perm.can(FEATURES.MARK_EXERCISE) ? "border-muted-foreground/40 hover:border-primary/60 cursor-pointer" : "border-muted-foreground/20 cursor-pointer")}
                                   onClick={() => !exDone && handleMarkExerciseDone(ex)}>
-                                  {exDone && <CheckCircle2 className="h-4 w-4 text-white" />}
+                                  {exDone && <CheckCircle2 className="h-4 w-4 text-success-foreground" />}
                                   {!exDone && !perm.can(FEATURES.MARK_EXERCISE) && <Lock className="h-3 w-3 text-muted-foreground/40" />}
                                 </div>
 
                                 <div className="flex-1 min-w-0">
-                                  <p className={cn("font-semibold text-sm leading-tight", exDone ? "text-green-600 dark:text-green-400 line-through" : "text-foreground")}>{ex.exercise_name}</p>
+                                  <p className={cn("font-semibold text-sm leading-tight", exDone ? "text-success line-through" : "text-foreground")}>{ex.exercise_name}</p>
                                   <div className="flex flex-wrap gap-2 mt-1 text-xs text-muted-foreground">
                                     {ex.sets && <span>{ex.sets} séries</span>}
                                     {ex.reps && <span>· {ex.reps} reps</span>}
@@ -911,9 +916,9 @@ const StudentWorkoutPage = () => {
           <Card className="bg-card border-border w-full max-w-sm"><CardContent className="p-6 space-y-4">
             <div className="text-center">
               <div className="relative mx-auto mb-3 h-16 w-16">
-                {progressPct === 100 && <div className="absolute inset-0 rounded-full bg-green-400/30 animate-ping" />}
-                <div className={cn("relative h-16 w-16 rounded-full flex items-center justify-center border", progressPct===100?"bg-green-500/10 border-green-500/20":"bg-primary/10 border-primary/20")}>
-                  <Trophy className={cn("h-8 w-8", progressPct===100?"text-green-600 dark:text-green-400":"text-primary")} />
+                {progressPct === 100 && <div className="absolute inset-0 rounded-full bg-success/30 animate-ping" />}
+                <div className={cn("relative h-16 w-16 rounded-full flex items-center justify-center border", progressPct===100?"bg-success/10 border-success/20":"bg-primary/10 border-primary/20")}>
+                  <Trophy className={cn("h-8 w-8", progressPct===100?"text-success":"text-primary")} />
                 </div>
               </div>
               <h3 className="text-lg font-bold">{progressPct===100?"Treino Concluído! 🏆":"Finalizar Treino?"}</h3>
@@ -925,10 +930,10 @@ const StudentWorkoutPage = () => {
                 {sessionVolume > 0 && <div className="bg-muted/50 rounded-xl p-3 text-center"><p className="text-lg font-bold tabular-nums">{Math.round(sessionVolume).toLocaleString("pt-BR")}kg</p><p className="text-[10px] text-muted-foreground mt-0.5">volume total</p></div>}
               </div>
             )}
-            <div className="h-2.5 rounded-full bg-muted overflow-hidden"><div className={cn("h-full rounded-full", progressPct===100?"bg-green-400":"bg-primary")} style={{ width: `${progressPct}%` }} /></div>
-            {progressPct < 100 && <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl px-3 py-2.5 text-xs text-orange-600 dark:text-orange-400 text-center">⚠️ {totalExercises-doneExercises} exercício{totalExercises-doneExercises>1?"s":""} ainda não concluído{totalExercises-doneExercises>1?"s":""}.</div>}
+            <div className="h-2.5 rounded-full bg-muted overflow-hidden"><div className={cn("h-full rounded-full", progressPct===100?"bg-success":"bg-primary")} style={{ width: `${progressPct}%` }} /></div>
+            {progressPct < 100 && <div className="bg-warning/5 border border-warning/20 rounded-xl px-3 py-2.5 text-xs text-warning text-center">⚠️ {totalExercises-doneExercises} exercício{totalExercises-doneExercises>1?"s":""} ainda não concluído{totalExercises-doneExercises>1?"s":""}.</div>}
             <div className="space-y-2">
-              <Button variant="premium" className={cn("w-full", progressPct===100&&"bg-green-500 hover:bg-green-600 border-green-500")} onClick={handleFinish} disabled={finishing}>
+              <Button variant="premium" className={cn("w-full", progressPct===100&&"bg-success hover:bg-success/90 border-success text-success-foreground")} onClick={handleFinish} disabled={finishing}>
                 {finishing?<><Loader2 className="h-4 w-4 animate-spin" />Finalizando...</>:<><CheckCircle2 className="h-4 w-4" />{progressPct===100?"Concluir Treino":"Finalizar Mesmo Assim"}</>}
               </Button>
               <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => setShowFinishModal(false)}>Continuar Treinando</Button>

@@ -190,7 +190,7 @@ const JourneyDetailPage = () => {
               <span className="font-medium flex items-center gap-1.5"><Zap className="h-3.5 w-3.5 text-primary" />Seu progresso</span>
               <span className="font-bold text-primary">{progress}%</span>
             </div>
-            <div className="h-2 bg-secondary rounded-full overflow-hidden">
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
               <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${progress}%` }} />
             </div>
             <p className="text-xs text-muted-foreground">Treino {completed} de {total} concluído</p>
@@ -199,7 +199,7 @@ const JourneyDetailPage = () => {
 
         {/* Bloqueada: sem acesso, oferece falar com o personal */}
         {!hasAccess && (
-          <div className="bg-secondary/60 rounded-xl p-4 text-center space-y-3">
+          <div className="bg-muted/60 rounded-xl p-4 text-center space-y-3">
             <p className="text-sm font-medium">Jornada bloqueada</p>
             <p className="text-xs text-muted-foreground">Fale com seu personal para liberar o acesso.</p>
             <Button className="w-full bg-green-600 hover:bg-green-500 text-white" onClick={() => openWhatsApp(settings.whatsapp, journey.title)}>

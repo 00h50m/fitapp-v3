@@ -74,11 +74,11 @@ const JourneyAccessModal = ({ journey, onClose }) => {
           <DialogDescription className="text-xs">{journey.title}</DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-2 gap-2 my-2 flex-shrink-0">
-          <div className="bg-secondary rounded-lg p-2 text-center">
+          <div className="bg-muted rounded-lg p-2 text-center">
             <p className="text-sm font-medium text-green-600 dark:text-green-400">{withAccess}</p>
             <p className="text-xs text-muted-foreground">Com acesso</p>
           </div>
-          <div className="bg-secondary rounded-lg p-2 text-center">
+          <div className="bg-muted rounded-lg p-2 text-center">
             <p className="text-sm font-medium text-muted-foreground">{withoutAccess}</p>
             <p className="text-xs text-muted-foreground">Sem acesso</p>
           </div>
@@ -86,7 +86,7 @@ const JourneyAccessModal = ({ journey, onClose }) => {
         <div className="flex gap-2 flex-shrink-0">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar aluno..." className="pl-8 h-8 text-sm bg-secondary border-border" />
+            <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar aluno..." className="pl-8 h-8 text-sm bg-muted border-border" />
           </div>
           {withoutAccess > 0 && <Button variant="outline" size="sm" className="h-8 text-xs whitespace-nowrap" onClick={handleGrantAll}>Liberar todos</Button>}
         </div>
@@ -99,8 +99,8 @@ const JourneyAccessModal = ({ journey, onClose }) => {
             </div>
           )}
           {!loading && filtered.map(student => (
-            <div key={student.id} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all", student.hasAccess ? "bg-green-500/8" : "bg-secondary")}>
-              <div className="w-8 h-8 rounded-full bg-secondary border border-border flex items-center justify-center text-xs font-medium flex-shrink-0">
+            <div key={student.id} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all", student.hasAccess ? "bg-green-500/8" : "bg-muted")}>
+              <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center text-xs font-medium flex-shrink-0">
                 {(student.name?.[0] ?? "?").toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">

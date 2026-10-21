@@ -133,13 +133,13 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
           <div className="flex gap-2">
             <button
               onClick={() => setCoverMode("emoji")}
-              className={cn("flex-1 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2", coverMode === "emoji" ? "bg-primary/15 text-primary border border-primary/30" : "bg-secondary text-muted-foreground hover:text-foreground")}
+              className={cn("flex-1 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2", coverMode === "emoji" ? "bg-primary/15 text-primary border border-primary/30" : "bg-muted text-muted-foreground hover:text-foreground")}
             >
               Ícone
             </button>
             <button
               onClick={() => fileInputRef.current?.click()}
-              className={cn("flex-1 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2", coverMode === "image" ? "bg-primary/15 text-primary border border-primary/30" : "bg-secondary text-muted-foreground hover:text-foreground")}
+              className={cn("flex-1 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2", coverMode === "image" ? "bg-primary/15 text-primary border border-primary/30" : "bg-muted text-muted-foreground hover:text-foreground")}
             >
               {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
               {uploadingImage ? "Enviando..." : "Foto"}
@@ -159,7 +159,7 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
                       type="button"
                       title={label}
                       onClick={() => set("cover_emoji", key)}
-                      className={cn("w-9 h-9 rounded-lg flex items-center justify-center transition-all", form.cover_emoji === key ? "bg-primary/20 ring-1 ring-primary text-primary" : "bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80")}
+                      className={cn("w-9 h-9 rounded-lg flex items-center justify-center transition-all", form.cover_emoji === key ? "bg-primary/20 ring-1 ring-primary text-primary" : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80")}
                     >
                       <Icon className="h-[18px] w-[18px]" strokeWidth={2} />
                     </button>
@@ -179,21 +179,21 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
 
           <div>
             <p className="text-xs text-muted-foreground mb-1">Nome *</p>
-            <Input value={form.title} onChange={e => set("title", e.target.value)} placeholder="ex: Definição 45 dias" className="bg-secondary border-border" />
+            <Input value={form.title} onChange={e => set("title", e.target.value)} placeholder="ex: Definição 45 dias" className="bg-muted border-border" />
           </div>
           <div>
             <p className="text-xs text-muted-foreground mb-1">Descrição</p>
-            <Input value={form.description} onChange={e => set("description", e.target.value)} placeholder="Objetivo em uma linha" className="bg-secondary border-border" />
+            <Input value={form.description} onChange={e => set("description", e.target.value)} placeholder="Objetivo em uma linha" className="bg-muted border-border" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <p className="text-xs text-muted-foreground mb-1">Duração (dias)</p>
-              <Input type="number" value={form.duration_days} onChange={e => set("duration_days", e.target.value)} placeholder="ex: 45" className="bg-secondary border-border" />
+              <Input type="number" value={form.duration_days} onChange={e => set("duration_days", e.target.value)} placeholder="ex: 45" className="bg-muted border-border" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground mb-1">Dificuldade</p>
               <Select value={form.difficulty} onValueChange={v => set("difficulty", v)}>
-                <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="bg-muted border-border"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="iniciante">Iniciante</SelectItem>
                   <SelectItem value="intermediario">Intermediário</SelectItem>
@@ -205,7 +205,7 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
           <div>
             <p className="text-xs text-muted-foreground mb-1">Categoria</p>
             <Select value={form.category_id} onValueChange={v => set("category_id", v)}>
-              <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Selecionar categoria" /></SelectTrigger>
+              <SelectTrigger className="bg-muted border-border"><SelectValue placeholder="Selecionar categoria" /></SelectTrigger>
               <SelectContent>{categories.map(c => <SelectItem key={c.id} value={c.id}><span className="flex items-center gap-1.5"><CoverGlyph value={c.emoji} className="h-3.5 w-3.5" />{c.name}</span></SelectItem>)}</SelectContent>
             </Select>
           </div>
@@ -213,7 +213,7 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
             <div>
               <p className="text-xs text-muted-foreground mb-1">Local</p>
               <Select value={form.environment} onValueChange={v => set("environment", v)}>
-                <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Não especificado" /></SelectTrigger>
+                <SelectTrigger className="bg-muted border-border"><SelectValue placeholder="Não especificado" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="casa">Casa</SelectItem>
                   <SelectItem value="academia">Academia</SelectItem>
@@ -224,7 +224,7 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
             <div>
               <p className="text-xs text-muted-foreground mb-1">Equipamento</p>
               <Select value={form.equipment} onValueChange={v => set("equipment", v)}>
-                <SelectTrigger className="bg-secondary border-border"><SelectValue placeholder="Não especificado" /></SelectTrigger>
+                <SelectTrigger className="bg-muted border-border"><SelectValue placeholder="Não especificado" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="com_equipamento">Com equipamento</SelectItem>
                   <SelectItem value="sem_equipamento">Sem equipamento</SelectItem>
@@ -243,7 +243,7 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
                   const selected = selectedWorkouts.includes(t.id);
                   const idx = selectedWorkouts.indexOf(t.id);
                   return (
-                    <button key={t.id} onClick={() => toggleWorkout(t.id)} className={cn("w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all text-left", selected ? "bg-primary/15 text-primary" : "bg-secondary hover:bg-secondary/80 text-foreground")}>
+                    <button key={t.id} onClick={() => toggleWorkout(t.id)} className={cn("w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all text-left", selected ? "bg-primary/15 text-primary" : "bg-muted hover:bg-muted/80 text-foreground")}>
                       <div className={cn("w-5 h-5 rounded flex items-center justify-center text-xs font-bold flex-shrink-0", selected ? "bg-primary text-primary-foreground" : "bg-border")}>{selected ? idx + 1 : ""}</div>
                       <span className="flex-1">{t.title}</span>
                       {selected && <Check className="h-3.5 w-3.5 text-primary" />}
@@ -300,21 +300,21 @@ const CategoriesModal = ({ onClose, onUpdate }) => {
                 type="button"
                 title={label}
                 onClick={() => setEmoji(key)}
-                className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all", emoji === key ? "bg-primary/20 ring-1 ring-primary text-primary" : "bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80")}
+                className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-all", emoji === key ? "bg-primary/20 ring-1 ring-primary text-primary" : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80")}
               >
                 <Icon className="h-4 w-4" strokeWidth={2} />
               </button>
             ))}
           </div>
           <div className="flex gap-2">
-            <Input value={name} onChange={e => setName(e.target.value)} placeholder="Nome" className="flex-1 bg-secondary border-border" onKeyDown={e => e.key === "Enter" && handleCreate()} />
+            <Input value={name} onChange={e => setName(e.target.value)} placeholder="Nome" className="flex-1 bg-muted border-border" onKeyDown={e => e.key === "Enter" && handleCreate()} />
             <Button onClick={handleCreate} disabled={saving || !name.trim()}>{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}</Button>
           </div>
           <div className="space-y-1 max-h-48 overflow-y-auto">
             {loading && <p className="text-sm text-muted-foreground py-2">Carregando...</p>}
             {!loading && categories.length === 0 && <p className="text-sm text-muted-foreground py-2">Nenhuma categoria.</p>}
             {categories.map(c => (
-              <div key={c.id} className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg">
+              <div key={c.id} className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
                 <CoverGlyph value={c.emoji} className="h-4 w-4 text-muted-foreground" />
                 <span className="flex-1 text-sm">{c.name}</span>
                 <button onClick={() => handleDelete(c.id)} className="text-muted-foreground hover:text-destructive transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
@@ -427,7 +427,7 @@ const AdminCatalogPage = () => {
         </div>
         <div className="flex gap-2 flex-wrap">
           {[{ id: "all", emoji: "", name: "Todos" }, ...categories].map(c => (
-            <button key={c.id} onClick={() => setFilterCategory(c.id)} className={cn("px-3 py-1.5 rounded-full text-sm transition-all flex items-center gap-1.5", filterCategory === c.id ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground")}>
+            <button key={c.id} onClick={() => setFilterCategory(c.id)} className={cn("px-3 py-1.5 rounded-full text-sm transition-all flex items-center gap-1.5", filterCategory === c.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground")}>
               {c.emoji && <CoverGlyph value={c.emoji} className="h-3.5 w-3.5" />}{c.name}
             </button>
           ))}

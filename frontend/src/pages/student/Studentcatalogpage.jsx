@@ -59,7 +59,7 @@ const JourneyListRow = ({ journey, studentJourney, hasAccess, onSelect }) => {
         <p className="text-sm font-medium text-foreground truncate">{journey.title}</p>
         <p className="text-xs text-muted-foreground truncate mt-0.5">{subtitle}</p>
         {!locked && isActive && (
-          <div className="h-1 bg-secondary rounded-full overflow-hidden mt-1.5 max-w-[140px]">
+          <div className="h-1 bg-muted rounded-full overflow-hidden mt-1.5 max-w-[140px]">
             <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
           </div>
         )}

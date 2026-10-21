@@ -101,7 +101,11 @@ function App() {
               <AppRoutes />
             </AuthProvider>
           </BrowserRouter>
-          <ThemeToggle className="fixed bottom-20 right-4 z-50 shadow-lg md:bottom-4" />
+          {/* z-40: abaixo de qualquer modal/bottom-sheet (z-50), senão o botão
+              flutuante fica por cima de controles do modal (ex.: o check de
+              série no registro de carga). Ainda acima da bottom nav (mesmo
+              z-40, mas renderizado depois no DOM). */}
+          <ThemeToggle className="fixed bottom-20 right-4 z-40 shadow-lg md:bottom-4" />
           <Toaster position="top-center" richColors closeButton />
         </div>
       </AppSettingsProvider>

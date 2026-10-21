@@ -201,9 +201,18 @@ const StudentWorkoutsPage = () => {
   // Página inicial configurável pelo personal (ordem, visibilidade, público)
   const [homeSections, setHomeSections] = useState([]);
 
-  // Onboarding — "pular" só fecha nesta sessão (não persiste), por isso
-  // controlamos com um state local além do profile.onboarding_completed_at.
-  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+  // Onboarding — "pular" só fecha nesta sessão (não persiste no perfil), por
+  // isso usamos sessionStorage: um state local sozinho reaparecia a cada
+  // navegação (ex.: toda vez que o aluno voltava pra Home), já que remonta
+  // zerado a cada vez — sessionStorage sobrevive à navegação e só reseta
+  // numa sessão de navegador nova.
+  const [onboardingDismissed, setOnboardingDismissed] = useState(() => {
+    try { return sessionStorage.getItem("onboarding_dismissed") === "1"; } catch { return false; }
+  });
+  const dismissOnboarding = () => {
+    try { sessionStorage.setItem("onboarding_dismissed", "1"); } catch {}
+    setOnboardingDismissed(true);
+  };
 
   const isExpired = profile?.access_end ? new Date(profile.access_end + "T23:59") < new Date() : false;
 
@@ -719,7 +728,7 @@ const StudentWorkoutsPage = () => {
 
       {pdfUrl && <PdfModal url={pdfUrl} onClose={() => setPdfUrl(null)} />}
       {!loading && !profile?.onboarding_completed_at && !onboardingDismissed && (
-        <OnboardingFlow profile={profile} onClose={() => setOnboardingDismissed(true)} />
+        <OnboardingFlow profile={profile} onClose={dismissOnboarding} />
       )}
       <BottomNav />
     </MobileContainer>
