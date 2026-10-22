@@ -111,25 +111,32 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
         </DialogHeader>
         <div className="space-y-4 pt-2">
 
-          {/* Preview da capa */}
-          <div
-            className="h-32 rounded-xl flex items-center justify-center relative overflow-hidden cursor-pointer group"
-            style={{ background: coverMode === "image" && form.cover_image_url ? "transparent" : form.cover_color }}
-            onClick={() => coverMode === "emoji" && fileInputRef.current?.click()}
-          >
-            {coverMode === "image" && form.cover_image_url ? (
-              <>
-                <img src={form.cover_image_url} alt="capa" className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: `center ${form.cover_focal_y}%` }} />
-                <button
-                  className="absolute top-2 right-2 bg-black/60 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                  onClick={e => { e.stopPropagation(); set("cover_image_url", ""); setCoverMode("emoji"); }}
-                >
-                  <X className="h-3.5 w-3.5 text-white" />
-                </button>
-              </>
-            ) : (
-              <CoverGlyph value={form.cover_emoji} className="h-12 w-12 text-white" />
-            )}
+          {/* Preview da capa — formato retrato (2:3), igual ao card que o
+              aluno vê na vitrine (JourneyCard). Antes era um retângulo
+              bem mais largo e baixo que a vitrine real, então o
+              enquadramento escolhido aqui ficava errado lá (cortava
+              lateral/topo de um jeito diferente do que aparecia no app). */}
+          <div className="w-36 mx-auto">
+            <div
+              className="aspect-[2/3] rounded-xl flex items-center justify-center relative overflow-hidden cursor-pointer group"
+              style={{ background: coverMode === "image" && form.cover_image_url ? "transparent" : form.cover_color }}
+              onClick={() => coverMode === "emoji" && fileInputRef.current?.click()}
+            >
+              {coverMode === "image" && form.cover_image_url ? (
+                <>
+                  <img src={form.cover_image_url} alt="capa" className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: `center ${form.cover_focal_y}%` }} />
+                  <button
+                    className="absolute top-2 right-2 bg-black/60 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                    onClick={e => { e.stopPropagation(); set("cover_image_url", ""); setCoverMode("emoji"); }}
+                  >
+                    <X className="h-3.5 w-3.5 text-white" />
+                  </button>
+                </>
+              ) : (
+                <CoverGlyph value={form.cover_emoji} className="h-12 w-12 text-white" />
+              )}
+            </div>
+            <p className="text-[11px] text-muted-foreground text-center mt-1.5">Formato igual ao card que o aluno vê</p>
           </div>
 
           {/* Ajuste de enquadramento — só com foto */}
