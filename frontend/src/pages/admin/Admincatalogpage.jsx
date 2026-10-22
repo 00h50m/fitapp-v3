@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Pencil, Loader2, FolderOpen, BookOpen, Users, Check, Upload, X, Image } from "lucide-react";
+import { Plus, Trash2, Pencil, Loader2, FolderOpen, BookOpen, Users, Check, Upload, X, Image, ChevronUp, ChevronDown, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { uploadCoverImage } from "@/lib/uploadCoverImage";
@@ -48,13 +48,21 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
     if (isEdit && journey?.id) {
       setLoadingWorkouts(true);
       getJourneyById(journey.id)
-        .then(data => setSelectedWorkouts((data?.journey_workouts ?? []).map(jw => jw.workout_template_id).filter(Boolean)))
+        .then(data => setSelectedWorkouts((data?.journey_workouts ?? []).map(jw => jw.workout?.id).filter(Boolean)))
         .finally(() => setLoadingWorkouts(false));
     }
   }, [isEdit, journey?.id]);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const toggleWorkout = (id) => setSelectedWorkouts(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  const moveWorkout = (id, dir) => setSelectedWorkouts(prev => {
+    const i = prev.indexOf(id);
+    const j = i + dir;
+    if (i === -1 || j < 0 || j >= prev.length) return prev;
+    const next = [...prev];
+    [next[i], next[j]] = [next[j], next[i]];
+    return next;
+  });
 
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -237,20 +245,36 @@ const JourneyModal = ({ journey, categories, templates, onClose, onSave }) => {
             {loadingWorkouts ? (
               <div className="flex items-center gap-2 text-muted-foreground text-sm py-4"><Loader2 className="h-4 w-4 animate-spin" /> Carregando...</div>
             ) : (
-              <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
-                {templates.length === 0 && <p className="text-sm text-muted-foreground py-2">Nenhum template criado ainda.</p>}
-                {templates.map(t => {
-                  const selected = selectedWorkouts.includes(t.id);
-                  const idx = selectedWorkouts.indexOf(t.id);
-                  return (
-                    <button key={t.id} onClick={() => toggleWorkout(t.id)} className={cn("w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all text-left", selected ? "bg-primary/15 text-primary" : "bg-muted hover:bg-muted/80 text-foreground")}>
-                      <div className={cn("w-5 h-5 rounded flex items-center justify-center text-xs font-bold flex-shrink-0", selected ? "bg-primary text-primary-foreground" : "bg-border")}>{selected ? idx + 1 : ""}</div>
-                      <span className="flex-1">{t.title}</span>
-                      {selected && <Check className="h-3.5 w-3.5 text-primary" />}
+              <>
+                {/* Selecionados — ordem de execução, com setas pra reordenar */}
+                {selectedWorkouts.length > 0 && (
+                  <div className="space-y-1 mb-2">
+                    {selectedWorkouts.map((id, idx) => {
+                      const t = templates.find(x => x.id === id);
+                      return (
+                        <div key={id} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm bg-primary/15 text-primary">
+                          <GripVertical className="h-3.5 w-3.5 flex-shrink-0 text-primary/50" />
+                          <div className="w-5 h-5 rounded flex items-center justify-center text-xs font-bold flex-shrink-0 bg-primary text-primary-foreground">{idx + 1}</div>
+                          <span className="flex-1 truncate">{t?.title ?? "(treino removido)"}</span>
+                          <button type="button" className="h-6 w-6 rounded flex items-center justify-center disabled:opacity-30 hover:bg-primary/15" disabled={idx === 0} onClick={() => moveWorkout(id, -1)}><ChevronUp className="h-3.5 w-3.5" /></button>
+                          <button type="button" className="h-6 w-6 rounded flex items-center justify-center disabled:opacity-30 hover:bg-primary/15" disabled={idx === selectedWorkouts.length - 1} onClick={() => moveWorkout(id, 1)}><ChevronDown className="h-3.5 w-3.5" /></button>
+                          <button type="button" className="h-6 w-6 rounded flex items-center justify-center hover:bg-destructive/15 hover:text-destructive" onClick={() => toggleWorkout(id)}><X className="h-3.5 w-3.5" /></button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {/* Disponíveis — clique pra adicionar ao fim da lista */}
+                <div className="space-y-1 max-h-40 overflow-y-auto pr-1">
+                  {templates.length === 0 && <p className="text-sm text-muted-foreground py-2">Nenhum template criado ainda.</p>}
+                  {templates.filter(t => !selectedWorkouts.includes(t.id)).map(t => (
+                    <button key={t.id} type="button" onClick={() => toggleWorkout(t.id)} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all text-left bg-muted hover:bg-muted/80 text-foreground">
+                      <Plus className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
+                      <span className="flex-1 truncate">{t.title}</span>
                     </button>
-                  );
-                })}
-              </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
           <div className="flex gap-2 pt-2">
