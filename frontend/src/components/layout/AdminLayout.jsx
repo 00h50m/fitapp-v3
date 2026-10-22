@@ -12,7 +12,7 @@ import { useAppSettings } from "@/contexts/AppSettingsContext";
 import {
   LayoutDashboard, Users, LogOut, Menu, X,
   Zap, ClipboardList, UserCog, Library, BookOpen, Settings, CreditCard, Palette, LayoutTemplate,
-  Plus, UserPlus, Dumbbell, GraduationCap,
+  Plus, UserPlus, Dumbbell, GraduationCap, HelpCircle,
 } from "lucide-react";
 
 // Atalhos permanentes — acessíveis de qualquer tela do painel, não só da
@@ -113,6 +113,9 @@ export const AdminSidebar = ({ isOpen, onToggle, onClose }) => {
           </nav>
         </ScrollArea>
         <div className="p-3 border-t border-white/10 space-y-0.5 flex-shrink-0">
+          <NavLink to="/admin/ajuda" className="flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 transition-colors">
+            <HelpCircle className="h-[18px] w-[18px] text-white/40" />Como usar
+          </NavLink>
           <NavLink to="/admin/configuracoes" className="flex items-center gap-3 px-4 py-2.5 rounded-xl w-full text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 transition-colors">
             <Settings className="h-[18px] w-[18px] text-white/40" />Configurações
           </NavLink>
