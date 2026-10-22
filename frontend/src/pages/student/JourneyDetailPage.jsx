@@ -35,7 +35,7 @@ const JourneyDetailPage = () => {
   const [loading, setLoading]               = useState(true);
   const [savedJourney, setSavedJourney]     = useState(false);
   const [savingJourney, setSavingJourney]   = useState(false);
-  const [enrolling, setEnrolling]           = useState(false);
+  const [playing, setPlaying]               = useState(false);
 
   const load = useCallback(async () => {
     if (!user || !journeyId) return;
@@ -81,15 +81,28 @@ const JourneyDetailPage = () => {
     finally { setSavingJourney(false); }
   };
 
-  const handleEnroll = async () => {
-    if (!perm.can(FEATURES.FREQUENCY_TRACKING)) { toast(`Disponível no plano ${perm.minTierLabelFor(FEATURES.FREQUENCY_TRACKING)} ou superior 🔒`); return; }
-    setEnrolling(true);
+  // Botão único e direto: se ainda não matriculado, matricula e já libera o
+  // treino atual na mesma ação — antes eram dois passos (iniciar jornada,
+  // depois caçar o treino "Próximo" na lista pra só então pré-visualizar e
+  // treinar). Mesmo mecanismo do "Treinar agora" da Início/aba Treino
+  // (start_journey_workout + autostart), só que acionável daqui também.
+  const handlePlay = async () => {
+    if (!perm.can(FEATURES.FINISH_WORKOUT)) { toast(`Disponível no plano ${perm.minTierLabelFor(FEATURES.FINISH_WORKOUT)} ou superior 🔒`); return; }
+    const workoutsList = (journey.journey_workouts ?? []).sort((a, b) => a.order_index - b.order_index);
+    setPlaying(true);
     try {
-      await enrollStudentInJourney(profileId, journeyId);
-      toast.success("Jornada iniciada! 🚀");
-      await load();
-    } catch { toast.error("Erro ao iniciar jornada"); }
-    finally { setEnrolling(false); }
+      let completedCount = studentJourney?.completed_workouts ?? 0;
+      if (!studentJourney) {
+        await enrollStudentInJourney(profileId, journeyId);
+        completedCount = 0;
+      }
+      const current = workoutsList[completedCount] ?? workoutsList[workoutsList.length - 1];
+      if (!current?.workout?.id) { toast.error("Nenhum treino disponível nessa jornada."); return; }
+      const { data: newId, error } = await supabase.rpc("start_journey_workout", { p_template_id: current.workout.id });
+      if (error || !newId) { toast.error("Erro ao iniciar treino"); return; }
+      navigate(`/student/workout/${newId}?autostart=1`);
+    } catch { toast.error("Erro ao iniciar"); }
+    finally { setPlaying(false); }
   };
 
   if (loading) return (
@@ -113,6 +126,7 @@ const JourneyDetailPage = () => {
   const diff = DIFFICULTY_LABEL[journey.difficulty] ?? DIFFICULTY_LABEL.intermediario;
   const isActive = studentJourney?.status === "active";
   const isDone = studentJourney?.status === "completed";
+  const currentWorkout = (workouts[completed] ?? workouts[workouts.length - 1])?.workout ?? null;
 
   return (
     <div className="min-h-screen bg-background pb-8 w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto">
@@ -153,6 +167,53 @@ const JourneyDetailPage = () => {
           {journey.description && <p className="text-sm text-muted-foreground mt-1">{journey.description}</p>}
         </div>
 
+        {/* Bloqueada: sem acesso, oferece falar com o personal */}
+        {!hasAccess && (
+          <div className="bg-muted/60 rounded-xl p-4 text-center space-y-3">
+            <p className="text-sm font-medium">Jornada bloqueada</p>
+            <p className="text-xs text-muted-foreground">Fale com seu personal para liberar o acesso.</p>
+            <Button className="w-full bg-green-600 hover:bg-green-500 text-white" onClick={() => openWhatsApp(settings.whatsapp, journey.title)}>
+              <MessageCircle className="h-4 w-4 mr-2" />Falar com o personal
+            </Button>
+          </div>
+        )}
+
+        {/* CTA principal — logo abaixo do título, um botão só, sempre no
+            mesmo lugar: libera a jornada (se precisar) e já entra treinando,
+            sem fazer caçar o treino "Próximo" na lista pra só então
+            pré-visualizar e apertar treinar de novo. */}
+        {hasAccess && !isDone && currentWorkout && (
+          perm.can(FEATURES.FINISH_WORKOUT) ? (
+            <div className="bg-card rounded-2xl shadow-sm p-4 space-y-3 border border-primary/20">
+              {isActive && (
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Treino {completed + 1} de {total}</span>
+                    <span className="font-semibold text-primary">{progress}%</span>
+                  </div>
+                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${progress}%` }} />
+                  </div>
+                </div>
+              )}
+              <div className="flex items-center gap-3">
+                <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+                  <Zap className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] text-muted-foreground">{isActive ? "Treino atual" : "Primeiro treino"}</p>
+                  <p className="font-semibold text-sm truncate">{currentWorkout.title}</p>
+                </div>
+              </div>
+              <Button className="w-full gap-2" size="lg" onClick={handlePlay} disabled={playing}>
+                {playing ? <><Loader2 className="h-4 w-4 animate-spin" />Preparando...</> : <><Play className="h-4 w-4" />Treinar agora</>}
+              </Button>
+            </div>
+          ) : (
+            <LockedFeature label="Iniciar e acompanhar jornada" requiredTierLabel={perm.minTierLabelFor(FEATURES.FINISH_WORKOUT)} />
+          )
+        )}
+
         {/* Stats */}
         <div className="grid grid-cols-3 gap-2">
           <div className="bg-card rounded-xl shadow-sm p-3 text-center">
@@ -181,42 +242,6 @@ const JourneyDetailPage = () => {
               </span>
             )}
           </div>
-        )}
-
-        {/* Progresso */}
-        {isActive && (
-          <div className="bg-card rounded-xl shadow-sm p-4 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="font-medium flex items-center gap-1.5"><Zap className="h-3.5 w-3.5 text-primary" />Seu progresso</span>
-              <span className="font-bold text-primary">{progress}%</span>
-            </div>
-            <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${progress}%` }} />
-            </div>
-            <p className="text-xs text-muted-foreground">Treino {completed} de {total} concluído</p>
-          </div>
-        )}
-
-        {/* Bloqueada: sem acesso, oferece falar com o personal */}
-        {!hasAccess && (
-          <div className="bg-muted/60 rounded-xl p-4 text-center space-y-3">
-            <p className="text-sm font-medium">Jornada bloqueada</p>
-            <p className="text-xs text-muted-foreground">Fale com seu personal para liberar o acesso.</p>
-            <Button className="w-full bg-green-600 hover:bg-green-500 text-white" onClick={() => openWhatsApp(settings.whatsapp, journey.title)}>
-              <MessageCircle className="h-4 w-4 mr-2" />Falar com o personal
-            </Button>
-          </div>
-        )}
-
-        {/* CTA iniciar se liberada e ainda não iniciou */}
-        {hasAccess && !studentJourney && (
-          perm.can(FEATURES.FREQUENCY_TRACKING) ? (
-            <Button className="w-full gap-2" onClick={handleEnroll} disabled={enrolling}>
-              {enrolling ? <><Loader2 className="h-4 w-4 animate-spin" />Iniciando...</> : <><Play className="h-4 w-4" />Iniciar jornada</>}
-            </Button>
-          ) : (
-            <LockedFeature label="Iniciar e acompanhar jornada" requiredTierLabel={perm.minTierLabelFor(FEATURES.FREQUENCY_TRACKING)} />
-          )
         )}
 
         {/* Lista de treinos */}
