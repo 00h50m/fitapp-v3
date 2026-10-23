@@ -197,7 +197,7 @@ const LoadHistoryModal = ({ exerciseName, exerciseRowId, onClose }) => {
 };
 
 // ── Modal de registro de cargas ────────────────────────────────
-const LoadTrackingModal = ({ exercise, sessionId, studentId, workoutId, restSeconds, lastLog, completedSetLogs, personalBest, onClose, onComplete }) => {
+const LoadTrackingModal = ({ exercise, sessionId, studentId, workoutId, restSeconds, lastLog, completedSetLogs, personalBest, onClose, onComplete, onPr }) => {
   const numSets = Number(exercise.sets) || 1;
   // Retoma exatamente de onde parou: série já lançada hoje reabre marcada
   // como feita, com o valor real que foi salvo — não com o prefill genérico.
@@ -236,9 +236,15 @@ const LoadTrackingModal = ({ exercise, sessionId, studentId, workoutId, restSeco
       if (s.kg && personalBest && Number(s.kg) > personalBest) {
         navigator.vibrate?.([100, 60, 100, 60, 200]);
         toast.success(`🏆 Novo recorde pessoal! ${s.kg}kg (antes: ${personalBest}kg)`);
+        onPr?.(exercise.exercise_name);
       } else if (lastLog?.kg && s.kg && Number(s.kg) > Number(lastLog.kg)) {
         toast.success(`🔥 Mais pesado que da última vez! ${s.kg}kg (antes: ${lastLog.kg}kg)`);
       }
+      // Descanso começa sozinho assim que a série é marcada — esperar o
+      // aluno lembrar de apertar "Iniciar descanso" é o tipo de atrito que
+      // não existe nos apps de referência do mercado. Não dispara na
+      // última série (nada pra descansar antes de fechar o exercício).
+      if (idx < numSets - 1) { setTimerSeconds(exercise.rest_seconds || restSeconds || 60); setShowTimer(true); }
     } catch (err) { toast.error("Erro ao salvar"); console.error(err); }
     finally { setSaving(null); }
   };
@@ -440,6 +446,8 @@ const StudentWorkoutPage = () => {
   const [sessionSetLogs, setSessionSetLogs] = useState({}); // exercise_row_id -> { set_number -> {kg, reps} }, já lançado hoje
   const [personalBests, setPersonalBests] = useState({}); // maior carga já registrada por exercício (recorde pessoal)
   const [sessionVolume, setSessionVolume] = useState(0);  // soma de carga × reps das séries registradas nesta sessão
+  const [sessionPRs, setSessionPRs] = useState([]);       // nomes de exercícios com recorde pessoal batido nesta sessão
+  const [justFinished, setJustFinished] = useState(null); // snapshot do resumo pra tela de conclusão (null = não mostra)
   const [tick, setTick]             = useState(Date.now()); // atualiza o cronômetro de duração do treino
 
   const loadWorkout = useCallback(async () => {
@@ -621,9 +629,11 @@ const StudentWorkoutPage = () => {
         const aj = sjs?.find(sj => sj.status === "active");
         if (aj) await incrementJourneyProgress(profile.id, aj.journey_id);
       } catch { }
+      // Snapshot do resumo antes de limpar a sessão — a tela de conclusão
+      // é o "momento de recompensa" do treino, não só um toast que some e
+      // joga de volta pra Início sem nada pra mostrar pelo esforço.
+      setJustFinished({ elapsedLabel, sessionVolume, doneExercises, totalExercises, prs: sessionPRs, full: progressPct === 100 });
       setActiveSession(null); setShowFinishModal(false);
-      toast.success("Treino concluído! 🏆");
-      navigate("/student");
     } catch (err) { toast.error("Erro ao finalizar: " + err.message); }
     finally { setFinishing(false); }
   };
@@ -896,6 +906,7 @@ const StudentWorkoutPage = () => {
           completedSetLogs={sessionSetLogs[trackingExercise.exercise_row_id]}
           personalBest={personalBests[trackingExercise.exercise_row_id]}
           onClose={() => setTrackingExercise(null)}
+          onPr={(exerciseName) => setSessionPRs(prev => prev.includes(exerciseName) ? prev : [...prev, exerciseName])}
           onComplete={(rowId, setNum, kg, reps) => {
             handleSetComplete(rowId, setNum, kg, reps);
             const numSets = Number(trackingExercise.sets) || 1;
@@ -939,6 +950,59 @@ const StudentWorkoutPage = () => {
               <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => setShowFinishModal(false)}>Continuar Treinando</Button>
             </div>
           </CardContent></Card>
+        </div>
+      )}
+
+      {/* Tela de conclusão — o "momento de recompensa" do treino. Antes era
+          só um toast que piscava e já jogava de volta pra Início, sem nada
+          pra mostrar pelo esforço (padrão abaixo do mercado: Strava, Nike
+          Training Club etc. sempre fecham com um resumo). */}
+      {justFinished && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background p-4">
+          <div className="w-full max-w-sm text-center space-y-6">
+            <div className="relative mx-auto h-20 w-20">
+              <div className={cn("absolute inset-0 rounded-full animate-ping", justFinished.full ? "bg-success/30" : "bg-primary/20")} />
+              <div className={cn("relative h-20 w-20 rounded-full flex items-center justify-center border", justFinished.full ? "bg-success/10 border-success/20" : "bg-primary/10 border-primary/20")}>
+                <Trophy className={cn("h-10 w-10", justFinished.full ? "text-success" : "text-primary")} />
+              </div>
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold">{justFinished.full ? "Treino concluído! 🏆" : "Treino registrado 💪"}</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                {justFinished.full ? "Todos os exercícios concluídos. Mandou bem!" : `${justFinished.doneExercises} de ${justFinished.totalExercises} exercícios concluídos.`}
+              </p>
+            </div>
+
+            {(justFinished.elapsedLabel || justFinished.sessionVolume > 0) && (
+              <div className="grid grid-cols-2 gap-2.5">
+                {justFinished.elapsedLabel && (
+                  <div className="bg-card rounded-2xl shadow-sm p-4 text-center">
+                    <p className="text-xl font-bold tabular-nums">{justFinished.elapsedLabel}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">duração</p>
+                  </div>
+                )}
+                {justFinished.sessionVolume > 0 && (
+                  <div className="bg-card rounded-2xl shadow-sm p-4 text-center">
+                    <p className="text-xl font-bold tabular-nums">{Math.round(justFinished.sessionVolume).toLocaleString("pt-BR")}kg</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">volume total</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {justFinished.prs.length > 0 && (
+              <div className="bg-success/5 border border-success/20 rounded-2xl p-4 text-left space-y-2">
+                <p className="text-xs font-semibold text-success flex items-center gap-1.5"><Trophy className="h-3.5 w-3.5" />Novo{justFinished.prs.length > 1 ? "s" : ""} recorde{justFinished.prs.length > 1 ? "s" : ""} pessoal{justFinished.prs.length > 1 ? "is" : ""}!</p>
+                {justFinished.prs.map(name => (
+                  <p key={name} className="text-sm text-foreground">🏆 {name}</p>
+                ))}
+              </div>
+            )}
+
+            <Button variant="premium" size="xl" className="w-full gap-2" onClick={() => navigate("/student")}>
+              Voltar para o início
+            </Button>
+          </div>
         </div>
       )}
     </MobileContainer>
