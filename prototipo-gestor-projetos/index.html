@@ -322,6 +322,27 @@ textarea.input{min-height:64px;resize:vertical;width:100%}
   .phead .acts{margin-left:0}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* v2: carteira e cabeçalho simplificados */
+.kpis{grid-template-columns:repeat(6,minmax(0,1fr))}
+.src{display:inline-block;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--blue);border:1px solid rgba(127,178,251,.35);border-radius:4px;padding:0 4px;margin-left:4px;vertical-align:1px;font-weight:600}
+.pctv{font-size:17px;font-weight:700}
+.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+table.grid.port td{vertical-align:middle}
+.chipbtn{cursor:pointer;font:inherit;font-size:11.5px}
+.chipbtn:hover{filter:brightness(1.2)}
+.team{margin-top:4px}
+.kstrip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}
+.kc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:5px;min-width:0}
+.kc .lbl-s{display:flex;justify-content:space-between;gap:6px}
+.kc ul{margin:0;padding-left:16px}
+.kc b{font-size:15px}
+.warnbox{border-color:rgba(240,162,59,.55)!important;box-shadow:0 0 0 1px rgba(240,162,59,.18) inset}
+.datehead{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.datehead>div{display:flex;flex-direction:column;gap:2px}
+.datehead b{font-size:16px}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.kstrip,.datehead{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kstrip,.datehead{grid-template-columns:1fr}}
 </style>
 <div id="app"></div><div id="panel-root"></div><div id="toast" aria-live="polite"></div>
 <script>
@@ -329,7 +350,7 @@ textarea.input{min-height:64px;resize:vertical;width:100%}
 /* ===== Referência ===== */
 const REF = '2026-10-23';
 const ME = 'renata';
-const STORE_KEY = 'simbiox-gestor-projetos-v3';
+const STORE_KEY = 'simbiox-gestor-projetos-v4';
 const UI_KEY = 'simbiox-gestor-ui-v3';
 
 /* ===== Datas ===== */
@@ -396,14 +417,14 @@ const STEPS = {
   8: { name: 'Kickoff consultivo', phase: 'kickoff', owner: 'gp', w: 2, checklist: ['Kickoff realizado', 'Ata e plano de comunicação enviados', 'Próximos passos acordados'], deliverables: ['Ata de kickoff', 'Plano de comunicação'], criterion: 'Ata e plano de comunicação enviados ao cliente.', docs: ['DOC-ATA'] },
   9: { name: 'Discovery', phase: 'discovery', owner: 'analyst', w: 16, checklist: ['Entrevistas com as áreas realizadas', 'Processo atual mapeado', 'Requisitos levantados', 'Arquitetura proposta', 'Riscos e dependências registrados'], deliverables: ['Declaração de escopo', 'Especificação de requisitos', 'Registro de arquitetura'], criterion: 'Documentos do Discovery prontos para aprovação.', docs: ['DOC-ESC', 'DOC-REQ', 'DOC-ARQ', 'DOC-DEC'] },
   10: { name: 'Aprovação do Discovery', phase: 'discovery', owner: 'gp', w: 5, checklist: ['Documentos enviados ao aprovador do cliente', 'Reunião de revisão realizada', 'Ajustes solicitados incorporados'], deliverables: ['Aprovações registradas por versão'], criterion: 'Gate 2 aprovado pelo cliente e pelo GP.', docs: ['DOC-ESC', 'DOC-REQ', 'DOC-ARQ'] },
-  11: { name: 'Planejamento, estimativas, cronograma e backlog', phase: 'planejamento', owner: 'gp', w: 10, checklist: ['Backlog criado no DevOps', 'Estimativas validadas pelo Tech Lead', 'Cronograma publicado no Planner', 'Linha de base registrada', 'Incrementos e janelas de validação definidos'], deliverables: ['Cronograma e linha de base', 'Backlog priorizado'], criterion: 'Gate 3 aprovado pelo GP.', docs: ['DOC-CRON'] },
+  11: { name: 'Planejamento, estimativas, cronograma e backlog', phase: 'planejamento', owner: 'gp', w: 10, checklist: ['Backlog criado no DevOps', 'Estimativas validadas pelo Tech Lead', 'Cronograma publicado no Project', 'Linha de base registrada', 'Incrementos e janelas de validação definidos'], deliverables: ['Cronograma e linha de base', 'Backlog priorizado'], criterion: 'Gate 3 aprovado pelo GP.', docs: ['DOC-CRON'] },
   12: { name: 'Desenvolvimento incremental', phase: 'desenvolvimento', owner: 'tl', w: 40, checklist: ['Itens do incremento concluídos', 'Revisão de código realizada', 'Publicação em ambiente de testes'], deliverables: ['Incrementos funcionais'], criterion: 'Todos os incrementos planejados desenvolvidos e enviados para testes.', docs: ['DOC-TST'] },
   13: { name: 'Testes e validações', phase: 'desenvolvimento', owner: 'analyst', w: 10, checklist: ['Roteiro de testes executado', 'Bugs críticos tratados', 'Evidências registradas'], deliverables: ['Relatório de testes'], criterion: 'Todos os incrementos testados e concluídos.', docs: ['DOC-TST'] },
   14: { name: 'Homologação e aceite', phase: 'validacao', owner: 'gp', w: 12, checklist: ['Homologação com usuários-chave', 'Correções concluídas', 'Termo de aceite assinado'], deliverables: ['Evidências de homologação', 'Termo de aceite'], criterion: 'Gate 4 aprovado: aceite do cliente e publicação autorizada pelo GP.', docs: ['DOC-EVH', 'DOC-ACE', 'DOC-PUB'] },
   15: { name: 'Publicação', phase: 'golive', owner: 'tl', w: 2, checklist: ['Janela de publicação acordada', 'Publicação realizada', 'Teste pós-publicação executado'], deliverables: ['Solução em produção'], criterion: 'Solução publicada e validada em produção. A garantia começa nesta data.', docs: ['DOC-PUB'] },
   16: { name: 'Transferência de conhecimento e código', phase: 'golive', owner: 'analyst', w: 4, checklist: ['Treinamento realizado', 'Manual de uso entregue', 'Código e documentação técnica transferidos'], deliverables: ['Registro de transferência de conhecimento'], criterion: 'Transferência registrada e aceita pelo cliente.', docs: ['DOC-MAN', 'DOC-TEC', 'DOC-KT'] },
   17: { name: 'Garantia', phase: 'garantia', owner: 'gp', w: 0, checklist: ['Monitoramento pós go-live', 'Chamados de garantia tratados', 'Documentação final concluída', 'Comunicado de fim da garantia enviado'], deliverables: ['Termo de encerramento assinado', 'Lições aprendidas', 'Comunicado de fim da garantia'], criterion: 'Período de garantia cumprido e Gate 5 aprovado.', docs: ['DOC-ENC', 'DOC-LIC'] },
-  18: { name: 'Encerramento formal', phase: 'encerramento', owner: 'gp', w: 0, checklist: ['Termo de encerramento arquivado', 'Referências organizadas no SharePoint', 'Projeto encerrado no DevOps e no Planner'], deliverables: ['Arquivamento final'], criterion: 'Projeto encerrado formalmente e arquivado. Consolida o que o Gate 5 já verificou.', docs: [] },
+  18: { name: 'Encerramento formal', phase: 'encerramento', owner: 'gp', w: 0, checklist: ['Termo de encerramento arquivado', 'Referências organizadas no SharePoint', 'Projeto encerrado no DevOps e no Project'], deliverables: ['Arquivamento final'], criterion: 'Projeto encerrado formalmente e arquivado. Consolida o que o Gate 5 já verificou.', docs: [] },
 };
 
 const APPROVER_LABEL = { GP: 'Gerente de projetos', LID: 'Liderança', CLI: 'Aprovador do cliente' };
@@ -539,9 +560,10 @@ const REC_TYPES = {
   decisao: { label: 'Decisões', one: 'Decisão', prefix: 'DEC', statuses: ['Proposta', 'Aprovada', 'Revogada'], closed: ['Aprovada', 'Revogada'] },
 };
 const CHANGE_KIND = { correcao: 'Correção (defeito, sem custo ao cliente)', alteracao: 'Alteração de requisito', novo: 'Novo requisito' };
+const DATE_CAT = { cliente: 'Cliente / dependência do cliente', escopo: 'Mudança de escopo', tecnico: 'Técnico', interno: 'Equipe / interno', terceiros: 'Terceiros / fornecedores' };
 const LEVELS = { alto: 'Alto', medio: 'Médio', baixo: 'Baixo' };
 
-/* Entregas de valor do Planner (o backlog técnico fica no DevOps) */
+/* Entregas de valor do Project (o backlog técnico fica no DevOps) */
 const TASK_TPL = [
   { key: 'kick', name: 'Kickoff realizado com o cliente', step: 8 },
   { key: 'disc', name: 'Aprovação do Discovery', step: 10, gate: 'G2' },
@@ -583,6 +605,7 @@ function buildProject(c) {
     lastSync: c.lastSync || REF + 'T07:40', pendingSync: c.pendingSync || [],
     fin: c.fin, devops: c.devops || { backlog: 0, done: 0, bugs: 0 },
     links: { planner: 'PLN-' + c.id.slice(2), devops: 'Simbiox-Entregas\\' + c.client.split(' ')[0] + '\\' + c.id, sharepoint: 'Projetos/' + c.client + '/' + c.id, repo: c.repo || null },
+    originalEnd: null, dateChanges: [],
     manualHealth: null, updates: c.updates || [], history: [], records: [], increments: [],
     steps: {}, gates: {}, docs: [], tasks: [], seq: 100,
   };
@@ -643,7 +666,7 @@ function buildProject(c) {
     p.docs.push(d);
   });
   p.pathTpl = { base: 'SharePoint › ' + p.links.sharepoint.replace(/\//g, ' › ') };
-  // cronograma (Planner)
+  // cronograma (Project)
   let prev = null;
   TASK_TPL.forEach(t => {
     const d = pl(t.step);
@@ -658,6 +681,12 @@ function buildProject(c) {
     if (c.tasks && c.tasks[t.key]) Object.assign(task, c.tasks[t.key]);
     p.tasks.push(task); prev = task;
   });
+  // % concluído vindo do Project (proporção do prazo decorrido para entregas em andamento)
+  p.tasks.forEach(t => { if (t.pct == null) t.pct = t.status === 'concluida' ? 100 : t.status === 'em_andamento' ? Math.max(5, Math.min(90, Math.round(diff(REF, t.planStart) / Math.max(1, diff(t.forecast, t.planStart)) * 100))) : 0; });
+  // mudanças de data do término: a data original nunca é alterada
+  p.originalEnd = p.baseEnd;
+  let curEnd = p.baseEnd;
+  (c.dateChanges || []).forEach(ch => { const to = addDays(curEnd, ch.delta); p.dateChanges.push({ at: ch.at, by: ch.by, from: curEnd, to, reason: ch.reason, cat: ch.cat }); curEnd = to; });
   // incrementos
   p.increments = (c.increments || (step > 13 || closed ? [
     { name: 'Incremento 1', status: 'concluido' }, { name: 'Incremento 2', status: 'concluido' }] : [])).map((x, i) => ({ id: 'INC-' + (i + 1), items: 0, bugs: 0, ...x }));
@@ -747,7 +776,7 @@ const CONFIGS = [
     records: [
       { type: 'risco', title: 'Conteúdo das áreas pode não estar pronto para a migração', owner: 'gustavo', due: '2026-12-01', status: 'Aberto', impact: 'medio', prob: 'medio', mitigation: 'Calendário editorial com as áreas a partir do incremento 1.', affects: 'Entrega do incremento 2 em homologação' },
     ],
-    updates: [{ at: '2026-10-22T11:00', by: 'paula', text: 'Backlog com 46 itens rastreados aos requisitos. Linha de base registrada no Planner.', next: 'Solicitar aprovação do Gate 3.' }],
+    updates: [{ at: '2026-10-22T11:00', by: 'paula', text: 'Backlog com 46 itens rastreados aos requisitos. Linha de base registrada no Project.', next: 'Solicitar aprovação do Gate 3.' }],
   },
   {
     id: 'P-1027', client: 'Vértice Advogados', name: 'Automação de Contratos', gp: 'renata', analyst: 'felipe', tl: 'rafael', dev: 'thiago', cli: 'lia', complexity: 'Média', score: 24,
@@ -759,7 +788,7 @@ const CONFIGS = [
     increments: [{ name: 'Incremento 1 — Modelos e geração', status: 'concluido', items: 18, bugs: 0 }, { name: 'Incremento 2 — Fluxo de aprovação', status: 'em_desenvolvimento', items: 22, bugs: 2 }, { name: 'Incremento 3 — Assinatura e painel', status: 'planejado', items: 18, bugs: 0 }],
     docs: { 'DOC-TST': { status: 'elaboracao', version: '0.6', versions: [{ v: '0.6', at: '2026-10-18T10:00', by: 'felipe', note: 'Casos do incremento 1 e 2' }] } },
     tasks: { inc1: { status: 'em_andamento', doneDate: null } },
-    pendingSync: [{ task: 'inc1', set: { status: 'concluida', doneDate: '2026-10-21' }, note: 'Incremento 1 concluído no Planner em 21/10' }],
+    pendingSync: [{ task: 'inc1', set: { status: 'concluida', doneDate: '2026-10-21' }, note: 'Incremento 1 concluído no Project em 21/10' }],
     records: [
       { type: 'decisao', title: 'Modelos de contrato versionados apenas pela área jurídica', owner: 'lia', due: '2026-09-30', status: 'Aprovada', impact: 'baixo', mitigation: 'Permissões restritas na biblioteca de modelos.', affects: 'Incremento 1' },
     ],
@@ -780,12 +809,25 @@ const CONFIGS = [
       { type: 'risco', title: 'Integração com SAP pode exigir middleware não previsto', owner: 'sergio', due: '2026-10-30', status: 'Aberto', impact: 'alto', prob: 'alto', mitigation: 'Prova de conceito com API padrão assim que o acesso for liberado.', affects: 'Go-live' },
       { type: 'mudanca', title: 'Ajuste no fluxo de aprovação do cadastro', owner: 'diego', due: '2026-10-12', status: 'Aprovada', impact: 'medio', changeKind: 'alteracao', impPrazo: '+5 dias', impEsforco: '32 h', impCusto: 'Absorvido', approvalNeeded: 'Cliente', mitigation: 'Aprovada pelo cliente em 12/10.', affects: 'Incremento 2' },
     ],
-    history: [{ at: '2026-10-16T10:00', who: 'diego', kind: 'risco', action: 'Impedimento registrado: acesso ao SAP de homologação', detail: 'Responsável: Otávio Brandt (cliente)' }, { at: '2026-10-18T09:00', who: 'diego', kind: 'cronograma', action: 'Previsão alterada: incremento 2 e entregas seguintes (+12 dias)', detail: 'Linha de base preservada', reason: 'Acesso ao SAP não liberado pelo cliente' }],
+    dateChanges: [
+      { at: '2026-10-12T15:00', by: 'diego', delta: 5, cat: 'escopo', reason: 'Ajuste no fluxo de aprovação do cadastro (MUD-003, aprovada pelo cliente)' },
+      { at: '2026-10-18T09:00', by: 'diego', delta: 7, cat: 'cliente', reason: 'Acesso ao SAP de homologação não liberado pelo cliente (IMP-001)' }],
+    history: [{ at: '2026-10-16T10:00', who: 'diego', kind: 'risco', action: 'Impedimento registrado: acesso ao SAP de homologação', detail: 'Responsável: Otávio Brandt (cliente)' },
+      { at: '2026-10-12T15:00', who: 'diego', kind: 'cronograma', action: 'Data de término alterada (+5 dias)', detail: 'Mudança 1 · Linha de base preservada', reason: 'Ajuste no fluxo de aprovação do cadastro (MUD-003)' },
+      { at: '2026-10-18T09:00', who: 'diego', kind: 'cronograma', action: 'Data de término alterada (+7 dias)', detail: 'Mudança 2 · Linha de base preservada', reason: 'Acesso ao SAP não liberado pelo cliente' }],
     updates: [{ at: '2026-10-21T17:00', by: 'diego', text: 'Incremento 2 parado aguardando acesso ao SAP. Previsão revista em +12 dias.', next: 'Escalar ao patrocinador do cliente.' }],
   },
   {
     id: 'P-1019', client: 'Farmavita', name: 'Sanitização Intune', gp: 'paula', analyst: 'bruno', dev: 'thiago', cli: 'sandra', complexity: 'Baixa', score: 11,
     step: 14, at: 0.55, span: 125, slip: 19, gateUnmet: ['G4-5', 'G4-8'],
+    dateChanges: [
+      { at: '2026-09-15T10:00', by: 'paula', delta: 6, cat: 'cliente', reason: 'Grupo piloto de dispositivos liberado pelo cliente com atraso' },
+      { at: '2026-10-08T17:00', by: 'paula', delta: 8, cat: 'tecnico', reason: 'Perfil de trabalho Android exigiu redesenho da política de conformidade' },
+      { at: '2026-10-21T11:30', by: 'paula', delta: 5, cat: 'interno', reason: 'Correção da política de USB aplicada ao grupo errado (MUD-002)' }],
+    history: [
+      { at: '2026-09-15T10:00', who: 'paula', kind: 'cronograma', action: 'Data de término alterada (+6 dias)', detail: 'Mudança 1 · Linha de base preservada', reason: 'Grupo piloto liberado com atraso' },
+      { at: '2026-10-08T17:00', who: 'paula', kind: 'cronograma', action: 'Data de término alterada (+8 dias)', detail: 'Mudança 2 · Linha de base preservada', reason: 'Redesenho da política Android' },
+      { at: '2026-10-21T11:30', who: 'paula', kind: 'cronograma', action: 'Data de término alterada (+5 dias)', detail: 'Mudança 3 · Linha de base preservada', reason: 'Correção da política de USB' }],
     objective: 'Padronizar políticas de conformidade e configuração dos dispositivos gerenciados.',
     desc: 'Revisão de políticas do Intune, perfis de configuração e relatórios de conformidade.',
     fin: { venda: 46410, orcado: 25061, realizado: 22427, hPrev: 280, hReal: 301, parcela: 0 },
@@ -882,7 +924,7 @@ const CONFIGS = [
   },
 ];
 
-function seedState() { return { v: 3, role: 'GP', globalSync: REF + 'T07:40', projects: CONFIGS.map(buildProject) }; }
+function seedState() { return { v: 4, role: 'GP', globalSync: REF + 'T07:40', projects: CONFIGS.map(buildProject) }; }
 /* ===== Regras derivadas (tudo calculado a partir do estado) ===== */
 const phaseIdx = id => PHASES.findIndex(p => p.id === id);
 const stepPI = n => phaseIdx(STEPS[n].phase);
@@ -966,6 +1008,14 @@ function slipInfo(p) {
   const fe = projForecastEnd(p), days = Math.max(0, diff(fe, p.baseEnd)), dur = diff(p.baseEnd, p.start);
   return { fe, days, pct: dur ? days / dur : 0 };
 }
+function projPct(p) {
+  const w = t => Math.max(1, diff(t.baseEnd, t.baseStart) + 1), tot = p.tasks.reduce((a, t) => a + w(t), 0);
+  return p.closed ? 100 : Math.round(p.tasks.reduce((a, t) => a + w(t) * (t.pct || 0), 0) / tot);
+}
+function dateInfo(p) {
+  const fe = slipInfo(p).fe, n = p.dateChanges.length;
+  return { original: p.originalEnd, forecast: fe, dev: diff(fe, p.originalEnd), changes: n, level: n >= 3 ? 'red' : n === 2 ? 'amber' : n === 1 ? 'gray' : '' };
+}
 const taskDelay = t => Math.max(0, diff(taskEnd(t), t.baseEnd));
 const taskLate = t => t.status !== 'concluida' && t.forecast < REF;
 function nextMilestone(p) { return p.tasks.filter(t => t.status !== 'concluida').sort((a, b) => a.forecast.localeCompare(b.forecast))[0] || null; }
@@ -995,7 +1045,7 @@ function autoHealth(p) {
     else if (late > 0) add('yellow', `Gate ${GATES[g].n} atrasado ${late} dia${late > 1 ? 's' : ''} (previsto ${fmt(due)})`);
     if (p.gates[g].status === 'devolvido') add('yellow', `Gate ${GATES[g].n} devolvido para ajustes`);
   }
-  if (p.situation !== 'pausado' && syncAge(p) > 3) add('yellow', `Planner sem sincronização há ${syncAge(p)} dias: saúde não confirmada`);
+  if (p.situation !== 'pausado' && syncAge(p) > 3) add('yellow', `Project sem sincronização há ${syncAge(p)} dias: saúde não confirmada`);
   let level = R.some(r => r.lv === 'red') ? 'red' : R.some(r => r.lv === 'gray') ? 'gray' : R.some(r => r.lv === 'yellow') ? 'yellow' : 'green';
   if (p.situation === 'pausado') R.push({ lv: 'info', t: 'Projeto pausado: prazos congelados até a retomada' });
   if (!R.filter(r => r.lv !== 'info').length) R.unshift({ lv: 'green', t: 'Entregas, gates e dependências dentro do planejado' });
@@ -1068,6 +1118,7 @@ function kpiFlags(p) {
     atraso: live && slipInfo(p).days > 0,
     gates: live && Object.values(p.gates).some(g => g.status === 'aguardando'),
     docs: live && docStats(p).overdue.length > 0,
+    datas: p.dateChanges.length > 0,
     marcos: live && p.tasks.some(t => t.status !== 'concluida' && t.forecast >= REF && t.forecast <= addDays(REF, 7)),
   };
 }
@@ -1077,6 +1128,8 @@ function kpiTotals(list) {
     atraso: list.filter(p => kpiFlags(p).atraso).length,
     gates: list.reduce((n, p) => n + (p.closed ? 0 : Object.values(p.gates).filter(g => g.status === 'aguardando').length), 0),
     docs: list.reduce((n, p) => n + docStats(p).overdue.length, 0),
+    datas: list.filter(p => p.dateChanges.length > 0).length,
+    datasMulti: list.filter(p => p.dateChanges.length >= 2).length,
     marcos: list.reduce((n, p) => n + (p.closed ? 0 : p.tasks.filter(t => t.status !== 'concluida' && t.forecast >= REF && t.forecast <= addDays(REF, 7)).length), 0),
   };
 }
@@ -1084,7 +1137,7 @@ function kpiTotals(list) {
 let S, U;
 const UI_DEFAULT = () => ({ view: 'acomp', pid: null, tab: 'resumo', f: { q: '', owner: '', phase: '', health: '', sit: '', mine: false, kpi: '' }, mode: 'list', open: {}, crono: 'tabela', docFilter: 'todos', histKind: '', finSit: 'ativos', finQ: '', panel: null });
 function load() {
-  try { const raw = localStorage.getItem(STORE_KEY); if (raw) { const s = JSON.parse(raw); if (s && s.v === 3) S = s; } } catch (e) { }
+  try { const raw = localStorage.getItem(STORE_KEY); if (raw) { const s = JSON.parse(raw); if (s && s.v === 4) S = s; } } catch (e) { }
   if (!S) S = seedState();
   try { const raw = localStorage.getItem(UI_KEY); if (raw) U = Object.assign(UI_DEFAULT(), JSON.parse(raw), { panel: null }); } catch (e) { }
   if (!U) U = UI_DEFAULT();
@@ -1183,9 +1236,9 @@ function renderShell() {
         ${[['bh', 'Banco de Horas', '#52cb90'], ['sus', 'Sustentação', '#7fb2fb'], ['proj', 'Projetos', '#f0a23b'], ['ppl', 'People', '#ab9ff4']].map(([k, l, c]) => `<button role="tab" aria-selected="${k === 'proj'}" data-act="tab-main" data-id="${k}"><span class="dot" style="background:${c}"></span>${l}</button>`).join('')}
       </nav>
       <nav class="subtabs" role="tablist" aria-label="Projetos">
-        ${[['fin', 'Financeiro'], ['acomp', 'Acompanhamento'], ['proc', 'Processo e modelos']].map(([k, l]) => `<button role="tab" aria-selected="${U.view === k}" data-act="subtab" data-id="${k}">${l}</button>`).join('')}
+        ${[['fin', 'Financeiro'], ['acomp', 'Acompanhamento'], ['listas', 'O que cadastramos'], ['proc', 'Processo e modelos']].map(([k, l]) => `<button role="tab" aria-selected="${U.view === k}" data-act="subtab" data-id="${k}">${l}</button>`).join('')}
       </nav>
-      <div id="view">${U.view === 'fin' ? renderFin() : U.view === 'proc' ? renderProc() : U.pid ? renderProject(getP(U.pid)) : renderPortfolio()}</div>
+      <div id="view">${U.view === 'fin' ? renderFin() : U.view === 'proc' ? renderProc() : U.view === 'listas' ? renderListas() : U.pid ? renderProject(getP(U.pid)) : renderPortfolio()}</div>
     </section>
     <footer class="foot"><span>Dados de demonstração salvos neste navegador · Data de referência ${fmt(REF)} · Perfil: ${roleName()}</span>
       <button class="link xs" data-act="open-reset">${ic('reset', 's')} Restaurar dados iniciais</button></footer>
@@ -1214,6 +1267,7 @@ function renderPortfolio() {
     ['gates', 'Gates aguardando aprovação', K.gates, 'c-blue', 'solicitados e sem decisão'],
     ['docs', 'Documentos obrigatórios vencidos', K.docs, K.docs ? 'c-red' : 'c-green', 'somente até a fase atual'],
     ['marcos', 'Marcos nos próximos 7 dias', K.marcos, 'c-yellow', `até ${fmt(addDays(REF, 7))}`],
+    ['datas', 'Projetos com data alterada', K.datas, K.datasMulti ? 'c-red' : 'c-gray', `${K.datasMulti} alterado(s) 2 vezes ou mais`],
   ];
   const gps = [...new Set(all.map(p => p.gp))];
   const anyF = f.q || f.owner || f.phase || f.health || f.sit || f.mine || f.kpi;
@@ -1245,23 +1299,30 @@ function phaseCell(p) {
   const ph = curPhase(p);
   return `<div class="two"><span class="strong">${ph.name}</span><span class="sub small">${p.closed ? 'Etapa 18 concluída' : 'Etapa ' + p.step + ' · ' + esc(STEPS[p.step].name)}</span>${p.situation !== 'ativo' ? statusChip(SITUATION, p.situation) : ''}</div>`;
 }
+function stepper(p) { return `<div class="stepper" aria-hidden="true">${PHASES.map((x, i) => `<span class="${i < curPI(p) || p.closed ? 'done' : i === curPI(p) ? 'cur' : ''}"></span>`).join('')}</div>`; }
+function changesChip(p, withAct) {
+  const di = dateInfo(p); if (!di.changes) return '';
+  const t = `${ic('alert', 's')} Data alterada ${di.changes}×`;
+  return withAct ? `<button class="chip ${di.level} chipbtn" data-act="open-date" title="Ver motivos das mudanças de data">${t}</button>` : `<span class="chip ${di.level}" title="${esc(p.dateChanges.map((c, i) => (i + 1) + 'ª: ' + fmt(c.from) + ' → ' + fmt(c.to) + ' — ' + c.reason).join(' | '))}">${t}</span>`;
+}
+function devTxt(d) { return d > 0 ? `<span class="c-red num">+${d} dias</span>` : d < 0 ? `<span class="c-green num">${d} dias</span>` : '<span class="c-green">no prazo</span>'; }
 function renderList(list) {
   if (!list.length) return `<div class="tablewrap"><div class="empty">Nenhum projeto corresponde aos filtros. <button class="link" data-act="clear-filters">Limpar filtros</button></div></div>`;
-  return `<div class="tablewrap"><table class="grid"><caption class="sr">Carteira de projetos — clique em uma linha para abrir</caption>
-  <thead><tr><th>Cliente e projeto</th><th>Responsável</th><th>Fase e etapa atual</th><th>Saúde</th><th>Próximo marco</th><th>Documentação</th><th>Próximo gate</th><th>Principal pendência</th></tr></thead><tbody>
+  return `<div class="tablewrap"><table class="grid port"><caption class="sr">Carteira de projetos — clique em uma linha para abrir</caption>
+  <thead><tr><th>Projeto</th><th>Fase e etapa</th><th>Saúde</th><th>Avanço <span class="src">Project</span></th><th>Prazo de término</th><th>Gate e documentos</th><th>Ação necessária</th></tr></thead><tbody>
   ${list.map(p => {
-    const h = health(p), m = nextMilestone(p), ds = docStats(p), pd = pendencies(p)[0], dp = pct(ds.curDone, ds.curTotal);
+    const h = health(p), m = nextMilestone(p), ds = docStats(p), pd = pendencies(p)[0], di = dateInfo(p), pc = projPct(p), g = nextGate(p);
     return `<tr class="rowlink" tabindex="0" data-act="open-project" data-id="${p.id}" aria-label="Abrir ${esc(p.client)} — ${esc(p.name)}">
-      <td><div class="cl"><span class="sq">${esc(p.client[0])}</span><div class="two"><b>${esc(p.client)}</b><span>${esc(p.name)}</span><span class="muted xs mono">${p.id} · ${p.complexity}</span></div></div></td>
-      <td>${who(p.gp)}<div class="muted xs" style="margin:4px 0 0 34px">Analista: ${esc(pname(p.analyst))}</div></td>
-      <td>${phaseCell(p)}</td>
-      <td><div class="two">${healthChip(h)}<span class="reason">${esc(h.reasons[0].t)}</span></div></td>
-      <td>${m ? `<div class="two"><span>${esc(m.name)}</span><span class="small ${m.forecast < REF ? 'c-red' : 'sub'} num">${fmt(m.forecast)} · ${relDay(m.forecast)}</span>${taskDelay(m) ? `<span class="xs c-yellow">+${taskDelay(m)}d sobre a linha de base</span>` : ''}</div>` : '<span class="muted">—</span>'}</td>
-      <td><div class="two" style="min-width:120px"><span class="num">${ds.curDone}/${ds.curTotal} até a fase <span class="muted">(${dp}%)</span></span>${bar(dp, dp < 60 ? 'red' : dp < 100 ? 'yellow' : '')}${ds.overdue.length ? `<span class="xs c-red">${ds.overdue.length} vencido(s)</span>` : ''}${ds.awaiting.length ? `<span class="xs c-amber">${ds.awaiting.length} aguardando cliente</span>` : ''}</div></td>
-      <td>${gateCell(p)}</td>
-      <td>${pd ? `<div class="two" style="max-width:240px"><span>${esc(pd.text)}</span><span class="small sub">${esc(pname(pd.owner))}${pd.due ? ' · ' + fmtS(pd.due) : ''}</span></div>` : '<span class="muted">Nenhuma</span>'}</td>
+      <td><div class="cl"><span class="sq">${esc(p.client[0])}</span><div class="two"><b>${esc(p.client)}</b><span>${esc(p.name)}</span><span class="muted xs">${esc(pname(p.gp))} · <span class="mono">${p.id}</span></span></div></div></td>
+      <td><div class="two" style="min-width:150px"><span class="strong">${curPhase(p).name}${p.situation !== 'ativo' ? ' ' + statusChip(SITUATION, p.situation) : ''}</span><span class="sub small">${p.closed ? 'Concluído' : 'Etapa ' + p.step + '/18 · ' + esc(STEPS[p.step].name)}</span>${stepper(p)}</div></td>
+      <td><div class="two">${healthChip(h)}<span class="reason clamp">${esc(h.reasons[0].t)}</span></div></td>
+      <td><div class="two" style="min-width:120px"><span class="pctv num">${pc}%</span>${bar(pc, 'amber')}<span class="xs ${syncAge(p) > 3 ? 'c-yellow' : 'muted'}">${p.closed ? 'encerrado' : 'sync ' + fmtS(p.lastSync) + (syncAge(p) > 3 ? ' · desatualizado' : '')}</span></div></td>
+      <td><div class="two" style="min-width:150px"><span class="xs muted">Original <span class="num">${fmt(di.original)}</span></span><span class="num">${p.closed ? 'Concluído' : 'Previsão'} ${fmt(di.forecast)}</span><span class="small">${devTxt(di.dev)}</span>${changesChip(p)}</div></td>
+      <td><div class="two">${g ? `<span class="nowrap">Gate ${GATES[g].n} · ${gateSummary(p, g).met}/${gateSummary(p, g).total}</span>${statusChip(GATE_STATUS, p.gates[g].status)}` : '<span class="muted">Gates concluídos</span>'}<span class="xs ${ds.overdue.length ? 'c-red' : 'muted'}">Docs ${ds.curDone}/${ds.curTotal}${ds.overdue.length ? ' · ' + ds.overdue.length + ' vencido(s)' : ''}</span></div></td>
+      <td>${pd ? `<div class="two" style="max-width:250px"><span class="clamp">${esc(pd.text)}</span><span class="small sub">${ic('user', 's')} ${esc(pname(pd.owner))}${isClient(pd.owner) ? ' (cliente)' : ''}${pd.due ? ' · ' + fmtS(pd.due) : ''}</span></div>` : `<span class="muted">${m ? 'Próx. marco: ' + esc(m.name) + ' · ' + fmtS(m.forecast) : 'Nenhuma'}</span>`}</td>
     </tr>`;
-  }).join('')}</tbody></table></div>`;
+  }).join('')}</tbody></table></div>
+  <div class="legend"><span><b>Avanço</b>: % concluído das entregas, recebido da integração com o Project (não é contagem de etapas).</span><span><b>Prazo</b>: a data original nunca muda; o desvio é contado sobre ela.</span><span><b>Data alterada N×</b>: quantas vezes o término mudou, com motivo registrado.</span></div>`;
 }
 function renderBoard(list) {
   return `<div class="phase-strip"><span class="muted small">${ic('info', 's')} A mudança de fase acontece pela aprovação do gate dentro do projeto; os cards não podem ser arrastados.</span>
@@ -1297,7 +1358,7 @@ function primaryAction(p) {
   return `<button class="btn primary" data-act="advance">${ic('arrow', 's')} ${p.step === 18 ? 'Encerrar projeto' : 'Avançar etapa'}</button>`;
 }
 function renderProject(p) {
-  const h = health(p), sl = slipInfo(p), ph = curPhase(p), ds = docStats(p), rOpen = p.records.filter(recOpen).length;
+  const h = health(p), di = dateInfo(p), ph = curPhase(p), ds = docStats(p), rOpen = p.records.filter(recOpen).length;
   const tabs = [['resumo', 'Resumo'], ['etapas', 'Etapas e gates'], ['crono', 'Cronograma'], ['docs', 'Documentação', ds.overdue.length], ['riscos', 'Riscos e decisões', rOpen, 'amber'], ['hist', 'Histórico']];
   return `
   <nav class="crumbs" aria-label="Trilha"><button data-act="back">Projetos</button>›<button data-act="back">Acompanhamento</button>›<span aria-current="page">${esc(p.client)} — ${esc(p.name)}</span></nav>
@@ -1307,6 +1368,7 @@ function renderProject(p) {
       <div style="flex:1;min-width:240px">
         <div class="client"><span class="mono">${p.id}</span><span>·</span><span>${esc(p.client)}</span>${statusChip(SITUATION, p.situation)}${chip('outline', 'Complexidade ' + p.complexity + (p.score ? ' · ' + p.score + ' pts' : ''))}</div>
         <h2>${esc(p.name)}</h2>
+        <div class="small sub team">GP <b>${esc(pname(p.gp))}</b> · Analista ${esc(pname(p.analyst))} · Tech Lead ${p.tl ? esc(pname(p.tl)) : '<span class="muted">não aplicável</span>'} · Início ${fmt(p.start)}</div>
       </div>
       <div class="acts">
         <button class="btn" data-act="open-update">${ic('edit', 's')} Registrar atualização</button>
@@ -1314,17 +1376,14 @@ function renderProject(p) {
         ${primaryAction(p)}
       </div>
     </div>
-    <dl class="meta">
-      <div><dt>Gerente de projetos</dt><dd>${esc(pname(p.gp))}</dd></div>
-      <div><dt>Analista</dt><dd>${esc(pname(p.analyst))}</dd></div>
-      ${p.tl ? `<div><dt>Tech Lead</dt><dd>${esc(pname(p.tl))}</dd></div>` : `<div><dt>Tech Lead</dt><dd class="muted">Não aplicável</dd></div>`}
-      <div><dt>Fase e etapa</dt><dd>${ph.name} · ${p.closed ? 'concluído' : 'etapa ' + p.step + ' de 18'}</dd></div>
-      <div><dt>Data inicial</dt><dd class="num">${fmt(p.start)}</dd></div>
-      <div><dt>Término (linha de base)</dt><dd class="num">${fmt(p.baseEnd)}</dd></div>
-      <div><dt>Previsão atual</dt><dd class="num ${sl.days ? (sl.pct > .1 ? 'c-red' : 'c-yellow') : ''}">${fmt(sl.fe)}${sl.days ? ` <span class="small">(+${sl.days}d)</span>` : ''}</dd></div>
-    </dl>
-    <div class="health-line">${healthChip(h)}<div class="grow" style="flex:1;min-width:0"><ul>${h.reasons.slice(0, 3).map(r => `<li>${esc(r.t)}</li>`).join('')}</ul></div>
-      ${p.closed ? '' : `<button class="link small nowrap" data-act="open-update" data-id="health">Avaliação manual</button>`}</div>
+    <div class="kstrip">
+      <div class="kc"><span class="lbl-s">Fase e etapa</span><b>${ph.name}</b><span class="small sub">${p.closed ? 'Processo concluído' : 'Etapa ' + p.step + ' de 18 · ' + esc(STEPS[p.step].name)}</span>${stepper(p)}</div>
+      <div class="kc"><span class="lbl-s">Saúde ${p.closed ? '' : '<button class="link xs" data-act="open-update" data-id="health">avaliação manual</button>'}</span><span>${healthChip(h)}</span><ul class="small sub">${h.reasons.slice(0, 2).map(r => `<li>${esc(r.t)}</li>`).join('')}</ul></div>
+      <div class="kc"><span class="lbl-s">Avanço <span class="src">integração Project</span></span><b class="pctv num">${projPct(p)}%</b>${bar(projPct(p), 'amber')}<span class="xs ${syncAge(p) > 3 ? 'c-yellow' : 'muted'}">Última sincronização ${fmtDT(p.lastSync)}${syncAge(p) > 3 ? ' · desatualizada' : ''}</span></div>
+      <div class="kc ${di.changes >= 2 ? 'warnbox' : ''}"><span class="lbl-s">Prazo de término ${p.closed ? '' : '<button class="link xs" data-act="open-date">alterar data</button>'}</span>
+        <dl class="kv small"><dt>Original</dt><dd class="num">${fmt(di.original)} <span class="xs muted">(preservada)</span></dd><dt>${p.closed ? 'Concluído' : 'Previsão'}</dt><dd class="num strong">${fmt(di.forecast)}</dd><dt>Desvio</dt><dd>${devTxt(di.dev)}</dd></dl>
+        ${di.changes ? changesChip(p, true) : '<span class="xs muted">Nenhuma mudança de data</span>'}</div>
+    </div>
   </section>
   <nav class="ptabs" role="tablist" aria-label="Seções do projeto">
     ${tabs.map(([k, l, n, c]) => `<button role="tab" aria-selected="${U.tab === k}" data-act="ptab" data-id="${k}">${l}${n ? ` <span class="badge ${c || ''}">${n}</span>` : ''}</button>`).join('')}
@@ -1382,7 +1441,7 @@ function tabResumo(p) {
       ${pend.length ? `<ul class="list">${pend.slice(0, 6).map(x => `<li>${av(x.owner)}<div class="grow"><button class="link" ${tgt(x)}>${esc(x.text)}</button><div class="xs muted">${esc(pname(x.owner))}${isClient(x.owner) ? ' (cliente)' : ''} · ${esc(x.kind)}</div></div><span class="small nowrap">${dueTxt(x.due)}</span></li>`).join('')}</ul>` : '<div class="muted">Nenhuma pendência aberta.</div>'}
     </section>
     <section class="box"><h3>Progresso</h3>
-      ${[['Entregas de valor (Planner)', tDone, p.tasks.length, 'crono'], ['Documentação até a fase', ds.curDone, ds.curTotal, 'docs'], ['Gates aprovados', gApproved, 6, 'etapas']].map(([l, a, b, t]) => `<div class="prog"><div class="top"><button class="link small" data-act="ptab" data-id="${t}">${l}</button><span class="val">${a}/${b}</span></div>${bar(pct(a, b), t === 'docs' ? (pct(a, b) < 100 ? 'yellow' : '') : 'amber')}</div>`).join('')}
+      ${[['Entregas de valor (Project)', tDone, p.tasks.length, 'crono'], ['Documentação até a fase', ds.curDone, ds.curTotal, 'docs'], ['Gates aprovados', gApproved, 6, 'etapas']].map(([l, a, b, t]) => `<div class="prog"><div class="top"><button class="link small" data-act="ptab" data-id="${t}">${l}</button><span class="val">${a}/${b}</span></div>${bar(pct(a, b), t === 'docs' ? (pct(a, b) < 100 ? 'yellow' : '') : 'amber')}</div>`).join('')}
       <span class="xs muted">Medidos separadamente: a quantidade de etapas concluídas não representa o progresso real.</span>
     </section>
 
@@ -1446,20 +1505,22 @@ function renderIncs(p) {
 function tabCrono(p) {
   const pend = p.pendingSync.length, outgoing = p.tasks.filter(t => t.syncPending).length;
   return `<div class="box" style="flex-direction:row;flex-wrap:wrap;gap:12px 24px;align-items:center;margin-bottom:12px">
-      <div class="two"><span class="lbl-s">Plano vinculado (Planner)</span><span class="strong">${p.links.planner} · ${esc(p.client)} — ${esc(p.name)}</span></div>
+      <div class="two"><span class="lbl-s">Plano vinculado (Project)</span><span class="strong">${p.links.planner} · ${esc(p.client)} — ${esc(p.name)}</span></div>
       <div class="two"><span class="lbl-s">Última sincronização</span><span class="num ${syncAge(p) > 3 ? 'c-yellow' : ''}">${fmtDT(p.lastSync)}${syncAge(p) > 3 ? ' · há ' + syncAge(p) + ' dias' : ''}</span></div>
       <div class="two"><span class="lbl-s">Alterações</span><span class="small">${pend} a receber · ${outgoing} a enviar</span></div>
       <span style="flex:1"></span>
       <button class="btn" data-act="sync-project" ${p.closed ? 'disabled' : ''}>${ic('sync', 's')} Sincronizar</button>
     </div>
-    <div class="toolbar" style="margin-top:0"><div class="seg" role="group" aria-label="Visualização do cronograma"><button data-act="crono-view" data-id="tabela" aria-pressed="${U.crono === 'tabela'}">Tabela</button><button data-act="crono-view" data-id="linha" aria-pressed="${U.crono === 'linha'}">Linha do tempo</button></div>
+    ${renderDateBlock(p)}
+    <div class="toolbar"><div class="seg" role="group" aria-label="Visualização do cronograma"><button data-act="crono-view" data-id="tabela" aria-pressed="${U.crono === 'tabela'}">Tabela</button><button data-act="crono-view" data-id="linha" aria-pressed="${U.crono === 'linha'}">Linha do tempo</button></div>
       <span class="small muted">Somente entregas de valor para o cliente. O backlog técnico (${p.devops.backlog} itens) fica no Azure DevOps.</span></div>
-    ${U.crono === 'linha' ? renderTimeline(p) : `<div class="tablewrap"><table class="grid"><thead><tr><th>Entrega</th><th>Fase</th><th>Responsável</th><th>Planejado</th><th>Linha de base</th><th>Previsão atual</th><th>Conclusão</th><th>Atraso</th><th>Dependência</th><th>Situação</th></tr></thead><tbody>
+    ${U.crono === 'linha' ? renderTimeline(p) : `<div class="tablewrap"><table class="grid"><thead><tr><th>Entrega</th><th>Fase</th><th>Responsável</th><th>Planejado</th><th>Linha de base</th><th>Previsão atual</th><th>% concl. <span class="src">Project</span></th><th>Conclusão</th><th>Atraso</th><th>Dependência</th><th>Situação</th></tr></thead><tbody>
     ${p.tasks.map(t => { const dl = taskDelay(t), dep = p.tasks.find(x => x.id === t.dependsOn); return `<tr class="rowlink" tabindex="0" data-act="open-task" data-id="${t.id}">
-      <td><div class="two"><b>${esc(t.name)}</b><span class="mono muted xs">${t.id}${t.contractual ? ' · marco contratual' : ''}${t.gate ? ' · Gate ' + GATES[t.gate].n : ''}${t.syncPending ? ' · a enviar ao Planner' : ''}</span></div></td>
+      <td><div class="two"><b>${esc(t.name)}</b><span class="mono muted xs">${t.id}${t.contractual ? ' · marco contratual' : ''}${t.gate ? ' · Gate ' + GATES[t.gate].n : ''}${t.syncPending ? ' · a enviar ao Project' : ''}</span></div></td>
       <td>${PHASES[phaseIdx(t.phase)].name}</td><td class="nowrap">${esc(pname(t.owner))}</td>
       <td class="num nowrap">${fmtS(t.planStart)} – ${fmtS(t.planEnd)}</td><td class="num nowrap">${fmtS(t.baseStart)} – ${fmtS(t.baseEnd)}</td>
       <td class="num ${t.status !== 'concluida' && t.forecast > t.baseEnd ? 'c-yellow' : ''}">${t.status === 'concluida' ? '—' : fmt(t.forecast)}</td>
+      <td style="min-width:80px"><span class="num small">${t.pct || 0}%</span>${bar(t.pct || 0, 'amber')}</td>
       <td class="num">${t.doneDate ? fmt(t.doneDate) : '—'}</td>
       <td class="num ${dl ? 'c-red' : ''}">${dl ? '+' + dl + 'd' : '0'}${taskLate(t) ? '<div class="xs c-red">vencida</div>' : ''}</td>
       <td class="small">${dep ? esc(dep.name) : '—'}</td><td>${statusChip(TASK_STATUS, t.status)}</td></tr>`; }).join('')}
@@ -1482,6 +1543,18 @@ function renderTimeline(p) {
         ${REF >= min && REF <= max ? `<span class="tl-today" style="left:${x(REF)}"></span>` : ''}</div></div>`; }).join('')}
   </div></div>
   <div class="legend"><span><i style="background:var(--line-2)"></i>Linha de base</span><span><i style="background:var(--blue)"></i>Previsão no prazo</span><span><i style="background:var(--red)"></i>Previsão após a linha de base</span><span><i style="background:var(--green)"></i>Concluída</span><span><i style="background:var(--accent);width:8px;height:8px;transform:rotate(45deg)"></i>Data contratual</span><span><i style="border-left:2px dashed var(--accent);width:2px;height:10px;border-radius:0"></i>Hoje (${fmtS(REF)})</span></div>`;
+}
+
+function renderDateBlock(p) {
+  const di = dateInfo(p);
+  return `<section class="box ${di.changes >= 2 ? 'warnbox' : ''}" style="margin-bottom:12px"><h3>Mudanças da data de término ${p.closed ? '' : `<button class="btn sm" data-act="open-date">${ic('edit', 's')} Alterar data de término</button>`}</h3>
+    <div class="datehead"><div><span class="lbl-s">Data original</span><b class="num">${fmt(di.original)}</b><span class="xs muted">preservada, nunca é sobrescrita</span></div>
+      <div><span class="lbl-s">Previsão atual</span><b class="num">${fmt(di.forecast)}</b></div>
+      <div><span class="lbl-s">Desvio acumulado</span><b>${devTxt(di.dev)}</b></div>
+      <div><span class="lbl-s">Mudanças</span><b class="num ${di.changes >= 3 ? 'c-red' : di.changes === 2 ? 'c-amber' : ''}">${di.changes}×</b>${di.changes >= 2 ? `<span class="xs c-red">${ic('alert', 's')} Projeto já mudou de data ${di.changes} vezes</span>` : ''}</div></div>
+    ${di.changes ? `<div class="tablewrap"><table class="grid compact" style="min-width:720px"><thead><tr><th>#</th><th>Registrado em</th><th>De</th><th>Para</th><th>Desvio da mudança</th><th>Desvio acumulado</th><th>Categoria</th><th>Motivo</th><th>Por</th></tr></thead><tbody>
+      ${p.dateChanges.map((c, i) => `<tr><td class="num">${i + 1}ª</td><td class="num small">${fmtDT(c.at)}</td><td class="num">${fmt(c.from)}</td><td class="num">${fmt(c.to)}</td><td>${devTxt(diff(c.to, c.from))}</td><td>${devTxt(diff(c.to, di.original))}</td><td class="small">${esc(DATE_CAT[c.cat] || '—')}</td><td class="small">${esc(c.reason)}</td><td class="small nowrap">${esc(pname(c.by))}</td></tr>`).join('')}
+    </tbody></table></div>` : '<span class="small muted">O término nunca foi alterado. Qualquer mudança exige motivo e fica registrada aqui.</span>'}</section>`;
 }
 
 /* Documentação */
@@ -1562,6 +1635,32 @@ function renderFin() {
   </tbody></table></div>`;
 }
 
+/* ===== O que cadastramos (listas) ===== */
+const LISTAS = [
+  { n: 'Projetos', q: 'Um registro por projeto vendido', f: 'Cliente, projeto, GP, analista, Tech Lead, complexidade e pontuação, situação, data inicial, data de término original, valor de venda', o: 'manual', who: 'Comercial e GP', when: 'Na entrada (etapa 1)', c: () => S.projects.length },
+  { n: 'Etapas do projeto', q: 'As 18 etapas do processo para cada projeto', f: 'Situação, responsável, datas planejadas e reais, checklist, impedimento, justificativa de não aplicável, evidências', o: 'auto', who: 'Gerada pelo modelo; GP atualiza', when: 'Criada com o projeto; atualizada a cada etapa', c: () => S.projects.length * 18 },
+  { n: 'Gates', q: 'Os 6 gates de cada projeto e seus critérios', f: 'Situação, critérios marcados (quem/quando), evidências, solicitação de aprovação', o: 'auto', who: 'Gerada pelo modelo; GP e Liderança marcam', when: 'Ao chegar na fase do gate', c: () => S.projects.length * 6 },
+  { n: 'Aprovações de gate', q: 'Uma decisão por aprovador exigido', f: 'Gate, aprovador (GP, Liderança ou cliente), decisão, comentário, data', o: 'manual', who: 'Aprovadores', when: 'Após a solicitação do gate', c: () => S.projects.reduce((a, p) => a + Object.values(p.gates).reduce((b, g) => b + Object.keys(g.approvals).length, 0), 0) },
+  { n: 'Documentos', q: 'Matriz documental exigida pela complexidade', f: 'Documento, fase exigida, obrigatoriedade, responsável, prazo, situação, versão, link no SharePoint', o: 'misto', who: 'Gerada pelo modelo; responsável atualiza; arquivo vem do SharePoint', when: 'Criada com o projeto', c: () => S.projects.reduce((a, p) => a + p.docs.length, 0) },
+  { n: 'Aprovações de documento', q: 'Aprovação vinculada a uma versão', f: 'Documento, versão aprovada, aprovador, data, evidência, quem registrou', o: 'manual', who: 'GP (com evidência do aprovador)', when: 'Quando o aprovador aprova uma versão', c: () => S.projects.reduce((a, p) => a + p.docs.filter(d => d.approval).length, 0) },
+  { n: 'Entregas do cronograma', q: 'Entregas de valor para o cliente', f: 'Entrega, fase, responsável, datas planejadas, linha de base, previsão, % concluído, conclusão', o: 'integracao', who: 'Vem do Project; previsão pode ser ajustada com motivo', when: 'A cada sincronização', c: () => S.projects.reduce((a, p) => a + p.tasks.length, 0) },
+  { n: 'Mudanças de data', q: 'Cada alteração do término do projeto', f: 'Data anterior, nova data, desvio da mudança, desvio acumulado sobre a data original, categoria, motivo, quem', o: 'manual', who: 'GP', when: 'Sempre que a previsão de término muda', c: () => S.projects.reduce((a, p) => a + p.dateChanges.length, 0) },
+  { n: 'Riscos, impedimentos e dependências', q: 'Itens que ameaçam ou travam o projeto', f: 'Tipo, descrição, responsável, prazo, situação, impacto, probabilidade (riscos), encaminhamento, entrega afetada, evidência', o: 'misto', who: 'GP e time (espelhado no DevOps)', when: 'Quando surgem', c: () => S.projects.reduce((a, p) => a + p.records.filter(r => ['risco', 'impedimento', 'dependencia'].includes(r.type)).length, 0) },
+  { n: 'Solicitações de mudança e decisões', q: 'Mudanças de escopo e decisões formais', f: 'Tipo (correção, alteração, novo requisito), impacto em prazo, esforço e custo, aprovação necessária, situação', o: 'manual', who: 'GP', when: 'Quando o cliente pede mudança ou há decisão', c: () => S.projects.reduce((a, p) => a + p.records.filter(r => ['mudanca', 'decisao'].includes(r.type)).length, 0) },
+  { n: 'Atualizações de status', q: 'Resumo periódico do GP', f: 'Texto, próximos passos, avaliação manual de saúde com justificativa', o: 'manual', who: 'GP', when: 'Semanal ou em mudanças relevantes', c: () => S.projects.reduce((a, p) => a + p.updates.length, 0) },
+  { n: 'Histórico', q: 'Rastreabilidade de tudo o que mudou', f: 'Pessoa, data, ação, detalhe, motivo', o: 'auto', who: 'Sistema', when: 'Automático a cada ação', c: () => S.projects.reduce((a, p) => a + p.history.length, 0) },
+];
+const ORIG = { manual: ['amber', 'Cadastro manual'], auto: ['gray', 'Gerado automaticamente'], integracao: ['blue', 'Integração Project'], misto: ['violet', 'Manual + integração'] };
+function renderListas() {
+  const cnt = k => LISTAS.filter(l => l.o === k).length;
+  return `<p class="sub" style="margin:0 0 12px;max-width:820px">Estas são as listas que sustentam o acompanhamento. A coluna <b>Origem</b> mostra o que a equipe digita e o que chega por integração ou é gerado pelo modelo do processo.</p>
+  <div class="stats">${Object.entries(ORIG).map(([k, [c, l]]) => `<div class="stat"><span class="lbl">${l}</span><span class="val">${cnt(k)}</span><span class="xs muted">lista(s)</span></div>`).join('')}</div>
+  <div class="tablewrap"><table class="grid"><thead><tr><th>Lista</th><th>O que registra</th><th>Campos principais</th><th>Origem</th><th>Quem cadastra</th><th>Quando</th><th>Registros (demo)</th></tr></thead><tbody>
+  ${LISTAS.map(l => `<tr><td class="strong nowrap">${l.n}</td><td class="small">${l.q}</td><td class="small" style="max-width:340px">${l.f}</td><td>${chip(ORIG[l.o][0], ORIG[l.o][1])}</td><td class="small">${l.who}</td><td class="small">${l.when}</td><td class="num">${l.c()}</td></tr>`).join('')}
+  </tbody></table></div>
+  <div class="callout small" style="margin-top:12px">${ic('info')}<p>Na prática, por projeto, a equipe cadastra manualmente apenas o projeto, as atualizações, as aprovações, as mudanças de data com motivo e os itens de risco/mudança. Etapas, gates e matriz documental nascem do modelo; o avanço (%) e as entregas vêm do Project.</p></div>`;
+}
+
 /* ===== Processo e modelos ===== */
 function renderProc() {
   return `<section class="sec"><h3>Fluxo de referência</h3>
@@ -1598,6 +1697,7 @@ function renderPanel() {
     case 'connections': return panelConnections();
     case 'phases': return drawer('Processo', 'Fases e etapas', renderPhasesList(), false);
     case 'blocked': return panelBlocked(p);
+    case 'date': return panelDate(p);
     case 'reset': return drawer('Dados de demonstração', 'Restaurar dados iniciais', `<p>Todas as alterações feitas neste navegador (aprovações, documentos, previsões, registros e histórico) serão descartadas e os 10 projetos voltarão ao estado inicial.</p>
       <div class="form-actions"><button class="btn" data-act="close-panel">Cancelar</button><button class="btn danger" data-act="reset-confirm">${ic('reset', 's')} Restaurar dados</button></div>`);
   }
@@ -1739,8 +1839,8 @@ function panelDoc(p, id) {
 
 function panelTask(p, id) {
   const t = p.tasks.find(x => x.id === id), dep = p.tasks.find(x => x.id === t.dependsOn), can = S.role !== 'CLI' && !p.closed, done = t.status === 'concluida';
-  return drawer(`${t.id} · Planner · ${PHASES[phaseIdx(t.phase)].name}`, esc(t.name), `
-    <div style="display:flex;gap:8px;flex-wrap:wrap">${statusChip(TASK_STATUS, t.status)}${t.contractual ? chip('amber', 'Marco contratual') : ''}${t.gate ? chip('outline', 'Gate ' + GATES[t.gate].n) : ''}${t.syncPending ? chip('blue', 'A enviar ao Planner') : ''}</div>
+  return drawer(`${t.id} · Project · ${PHASES[phaseIdx(t.phase)].name}`, esc(t.name), `
+    <div style="display:flex;gap:8px;flex-wrap:wrap">${statusChip(TASK_STATUS, t.status)}${t.contractual ? chip('amber', 'Marco contratual') : ''}${t.gate ? chip('outline', 'Gate ' + GATES[t.gate].n) : ''}${t.syncPending ? chip('blue', 'A enviar ao Project') : ''}</div>
     <dl class="kv"><dt>Fase</dt><dd>${PHASES[phaseIdx(t.phase)].name} · etapa ${t.step}</dd><dt>Responsável</dt><dd>${esc(pname(t.owner))}</dd>
       <dt>Planejado</dt><dd class="num">${fmt(t.planStart)} – ${fmt(t.planEnd)}</dd><dt>Linha de base</dt><dd class="num">${fmt(t.baseStart)} – ${fmt(t.baseEnd)}</dd>
       <dt>Previsão atual</dt><dd class="num ${!done && t.forecast > t.baseEnd ? 'c-yellow' : ''}">${done ? '—' : fmt(t.forecast)}</dd><dt>Conclusão</dt><dd class="num">${t.doneDate ? fmt(t.doneDate) : '—'}</dd>
@@ -1749,11 +1849,28 @@ function panelTask(p, id) {
     ${can && !done ? `<section class="sec"><h3>Alterar previsão</h3><form class="form" data-form="task-forecast" data-id="${id}">
       <div class="field"><span>Nova previsão</span><input id="tf-d" name="date" type="date" class="input" value="${t.forecast}" required></div>
       <div class="field"><span>&nbsp;</span><label class="check"><input id="tf-s" type="checkbox" name="shift" checked> Deslocar entregas dependentes</label></div>
+      <div class="field full"><span>Categoria do motivo</span><select id="tf-c" name="cat" class="select">${optList(Object.entries(DATE_CAT), 'cliente')}</select></div>
       <div class="field full"><span>Motivo</span><textarea id="tf-r" name="reason" class="input" required placeholder="Obrigatório: por que a previsão mudou?"></textarea></div>
+      <p class="xs muted full" style="margin:0">Se a mudança alterar o término do projeto, ela entra no registro de mudanças de data.</p>
       ${errBox('task-forecast')}<div class="form-actions"><span class="xs muted" style="margin-right:auto">A linha de base (${fmt(t.baseEnd)}) é preservada.</span><button class="btn primary" type="submit">Salvar previsão</button></div></form></section>
     <section class="sec"><h3>Registrar conclusão</h3><form class="form" data-form="task-done" data-id="${id}" style="grid-template-columns:1fr auto;align-items:end"><div class="field"><span>Data de conclusão</span><input id="td-d" name="date" type="date" class="input" value="${REF}" max="${REF}" required></div><button class="btn" type="submit">${ic('check', 's')} Concluir entrega</button></form></section>` : ''}
     ${can ? `<section class="sec"><h3>Redefinir linha de base</h3>${S.role === 'LID' ? `<form class="form" data-form="task-baseline" data-id="${id}"><div class="field full"><span>Justificativa da nova linha de base</span><textarea id="tb-r" name="reason" class="input" required placeholder="Ex.: aditivo aprovado pelo cliente (MUD-001)"></textarea></div>${errBox('task-baseline')}<div class="form-actions"><span class="xs muted" style="margin-right:auto">A linha de base passa a ${fmt(taskEnd(t))}; a anterior fica no histórico.</span><button class="btn danger" type="submit">Redefinir linha de base</button></div></form>` : '<p class="small sub" style="margin:0">Exige o perfil Liderança e justificativa. Mudanças de previsão nunca alteram a linha de base.</p>'}</section>` : ''}
     ${t.baselineHistory.length ? `<section class="sec"><h3>Linhas de base anteriores</h3><ul class="hist">${t.baselineHistory.map(b => `<li><span class="small num muted">${fmtDT(b.at)}</span><div class="small">${fmt(b.from)} → ${fmt(b.to)} · ${esc(pname(b.by))}<div class="xs">Motivo: ${esc(b.reason)}</div></div></li>`).join('')}</ul></section>` : ''}`, false);
+}
+
+function panelDate(p) {
+  const di = dateInfo(p);
+  return drawer(`${p.id} · Prazo de término`, 'Alterar data de término', `
+    ${di.changes >= 2 ? `<div class="callout red">${ic('alert')}<p>Este projeto já mudou de data <b>${di.changes} vezes</b>, com desvio acumulado de <b>${di.dev} dias</b> sobre a data original.</p></div>` : ''}
+    <dl class="kv"><dt>Data original</dt><dd class="num">${fmt(di.original)} <span class="xs muted">preservada</span></dd><dt>Previsão atual</dt><dd class="num">${fmt(di.forecast)}</dd><dt>Desvio acumulado</dt><dd>${devTxt(di.dev)}</dd><dt>Mudanças registradas</dt><dd>${di.changes}</dd></dl>
+    <form class="form" data-form="project-date">
+      <div class="field"><span>Nova data de término</span><input id="pd-d" name="date" type="date" class="input" value="${di.forecast}" required></div>
+      <div class="field"><span>Categoria do motivo</span><select id="pd-c" name="cat" class="select">${optList(Object.entries(DATE_CAT), 'cliente')}</select></div>
+      <div class="field full"><span>Motivo</span><textarea id="pd-r" name="reason" class="input" required placeholder="Obrigatório: o que causou a mudança e qual evidência existe"></textarea></div>
+      ${errBox('project-date')}
+      <div class="form-actions"><span class="xs muted" style="margin-right:auto">As entregas em aberto são deslocadas no Project. A data original e a linha de base não mudam.</span><button class="btn primary" type="submit">Registrar mudança de data</button></div>
+    </form>
+    <section class="sec"><h3>Mudanças anteriores</h3>${p.dateChanges.length ? `<ul class="hist">${p.dateChanges.slice().reverse().map((c, i) => `<li><span class="small num muted">${p.dateChanges.length - i}ª · ${fmtDT(c.at)}</span><div class="small"><b class="num">${fmt(c.from)} → ${fmt(c.to)}</b> · ${devTxt(diff(c.to, c.from))} (acumulado ${devTxt(diff(c.to, di.original))})<div>${esc(c.reason)}</div><div class="xs muted">${esc(DATE_CAT[c.cat] || '')} · ${esc(pname(c.by))}</div></div></li>`).join('')}</ul>` : '<span class="small muted">Nenhuma mudança registrada.</span>'}</section>`, false);
 }
 
 function panelRec(p, id, newType) {
@@ -1805,14 +1922,14 @@ function panelUpdate(p, focus) {
 function panelLinks(p) {
   const row = (name, role, val, extra) => `<div class="box" style="gap:4px"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>${name}</b>${chip('gray', 'Simulado · dados locais')}</div><span class="xs muted">${role}</span><span class="mono" style="word-break:break-all">${val}</span>${extra || ''}</div>`;
   return drawer(`${p.id} · Vínculos`, esc(p.client) + ' — ' + esc(p.name), `
-    ${row('Planner', 'Cronograma de valor e entregas', esc(p.links.planner), `<span class="small">${p.tasks.length} entregas · última sincronização ${fmtDT(p.lastSync)}</span>`)}
+    ${row('Project', 'Cronograma de valor e entregas', esc(p.links.planner), `<span class="small">${p.tasks.length} entregas · última sincronização ${fmtDT(p.lastSync)}</span>`)}
     ${row('Azure DevOps', 'Execução, backlog, bugs, riscos, impedimentos e registro dos gates', esc(p.links.devops), `<span class="small">${p.devops.backlog} itens de backlog · ${p.devops.done} concluídos · ${p.devops.bugs} bugs abertos</span>`)}
     ${row('SharePoint', 'Documentos oficiais e evidências', esc(p.links.sharepoint), `<span class="small">${p.docs.filter(d => d.path).length} documentos com arquivo</span>`)}
     ${row('Repositório', 'Código e documentação técnica', p.links.repo ? esc(p.links.repo) : '<span class="muted">Ainda não criado</span>')}
     <section class="sec"><h3>Identificadores estáveis</h3><dl class="kv small"><dt>Projeto</dt><dd class="mono">${p.id}</dd><dt>Gates</dt><dd class="mono">${Object.keys(GATES).map(g => p.id + '/' + g).join(', ')}</dd><dt>Documentos</dt><dd class="mono">${p.docs.slice(0, 4).map(d => d.id).join(', ')}…</dd><dt>Entregas</dt><dd class="mono">${p.tasks[0].id} … ${p.tasks.slice(-1)[0].id}</dd></dl></section>`, false);
 }
 function panelConnections() {
-  const src = [['Planner', 'Cronograma de valor e entregas'], ['Azure DevOps', 'Execução, backlog, bugs, riscos, impedimentos e registro dos gates'], ['SharePoint', 'Documentos oficiais e evidências'], ['Repositório', 'Código e documentação técnica'], ['Gestor', 'Consolidação, indicadores e navegação']];
+  const src = [['Project', 'Cronograma de valor e entregas'], ['Azure DevOps', 'Execução, backlog, bugs, riscos, impedimentos e registro dos gates'], ['SharePoint', 'Documentos oficiais e evidências'], ['Repositório', 'Código e documentação técnica'], ['Gestor', 'Consolidação, indicadores e navegação']];
   return drawer('Conexões', 'Fontes de dados', `<div class="callout blue">${ic('info')}<p>Neste protótipo as integrações são simuladas com dados locais salvos no navegador. Nenhuma chamada externa ou autenticação é feita.</p></div>
     ${src.map(([n, r]) => `<div class="box" style="gap:2px"><div style="display:flex;justify-content:space-between;gap:8px"><b>${n}</b>${chip(n === 'Gestor' ? 'green' : 'gray', n === 'Gestor' ? 'Este sistema' : 'Simulado')}</div><span class="small sub">${r}</span></div>`).join('')}
     <div class="small sub">Última sincronização geral: ${fmtDT(S.globalSync)}</div>
@@ -1834,11 +1951,11 @@ function docPath(p, d, v) {
 
 function syncProject(p) {
   let inc = 0;
-  p.pendingSync.forEach(ch => { const t = p.tasks.find(x => x.key === ch.task); if (t) { Object.assign(t, ch.set); inc++; log(p, { kind: 'cronograma', who: p.gp, action: 'Recebido do Planner: ' + t.name, detail: ch.note }); } });
+  p.pendingSync.forEach(ch => { const t = p.tasks.find(x => x.key === ch.task); if (t) { Object.assign(t, ch.set); if (t.status === 'concluida') t.pct = 100; inc++; log(p, { kind: 'cronograma', who: p.gp, action: 'Recebido do Project: ' + t.name, detail: ch.note }); } });
   p.pendingSync = [];
   const out = p.tasks.filter(t => t.syncPending); out.forEach(t => t.syncPending = false);
   p.lastSync = nowStamp();
-  log(p, { kind: 'sync', action: 'Sincronização simulada com o Planner', detail: `${inc} alteração(ões) recebida(s), ${out.length} enviada(s)` });
+  log(p, { kind: 'sync', action: 'Sincronização simulada com o Project', detail: `${inc} alteração(ões) recebida(s), ${out.length} enviada(s)` });
   return inc + out.length;
 }
 
@@ -1848,14 +1965,14 @@ function advance(p) {
   commit(p, () => {
     const n = p.step, s = p.steps[n], fromPI = stepPI(n);
     if (s.status !== 'na') { s.status = 'concluida'; s.realEnd = REF; s.realStart = s.realStart || REF; }
-    p.tasks.filter(t => t.step === n && t.status !== 'concluida').forEach(t => { t.status = 'concluida'; t.doneDate = REF; t.syncPending = true; });
+    p.tasks.filter(t => t.step === n && t.status !== 'concluida').forEach(t => { t.status = 'concluida'; t.doneDate = REF; t.pct = 100; t.syncPending = true; });
     log(p, { kind: 'etapa', action: `Etapa ${n} concluída: ${STEPS[n].name}`, step: n });
     if (n === 15) { p.goLive = REF; p.situation = 'garantia'; log(p, { kind: 'etapa', action: 'Go-live realizado: garantia iniciada', detail: 'Garantia de 30 dias até ' + fmt(addDays(REF, 30)) }); }
     if (n === 18) { p.closed = true; p.situation = 'encerrado'; log(p, { kind: 'etapa', action: 'Projeto encerrado formalmente', detail: 'Etapa 18 concluída' }); return; }
     let m = n + 1; while (m < 18 && p.steps[m].status === 'na') m++;
     p.step = m; const ns = p.steps[m];
     if (ns.status === 'nao_iniciada') { ns.status = 'em_andamento'; ns.realStart = REF; }
-    p.tasks.filter(t => t.step === m && t.status === 'nao_iniciada').forEach(t => t.status = 'em_andamento');
+    p.tasks.filter(t => t.step === m && t.status === 'nao_iniciada').forEach(t => { t.status = 'em_andamento'; t.pct = Math.max(t.pct || 0, 5); });
     log(p, { kind: 'etapa', action: `Etapa ${m} iniciada: ${STEPS[m].name}`, step: m });
     if (stepPI(m) !== fromPI) {
       log(p, { kind: 'etapa', action: `Mudança de fase: ${PHASES[fromPI].name} → ${PHASES[stepPI(m)].name}` });
@@ -1887,7 +2004,7 @@ function gateDecide(p, gid, decision, comment) {
         st.status = 'aprovado';
         st.history.push({ at: nowStamp(), who: person, text: 'Gate aprovado: todas as aprovações exigidas registradas' });
         log(p, { kind: 'gate', who: person, action: `Gate ${g.n} aprovado — ${g.name}`, detail: g.approvers.map(a => a.label + ': ' + pname(st.approvals[a.key].by)).join(' · '), gate: gid });
-        p.tasks.filter(t => t.gate === gid && t.status !== 'concluida').forEach(t => { t.status = 'concluida'; t.doneDate = REF; t.syncPending = true; log(p, { kind: 'cronograma', who: person, action: 'Entrega concluída: ' + t.name, detail: 'Será enviada ao Planner na próxima sincronização' }); });
+        p.tasks.filter(t => t.gate === gid && t.status !== 'concluida').forEach(t => { t.status = 'concluida'; t.doneDate = REF; t.pct = 100; t.syncPending = true; log(p, { kind: 'cronograma', who: person, action: 'Entrega concluída: ' + t.name, detail: 'Será enviada ao Project na próxima sincronização' }); });
         if (gid === 'G3') p.docs.filter(d => !d.due && d.status !== 'na').forEach(d => { const ph = PHASES[phaseIdx(d.phase)]; d.due = d.phase === 'garantia' ? addDays(p.steps[17].planEnd, -2) : p.steps[ph.steps.slice(-1)[0]].planEnd; });
       }
     }
@@ -1895,7 +2012,16 @@ function gateDecide(p, gid, decision, comment) {
   toast(st.status === 'aprovado' ? `Gate ${g.n} aprovado. Use “Avançar etapa” para seguir.` : decision === 'devolvido' ? `Gate ${g.n} devolvido para ajustes.` : 'Aprovação registrada. Aguardando os demais aprovadores.');
 }
 
+function recordDateChange(p, before, cat, reason) {
+  const after = projForecastEnd(p); if (after === before) return null;
+  p.dateChanges.push({ at: nowStamp(), by: actor(p), from: before, to: after, reason, cat });
+  const n = p.dateChanges.length, dev = diff(after, p.originalEnd);
+  log(p, { kind: 'cronograma', action: `Data de término alterada (${diff(after, before) > 0 ? '+' : ''}${diff(after, before)} dias): ${fmt(before)} → ${fmt(after)}`, detail: `Mudança ${n} · desvio acumulado ${dev > 0 ? '+' : ''}${dev} dias sobre a data original (${fmt(p.originalEnd)})`, reason });
+  return n;
+}
+
 const ACTIONS = {
+  'open-date'() { openPanel('date'); },
   'tab-main'(d) { if (d.id !== 'proj') toast(({ bh: 'Banco de Horas', sus: 'Sustentação', ppl: 'People' })[d.id] + ' não faz parte deste protótipo. Continue em Projetos.', 'warn'); },
   subtab(d) { U.view = d.id; if (d.id === 'acomp') U.pid = null; U.panel = null; save(); render(); },
   kpi(d) { U.f.kpi = U.f.kpi === d.id ? '' : d.id; save(); render(); },
@@ -1942,7 +2068,7 @@ const ACTIONS = {
     const p = cur(), n = p.increments.length + 1;
     commit(p, () => { p.increments.push({ id: 'INC-' + n, name: 'Incremento ' + n, status: 'planejado', items: 0, bugs: 0 }); log(p, { kind: 'etapa', action: `Incremento ${n} adicionado ao ciclo de desenvolvimento`, step: 12 }); });
   },
-  'sync-project'() { const p = cur(); let n; commit(p, () => { n = syncProject(p); }); toast(`Sincronizado com o Planner: ${n} alteração(ões).`); },
+  'sync-project'() { const p = cur(); let n; commit(p, () => { n = syncProject(p); }); toast(`Sincronizado com o Project: ${n} alteração(ões).`); },
   'sync-all'() { let n = 0; S.projects.filter(p => !p.closed).forEach(p => { const b = health(p).level; n += syncProject(p); const a = health(p); if (a.level !== b) log(p, { kind: 'saude', action: `Saúde recalculada: ${HEALTH[b]} → ${a.label}`, detail: a.reasons[0].t }); }); S.globalSync = nowStamp(); save(); render(); toast(`Sincronização simulada concluída: ${n} alteração(ões) em ${S.projects.filter(p => !p.closed).length} projetos.`); },
   'crono-view'(d) { U.crono = d.id; save(); render(); },
   'doc-filter'(d) { U.tab = 'docs'; U.docFilter = d.id; save(); render(); },
@@ -1970,6 +2096,16 @@ const CHANGES = {
 };
 
 const FORMS = {
+  'project-date'(fd) {
+    const p = cur(), nd = fd.get('date'), reason = (fd.get('reason') || '').trim(), before = projForecastEnd(p), delta = diff(nd, before);
+    if (!reason) return fail('project-date', 'Informe o motivo da mudança de data.');
+    if (!delta) return fail('project-date', 'A nova data é igual à previsão atual.');
+    const open = p.tasks.filter(t => t.status !== 'concluida');
+    if (!open.length) return fail('project-date', 'Não há entregas em aberto para reprogramar.');
+    let n; keepPanel(); U.err = null;
+    commit(p, () => { open.forEach(t => { t.forecast = addDays(t.forecast, delta); t.syncPending = true; }); n = recordDateChange(p, before, fd.get('cat'), reason); });
+    toast(`Mudança de data registrada (${n}ª). Desvio acumulado: ${diff(projForecastEnd(p), p.originalEnd)} dias.`, n >= 2 ? 'warn' : '');
+  },
   step(fd, el) {
     const p = cur(), n = +el.dataset.id, s = p.steps[n], v = Object.fromEntries(fd);
     if (v.status === 'na' && !v.naReason.trim()) return fail('step', 'Informe a justificativa para marcar a etapa como não aplicável.');
@@ -2038,16 +2174,18 @@ const FORMS = {
     if (!reason) return fail('task-forecast', 'Informe o motivo da mudança de previsão.');
     const delta = diff(nd, t.forecast); if (!delta) return fail('task-forecast', 'A nova previsão é igual à atual.');
     keepPanel(); U.err = null;
+    const endBefore = projForecastEnd(p); let nchg = null;
     commit(p, () => {
       const old = t.forecast; t.forecast = nd; t.syncPending = true; const moved = [];
       if (fd.get('shift')) { let prev = t; p.tasks.forEach(x => { if (x.dependsOn === prev.id && x.status !== 'concluida') { x.forecast = addDays(x.forecast, delta); x.syncPending = true; moved.push(x.name); prev = x; } }); }
       log(p, { kind: 'cronograma', action: `Previsão alterada: ${t.name} ${fmtS(old)} → ${fmtS(nd)}`, detail: `Linha de base preservada (${fmt(t.baseEnd)})${moved.length ? ' · dependentes deslocados: ' + moved.length : ''}`, reason });
+      nchg = recordDateChange(p, endBefore, fd.get('cat'), reason);
     });
-    toast('Previsão atualizada. A linha de base foi preservada.');
+    toast(nchg ? `Previsão atualizada. O término do projeto mudou (${nchg}ª mudança de data).` : 'Previsão atualizada. A linha de base foi preservada.', nchg >= 2 ? 'warn' : '');
   },
   'task-done'(fd, el) {
     const p = cur(), t = p.tasks.find(x => x.id === el.dataset.id);
-    keepPanel(); commit(p, () => { t.status = 'concluida'; t.doneDate = fd.get('date'); t.syncPending = true; log(p, { kind: 'cronograma', action: 'Entrega concluída: ' + t.name, detail: 'Conclusão em ' + fmt(t.doneDate) + (diff(t.doneDate, t.baseEnd) > 0 ? ` (+${diff(t.doneDate, t.baseEnd)}d sobre a linha de base)` : '') }); });
+    keepPanel(); commit(p, () => { t.status = 'concluida'; t.doneDate = fd.get('date'); t.pct = 100; t.syncPending = true; log(p, { kind: 'cronograma', action: 'Entrega concluída: ' + t.name, detail: 'Conclusão em ' + fmt(t.doneDate) + (diff(t.doneDate, t.baseEnd) > 0 ? ` (+${diff(t.doneDate, t.baseEnd)}d sobre a linha de base)` : '') }); });
     toast('Entrega concluída.');
   },
   'task-baseline'(fd, el) {
