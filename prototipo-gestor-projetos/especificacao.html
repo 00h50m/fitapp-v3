@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Especificação do Acompanhamento de Projetos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+</head><body>
+<style>
+/* Layout: documento técnico de leitura, índice lateral fixo no desktop, tabelas de campos roláveis. */
+:root{
+  --bg:#f6f5f2; --paper:#ffffff; --ink:#1d1f24; --ink-2:#4a4f5a; --ink-3:#6b707b; --line:#e2e0da; --soft:#f1efea;
+  --accent:#b8650d; --accent-bg:#fdf1e2; --blue:#1f5fbf; --blue-bg:#e8f0fc; --green:#1c7a4a; --green-bg:#e4f4ea; --violet:#5b47b8; --violet-bg:#eeebfb; --red:#b3362a; --red-bg:#fbe9e7; --gray-bg:#eceae5;
+  --font:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141518; --paper:#1c1d21; --ink:#ecedf0; --ink-2:#c0c3ca; --ink-3:#979ba5; --line:#30323a; --soft:#232429;
+  --accent:#f0a23b; --accent-bg:rgba(240,162,59,.13); --blue:#7fb2fb; --blue-bg:rgba(127,178,251,.13); --green:#52cb90; --green-bg:rgba(82,203,144,.13); --violet:#ab9ff4; --violet-bg:rgba(171,159,244,.13); --red:#f5796b; --red-bg:rgba(245,121,107,.14); --gray-bg:#2a2c32; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141518; --paper:#1c1d21; --ink:#ecedf0; --ink-2:#c0c3ca; --ink-3:#979ba5; --line:#30323a; --soft:#232429;
+  --accent:#f0a23b; --accent-bg:rgba(240,162,59,.13); --blue:#7fb2fb; --blue-bg:rgba(127,178,251,.13); --green:#52cb90; --green-bg:rgba(82,203,144,.13); --violet:#ab9ff4; --violet-bg:rgba(171,159,244,.13); --red:#f5796b; --red-bg:rgba(245,121,107,.14); --gray-bg:#2a2c32; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.6}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{display:grid;grid-template-columns:230px minmax(0,1fr);gap:32px;max-width:1240px;margin:0 auto;padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+nav.toc{position:sticky;top:calc(20px + env(safe-area-inset-top,0px));align-self:start;font-size:13px}
+nav.toc b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);margin-bottom:8px}
+nav.toc ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;counter-reset:t}
+nav.toc a{display:block;color:var(--ink-2);text-decoration:none;padding:4px 8px;border-radius:6px}
+nav.toc a:hover{background:var(--soft);color:var(--ink)}
+main{min-width:0}
+header.doc{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:24px 28px;margin-bottom:24px}
+.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);font-weight:600}
+h1{font-size:28px;line-height:1.2;margin:6px 0 8px;letter-spacing:-.01em;text-wrap:balance}
+h2{font-size:21px;margin:0 0 4px;letter-spacing:-.01em;text-wrap:balance}
+h3{font-size:16px;margin:22px 0 6px}
+section.s{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:24px 28px;margin-bottom:20px;scroll-margin-top:16px}
+p{margin:8px 0;max-width:78ch}
+.lead{color:var(--ink-2);font-size:16px}
+.meta{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:13px;color:var(--ink-3);margin-top:12px}
+ul,ol{padding-left:22px;max-width:80ch}
+li{margin:3px 0}
+.src{display:inline-block;font-size:11.5px;font-weight:600;border-radius:5px;padding:1px 8px;white-space:nowrap}
+.dv{background:var(--blue-bg);color:var(--blue)} .pl{background:var(--green-bg);color:var(--green)} .ls{background:var(--accent-bg);color:var(--accent)} .md{background:var(--gray-bg);color:var(--ink-2)} .sys{background:var(--violet-bg);color:var(--violet)}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0}
+.card{border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:var(--soft);min-width:0}
+.card h4{margin:6px 0 4px;font-size:15px}
+.card p{font-size:13.5px;color:var(--ink-2);margin:0}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px;margin:10px 0 4px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:680px}
+th{text-align:left;background:var(--soft);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);padding:8px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td code,p code,li code{font-family:var(--mono);font-size:12.5px;background:var(--soft);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+td.f{font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+.req{color:var(--red);font-weight:700}
+.note{border-left:3px solid var(--accent);background:var(--accent-bg);padding:10px 14px;border-radius:0 8px 8px 0;margin:12px 0;font-size:14px}
+.note.blue{border-color:var(--blue);background:var(--blue-bg)}
+.note.red{border-color:var(--red);background:var(--red-bg)}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;margin:10px 0}
+.flow span{border:1px solid var(--line);background:var(--soft);border-radius:6px;padding:4px 9px}
+.flow i{font-style:normal;color:var(--accent);font-weight:700}
+.listhead{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;margin-top:22px}
+.listhead h3{margin:0}
+.small{font-size:13px;color:var(--ink-2)}
+.chk li{list-style:none;margin-left:-22px;padding-left:26px;position:relative}
+.chk li::before{content:"";position:absolute;left:4px;top:7px;width:12px;height:12px;border:1.5px solid var(--ink-3);border-radius:3px}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}nav.toc{position:static}.cards{grid-template-columns:1fr}section.s,header.doc{padding:18px 16px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+html{scroll-behavior:smooth}
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Índice"><b>Índice</b><ol>
+  <li><a href="#visao">1. Visão geral</a></li>
+  <li><a href="#fontes">2. De onde vem cada dado</a></li>
+  <li><a href="#telas">3. Telas</a></li>
+  <li><a href="#listas">4. Listas e campos</a></li>
+  <li><a href="#processo">5. Processo, etapas e gates</a></li>
+  <li><a href="#regras">6. Regras de negócio</a></li>
+  <li><a href="#integracoes">7. Integrações</a></li>
+  <li><a href="#permissoes">8. Perfis e permissões</a></li>
+  <li><a href="#aceite">9. Critérios de aceite</a></li>
+  <li><a href="#aberto">10. Pontos para o dev avaliar</a></li>
+</ol></nav>
+
+<main>
+<header class="doc">
+  <div class="eyebrow">Relatório Modern Work · Projetos</div>
+  <h1>Especificação do Acompanhamento de Projetos</h1>
+  <p class="lead">Este documento descreve o que precisamos construir na aba Projetos para acompanhar fase, etapa, saúde, cronograma, documentação, gates e mudanças de data de cada projeto. O protótipo navegável mostra a experiência esperada; aqui estão os dados, as regras e as integrações.</p>
+  <div class="meta"><span>Referência do protótipo: <code>prototipo-gestor-projetos/index.html</code></span><span>Versão 1 · 23/10/2026</span><span>Para: time de desenvolvimento</span></div>
+</header>
+
+<section class="s" id="visao">
+  <h2>1. Visão geral</h2>
+  <p>Hoje a aba Projetos mostra a visão financeira (cliente, responsável, horas, venda, orçado, realizado, rentabilidade, parcelas). Precisamos de uma segunda visão, <b>Acompanhamento</b>, que responda rapidamente:</p>
+  <ul>
+    <li>Em que fase e etapa cada projeto está?</li>
+    <li>Qual a saúde do projeto e por quê?</li>
+    <li>Qual o % de avanço (vindo do Planner)?</li>
+    <li>O término mudou? Quantas vezes, por quê e com quantos dias de desvio sobre a data original?</li>
+    <li>Qual gate impede o avanço, o que falta e quem precisa agir?</li>
+    <li>Quais documentos estão vencidos ou aguardando aprovação?</li>
+  </ul>
+  <p>A aba Projetos passa a ter três subabas: <b>Financeiro</b> (a tela atual), <b>Acompanhamento</b> (nova, abre por padrão) e <b>Processo e modelos</b> (referência do processo).</p>
+</section>
+
+<section class="s" id="fontes">
+  <h2>2. De onde vem cada dado</h2>
+  <p>Regra principal: <b>o projeto vem do épico do DevOps</b> (como já é hoje), <b>o % de avanço vem do Planner</b> e <b>todo o resto vem de cadastro em listas</b>.</p>
+  <div class="cards">
+    <div class="card"><span class="src dv">Épico DevOps</span><h4>O projeto</h4><p>Já existe. Cliente, nome, GP, situação, horas, valores e parcelas continuam vindo do épico. O ID do épico é a chave do projeto em todas as listas.</p></div>
+    <div class="card"><span class="src pl">Planner</span><h4>% de avanço e entregas</h4><p>Cada projeto tem um plano. Do Planner lemos as tarefas (entregas de valor), datas, % concluído e conclusão. O % do projeto é calculado a partir delas.</p></div>
+    <div class="card"><span class="src ls">Listas</span><h4>Todo o resto</h4><p>Fase, etapas, gates, aprovações, documentos, mudanças de data, riscos, atualizações e histórico ficam em listas do SharePoint.</p></div>
+  </div>
+  <p>Legenda usada nas tabelas deste documento:
+    <span class="src dv">Épico DevOps</span> lido do épico ·
+    <span class="src pl">Planner</span> lido do Planner ·
+    <span class="src ls">Lista</span> digitado pela equipe ·
+    <span class="src md">Modelo</span> criado automaticamente a partir do modelo do processo ·
+    <span class="src sys">Sistema</span> calculado ou gravado pelo sistema.</p>
+  <div class="note blue">Documentos e evidências continuam na biblioteca do SharePoint do projeto. As listas guardam apenas o link, a versão e a situação de aprovação.</div>
+</section>
+
+<section class="s" id="telas">
+  <h2>3. Telas</h2>
+
+  <h3>3.1 Carteira (Projetos › Acompanhamento)</h3>
+  <p><b>Indicadores no topo</b> (todos calculados, clicar filtra a lista):</p>
+  <ul>
+    <li>Projetos ativos.</li>
+    <li>Projetos com previsão de atraso (previsão de término após a linha de base).</li>
+    <li>Gates aguardando aprovação.</li>
+    <li>Documentos obrigatórios vencidos (somente até a fase atual).</li>
+    <li>Marcos nos próximos 7 dias.</li>
+    <li>Projetos com data alterada (e quantos com 2 mudanças ou mais).</li>
+  </ul>
+  <p><b>Filtros:</b> busca por cliente ou projeto, responsável, fase, saúde, situação, "somente minhas pendências" e limpar filtros. Ao voltar de um projeto, os filtros precisam estar preservados.</p>
+  <p><b>Lista</b> com 7 colunas:</p>
+  <div class="tw"><table><thead><tr><th>Coluna</th><th>Conteúdo</th><th>Origem</th></tr></thead><tbody>
+    <tr><td>Projeto</td><td>Cliente, nome do projeto, GP e ID do épico</td><td><span class="src dv">Épico DevOps</span></td></tr>
+    <tr><td>Fase e etapa</td><td>Fase, "Etapa N/18 · nome da etapa", barra de fases, situação quando não for "Ativo"</td><td><span class="src ls">Lista</span></td></tr>
+    <tr><td>Saúde</td><td>Verde, amarelo, vermelho ou cinza, com o primeiro motivo (texto, não só cor)</td><td><span class="src sys">Sistema</span></td></tr>
+    <tr><td>Avanço</td><td>% concluído e data da última sincronização; alerta se desatualizado</td><td><span class="src pl">Planner</span></td></tr>
+    <tr><td>Prazo de término</td><td>Data original, previsão atual, desvio em dias e selo "Data alterada N×"</td><td><span class="src ls">Lista</span> + <span class="src pl">Planner</span></td></tr>
+    <tr><td>Gate e documentos</td><td>Próximo gate (critérios atendidos/total e situação) e documentos até a fase (com vencidos)</td><td><span class="src ls">Lista</span></td></tr>
+    <tr><td>Ação necessária</td><td>Principal pendência, responsável e prazo</td><td><span class="src sys">Sistema</span></td></tr>
+  </tbody></table></div>
+  <p><b>Quadro por fases:</b> alternativa à lista, com uma coluna por fase. Os cards abrem o projeto. <b>Não pode haver arrastar e soltar</b>: a fase só muda pela aprovação do gate.</p>
+
+  <h3>3.2 Página do projeto</h3>
+  <p>Breadcrumb e botão "Voltar à carteira". Cabeçalho com cliente, projeto, equipe (GP, analista, Tech Lead), complexidade, situação e quatro cartões:</p>
+  <ul>
+    <li><b>Fase e etapa</b>, com barra de progresso das fases.</li>
+    <li><b>Saúde</b>, com os motivos e o link para avaliação manual.</li>
+    <li><b>Avanço</b> (% do Planner) e data da última sincronização.</li>
+    <li><b>Prazo de término</b>: data original (preservada), previsão, desvio e "Data alterada N×", que abre o histórico de mudanças.</li>
+  </ul>
+  <p>Ações: <b>Registrar atualização</b>, <b>Vínculos</b> (épico, plano, biblioteca, repositório) e a ação principal conforme o contexto: <b>Avançar etapa</b> ou <b>Solicitar aprovação do Gate N</b>.</p>
+  <p>Abas:</p>
+  <div class="tw"><table><thead><tr><th>Aba</th><th>O que mostra</th></tr></thead><tbody>
+    <tr><td>Resumo</td><td>Onde estamos, próxima entrega, o que impede o avanço e o impacto, quem precisa agir, próximo gate, progresso (entregas, documentação e gates medidos separadamente), resumo documental, resumo financeiro e atualizações recentes</td></tr>
+    <tr><td>Etapas e gates</td><td>Fases em acordeão com as etapas; cada etapa e cada gate abrem um painel de detalhe; incrementos de desenvolvimento</td></tr>
+    <tr><td>Cronograma</td><td>Plano vinculado, última sincronização, botão Sincronizar, quadro de mudanças da data de término, entregas em tabela ou linha do tempo</td></tr>
+    <tr><td>Documentação</td><td>Matriz documental por fase, regularidade até a fase e total, vencidos, aguardando aprovação</td></tr>
+    <tr><td>Riscos e decisões</td><td>Riscos, impedimentos, dependências do cliente, solicitações de mudança, decisões</td></tr>
+    <tr><td>Histórico</td><td>Todos os eventos, filtráveis por tipo</td></tr>
+  </tbody></table></div>
+
+  <h3>3.3 Processo e modelos</h3>
+  <p>Fluxo de referência (fases, etapas e gates), critérios de cada gate e lista de modelos de documentos com aplicabilidade por complexidade.</p>
+</section>
+
+<section class="s" id="listas">
+  <h2>4. Listas e campos</h2>
+  <p>Proposta de listas do SharePoint. Os nomes internos são sugestões; o dev pode ajustar. Campos com <span class="req">*</span> são obrigatórios. Toda lista de projeto tem <code>EpicId</code> como referência ao épico.</p>
+
+  <div class="listhead"><h3>4.1 Projetos</h3><span class="src dv">Épico DevOps</span><span class="small">já existe, somente leitura no gestor</span></div>
+  <div class="tw"><table><thead><tr><th>Campo</th><th>Tipo</th><th>Uso</th></tr></thead><tbody>
+    <tr><td class="f">EpicId</td><td>Número</td><td>Chave do projeto em todas as listas</td></tr>
+    <tr><td class="f">Cliente, Projeto</td><td>Texto</td><td>Identificação</td></tr>
+    <tr><td class="f">Responsável (GP)</td><td>Pessoa</td><td>Responsável e filtro "minhas pendências"</td></tr>
+    <tr><td class="f">Situação</td><td>Escolha</td><td>Ativo, pausado, em garantia, encerrado (confirmar se o épico já tem esses valores)</td></tr>
+    <tr><td class="f">Horas, venda, orçado, realizado, parcelas</td><td>Número/moeda</td><td>Visão Financeiro (já existente)</td></tr>
+  </tbody></table></div>
+
+  <div class="listhead"><h3>4.2 Acompanhamento do projeto</h3><span class="src ls">Lista</span><span class="small">1 item por épico; complementa o que o épico não tem</span></div>
+  <div class="tw"><table><thead><tr><th>Campo</th><th>Tipo</th><th>Uso</th></tr></thead><tbody>
+    <tr><td class="f">EpicId <span class="req">*</span></td><td>Número (único)</td><td>Vínculo com o épico</td></tr>
+    <tr><td class="f">PlannerPlanId <span class="req">*</span></td><td>Texto</td><td>Plano do Planner de onde vem o % e as entregas</td></tr>
+    <tr><td class="f">Complexidade <span class="req">*</span></td><td>Escolha: Baixa, Média, Alta</td><td>Define documentos exigidos e profundidade</td></tr>
+    <tr><td class="f">Pontuacao</td><td>Número</td><td>Pontuação da triagem</td></tr>
+    <tr><td class="f">Analista, TechLead</td><td>Pessoa</td><td>Equipe (Tech Lead pode ficar vazio)</td></tr>
+    <tr><td class="f">AprovadorCliente <span class="req">*</span></td><td>Texto/e-mail</td><td>Quem aprova documentos e gates pelo cliente</td></tr>
+    <tr><td class="f">EtapaAtual <span class="req">*</span></td><td>Número 1–18</td><td>A fase é derivada da etapa</td></tr>
+    <tr><td class="f">DataInicio <span class="req">*</span></td><td>Data</td><td>Início do projeto</td></tr>
+    <tr><td class="f">DataTerminoOriginal <span class="req">*</span></td><td>Data</td><td><b>Gravada uma vez e nunca alterada.</b> Base do desvio e das mudanças de data</td></tr>
+    <tr><td class="f">LinhaBaseTermino</td><td>Data</td><td>Linha de base vigente (só muda por redefinição formal, ver 6.4)</td></tr>
+    <tr><td class="f">DataGoLive</td><td>Data</td><td>Gravada ao concluir a etapa 15; inicia a garantia</td></tr>
+    <tr><td class="f">SaudeManual, SaudeJustificativa</td><td>Escolha + texto</td><td>Avaliação manual opcional; justificativa obrigatória quando preenchida</td></tr>
+    <tr><td class="f">UltimaSincronizacao</td><td>Data e hora</td><td><span class="src sys">Sistema</span> última leitura do Planner</td></tr>
+  </tbody></table></div>
+
+  <div class="listhead"><h3>4.3 Etapas</h3><span class="src md">Modelo</span><span class="small">18 itens criados por projeto; GP atualiza</span></div>
+  <div class="tw"><table><thead><tr><th>Campo</th><th>Tipo</th><th>Uso</th></tr></thead><tbody>
+    <tr><td class="f">EpicId, NumeroEtapa <span class="req">*</span></td><td>Número</td><td>Chave composta</td></tr>
+    <tr><td class="f">Situacao <span class="req">*</span></td><td>Escolha</td><td>Não iniciada, em andamento, aguardando terceiro, concluída, não aplicável</td></tr>
+    <tr><td class="f">Responsavel</td><td>Pessoa</td><td>Padrão vem do modelo (papel); pode ser alterado</td></tr>
+    <tr><td class="f">InicioPlanejado, TerminoPlanejado, InicioReal, TerminoReal</td><td>Data</td><td>Datas da etapa</td></tr>
+    <tr><td class="f">Checklist</td><td>JSON ou lista filha</td><td>Atividades do modelo com marcação de concluída</td></tr>
+    <tr><td class="f">Impedimento</td><td>Texto</td><td>Opcional</td></tr>
+    <tr><td class="f">JustificativaNA</td><td>Texto</td><td>Obrigatória se a situação for "não aplicável"</td></tr>
+  </tbody></table></div>
+
+  <div class="listhead"><h3>4.4 Gates</h3><span class="src md">Modelo</span><span class="small">6 itens por projeto</span></div>
+  <div class="tw"><table><thead><tr><th>Campo</th><th>Tipo</th><th>Uso</th></tr></thead><tbody>
+    <tr><td class="f">EpicId, Gate <span class="req">*</span></td><td>Número + G0…G5</td><td>Chave estável (ex.: <code>1038/G2</code>)</td></tr>
+    <tr><td class="f">Situacao <span class="req">*</span></td><td>Escolha</td><td>Não iniciado, em preparação, aguardando aprovação, devolvido para ajustes, aprovado</td></tr>
+    <tr><td class="f">Criterios</td><td>JSON ou lista filha</td><td>Por critério manual: atendido, por quem, quando. Critérios ligados a documento são calculados</td></tr>
+    <tr><td class="f">SolicitadoPor, SolicitadoEm</td><td>Pessoa, data</td><td>Pedido de aprovação</td></tr>
+    <tr><td class="f">Evidencias</td><td>Texto/links</td><td>Evidências adicionais</td></tr>
+  </tbody></table></div>
+
+  <div class="listhead"><h3>4.5 Aprovações de gate</h3><span class="src ls">Lista</span><span class="small">1 item por decisão de cada aprovador</span></div>
+  <div class="tw"><table><thead><tr><th>Campo</th><th>Tipo</th><th>Uso</th></tr></thead><tbody>
+    <tr><td class="f">EpicId, Gate <span class="req">*</span></td><td></td><td>Referência</td></tr>
+    <tr><td class="f">PapelAprovador <span class="req">*</span></td><td>Escolha</td><td>GP, Liderança, Cliente</td></tr>
+    <tr><td class="f">Aprovador <span class="req">*</span></td><td>Pessoa/texto</td><td>Quem decidiu</td></tr>
+    <tr><td class="f">Decisao <span class="req">*</span></td><td>Escolha</td><td>Aprovado ou devolvido para ajustes</td></tr>
+    <tr><td class="f">Comentario</td><td>Texto</td><td>Obrigatório ao devolver</td></tr>
+    <tr><td class="f">Data <span class="req">*</span></td><td>Data e hora</td><td></td></tr>
+  </tbody></table></div>
+
+  <div class="listhead"><h3>4.6 Documentos</h3><span class="src md">Modelo</span><span class="small">criados pela complexidade; arquivo fica na biblioteca</span></div>
+  <div class="tw"><table><thead><tr><th>Campo</th><th>Tipo</th><th>Uso</th></tr></thead><tbody>
+    <tr><td class="f">EpicId, DocumentoId <span class="req">*</span></td><td></td><td>Ex.: <code>DOC-ESC</code> (Declaração de escopo)</td></tr>
+    <tr><td class="f">FaseExigida <span class="req">*</span></td><td>Escolha</td><td>Fase em que o documento é exigido</td></tr>
+    <tr><td class="f">Obrigatoriedade <span class="req">*</span></td><td>Escolha</td><td>Obrigatório, opcional, não aplicável</td></tr>
+    <tr><td class="f">Profundidade</td><td>Escolha</td><td>Simplificada, padrão, detalhada (pela complexidade)</td></tr>
+    <tr><td class="f">Responsavel, Prazo</td><td>Pessoa, data</td><td>Prazo pode ficar vazio ("sem prazo definido")</td></tr>
+    <tr><td class="f">Situacao <span class="req">*</span></td><td>Escolha</td><td>Pendente, em elaboração, em revisão interna, aguardando aprovação do cliente, aprovado/concluído, reprovado para ajuste, não aplicável</td></tr>
+    <tr><td class="f">VersaoAtual, Link</td><td>Texto, URL</td><td>Versão e caminho na biblioteca do SharePoint</td></tr>
+    <tr><td class="f">ExigeAprovacao, Aprovador</td><td>Sim/não, pessoa</td><td>Cliente, GP, Tech Lead ou Liderança, conforme o modelo</td></tr>
+    <tr><td class="f">JustificativaNA</td><td>Texto</td><td>Obrigatória se não aplicável</td></tr>
+  </tbody></table></div>
+
+  <div class="listhead"><h3>4.7 Aprovações de documento</h3><span class="src ls">Lista</span></div>
+  <div class="tw"><table><thead><tr><th>Campo</th><th>Tipo</th><th>Uso</th></tr></thead><tbody>
+    <tr><td class="f">EpicId, DocumentoId <span class="req">*</span></td><td></td><td>Referência</td></tr>
+    <tr><td class="f">VersaoAprovada <span class="req">*</span></td><td>Texto</td><td>Tem de ser a versão atual no momento do registro</td></tr>
+    <tr><td class="f">Aprovador, DataAprovacao <span class="req">*</span></td><td>Pessoa/texto, data</td><td></td></tr>
+    <tr><td class="f">Evidencia <span class="req">*</span></td><td>Texto/link</td><td>E-mail, ata, assinatura</td></tr>
+    <tr><td class="f">RegistradoPor</td><td>Pessoa</td><td><span class="src sys">Sistema</span></td></tr>
+  </tbody></table></div>
+
+  <div class="listhead"><h3>4.8 Entregas (linha de base)</h3><span class="src pl">Planner</span> + <span class="src ls">Lista</span></div>
+  <p class="small">As tarefas vêm do Planner. O Planner não guarda linha de base, então precisamos gravar a linha de base em lista quando o Gate 3 é aprovado.</p>
+  <div class="tw"><table><thead><tr><th>Campo</th><th>Origem</th><th>Uso</th></tr></thead><tbody>
+    <tr><td class="f">PlannerTaskId</td><td><span class="src pl">Planner</span></td><td>Chave da entrega</td></tr>
+    <tr><td class="f">Titulo, Responsavel, Inicio, Termino (previsão)</td><td><span class="src pl">Planner</span></td><td>Previsão atual = término da tarefa no Planner</td></tr>
+    <tr><td class="f">PercentConcluido, DataConclusao</td><td><span class="src pl">Planner</span></td><td>Base do % do projeto</td></tr>
+    <tr><td class="f">Fase, Gate vinculado, MarcoContratual, DataContratual</td><td><span class="src ls">Lista</span></td><td>Classificação da entrega</td></tr>
+    <tr><td class="f">InicioLinhaBase, TerminoLinhaBase</td><td><span class="src ls">Lista</span></td><td>Gravados no Gate 3; não mudam com a previsão</td></tr>
+  </tbody></table></div>
+
+  <div class="listhead"><h3>4.9 Mudanças de data</h3><span class="src ls">Lista</span><span class="small">1 item por alteração do término do projeto</span></div>
+  <div class="tw"><table><thead><tr><th>Campo</th><th>Tipo</th><th>Uso</th></tr></thead><tbody>
+    <tr><td class="f">EpicId <span class="req">*</span></td><td>Número</td><td>Referência</td></tr>
+    <tr><td class="f">NumeroMudanca</td><td>Número</td><td><span class="src sys">Sistema</span> 1ª, 2ª, 3ª…</td></tr>
+    <tr><td class="f">DataAnterior, NovaData <span class="req">*</span></td><td>Data</td><td>Término antes e depois</td></tr>
+    <tr><td class="f">DesvioMudanca</td><td>Número (dias)</td><td><span class="src sys">Sistema</span> NovaData − DataAnterior</td></tr>
+    <tr><td class="f">DesvioAcumulado</td><td>Número (dias)</td><td><span class="src sys">Sistema</span> NovaData − DataTerminoOriginal</td></tr>
+    <tr><td class="f">Categoria <span class="req">*</span></td><td>Escolha</td><td>Cliente/dependência do cliente, mudança de escopo, técnico, equipe/interno, terceiros</td></tr>
+    <tr><td class="f">Motivo <span class="req">*</span></td><td>Texto</td><td>Explicação e evidência</td></tr>
+    <tr><td class="f">RegistradoPor, RegistradoEm</td><td>Pessoa, data e hora</td><td><span class="src sys">Sistema</span></td></tr>
+  </tbody></table></div>
+
+  <div class="listhead"><h3>4.10 Riscos, impedimentos, dependências, mudanças e decisões</h3><span class="src ls">Lista</span><span class="small">uma lista com campo Tipo</span></div>
+  <div class="tw"><table><thead><tr><th>Campo</th><th>Tipo</th><th>Uso</th></tr></thead><tbody>
+    <tr><td class="f">EpicId, Tipo <span class="req">*</span></td><td>Escolha</td><td>Risco, impedimento, dependência do cliente, solicitação de mudança, decisão</td></tr>
+    <tr><td class="f">Descricao, Responsavel, Prazo, Situacao <span class="req">*</span></td><td></td><td>Situações variam por tipo</td></tr>
+    <tr><td class="f">Impacto, Probabilidade</td><td>Escolha alto/médio/baixo</td><td>Probabilidade só para risco</td></tr>
+    <tr><td class="f">Externo</td><td>Sim/não</td><td>Impedimento que depende do cliente ou de terceiro</td></tr>
+    <tr><td class="f">TipoMudanca</td><td>Escolha</td><td>Correção, alteração de requisito, novo requisito</td></tr>
+    <tr><td class="f">ImpactoPrazo, ImpactoEsforco, ImpactoCusto, AprovacaoNecessaria</td><td>Texto</td><td>Só para solicitação de mudança</td></tr>
+    <tr><td class="f">Encaminhamento, EntregaAfetada, Evidencia</td><td>Texto</td><td></td></tr>
+  </tbody></table></div>
+
+  <div class="listhead"><h3>4.11 Atualizações de status</h3><span class="src ls">Lista</span></div>
+  <p class="small">EpicId, texto, próximos passos, autor, data. Opcionalmente altera a situação (ativo/pausado) e a avaliação manual de saúde.</p>
+
+  <div class="listhead"><h3>4.12 Histórico</h3><span class="src sys">Sistema</span></div>
+  <p class="small">EpicId, data e hora, pessoa, tipo (etapa, gate, documento, cronograma, saúde, risco, sincronização, atualização), ação, detalhe e motivo. Gravado automaticamente em toda alteração; nunca editado.</p>
+
+  <div class="listhead"><h3>4.13 Listas de modelo (configuração)</h3><span class="src md">Modelo</span></div>
+  <ul>
+    <li><b>Modelo de etapas:</b> número, nome, fase, papel responsável, checklist padrão, entregáveis, critério de conclusão.</li>
+    <li><b>Modelo de critérios de gate:</b> gate, texto do critério, documento vinculado (se houver), papéis aprovadores.</li>
+    <li><b>Modelo de documentos:</b> nome, fase exigida, aprovador, aplicabilidade e profundidade por complexidade, caminho do arquivo modelo.</li>
+  </ul>
+  <p class="small">Ao iniciar o acompanhamento de um épico, o sistema cria as etapas, os gates e os documentos do projeto a partir dessas listas.</p>
+</section>
+
+<section class="s" id="processo">
+  <h2>5. Processo, etapas e gates</h2>
+  <div class="tw"><table><thead><tr><th>Fase</th><th>Etapas</th><th>Gate de saída</th><th>Aprovação</th></tr></thead><tbody>
+    <tr><td>Entrada</td><td>1. Venda concluída · 2. Verificação das informações mínimas</td><td>Gate 0 — Entrada completa</td><td>Liderança</td></tr>
+    <tr><td>Handover</td><td>3. Handover Comercial → Liderança · 4. Triagem e classificação · 5. Definição da equipe e skills · 6. Handover interno</td><td>Gate 1 — Time preparado</td><td>Liderança</td></tr>
+    <tr><td>Kickoff</td><td>7. Preparação · 8. Kickoff consultivo</td><td>Sem gate</td><td></td></tr>
+    <tr><td>Discovery</td><td>9. Discovery · 10. Aprovação do Discovery</td><td>Gate 2 — Discovery aprovado</td><td>Cliente (documentos) + GP (critérios internos)</td></tr>
+    <tr><td>Planejamento</td><td>11. Planejamento, estimativas, cronograma e backlog</td><td>Gate 3 — Pronto para desenvolvimento</td><td>GP</td></tr>
+    <tr><td>Desenvolvimento</td><td>12. Desenvolvimento incremental · 13. Testes e validações</td><td>Ciclo por incremento</td><td></td></tr>
+    <tr><td>Validação</td><td>14. Homologação e aceite</td><td>Gate 4 — Pronto para produção</td><td>Cliente (aceite) + GP (publicação)</td></tr>
+    <tr><td>Go-live</td><td>15. Publicação · 16. Transferência de conhecimento e código</td><td>Sem gate</td><td></td></tr>
+    <tr><td>Garantia</td><td>17. Garantia</td><td>Gate 5 — Pronto para encerramento</td><td>Liderança</td></tr>
+    <tr><td>Encerramento</td><td>18. Encerramento formal</td><td>Fim do processo</td><td></td></tr>
+  </tbody></table></div>
+  <p>Os critérios completos de cada gate estão na tela Processo e modelos do protótipo e devem ser carregados na lista de modelo de critérios.</p>
+  <p><b>Incrementos:</b> as etapas 12 e 13 admitem vários incrementos (desenvolvimento → testes → concluído) sem reiniciar o projeto. A etapa 12 só termina quando nenhum incremento estiver planejado ou em desenvolvimento; a etapa 13, quando todos estiverem concluídos. Avaliar se os incrementos vêm das Features do épico no DevOps.</p>
+</section>
+
+<section class="s" id="regras">
+  <h2>6. Regras de negócio</h2>
+
+  <h3>6.1 % de avanço</h3>
+  <ul>
+    <li>Vem do Planner: média do % concluído das tarefas do plano, ponderada pela duração de cada tarefa (dias entre início e término da linha de base).</li>
+    <li>Não é calculado pela quantidade de etapas concluídas.</li>
+    <li>Se a última sincronização tiver mais de 3 dias, o % aparece com alerta "desatualizado" e a saúde não pode ficar verde.</li>
+  </ul>
+
+  <h3>6.2 Mudanças de data</h3>
+  <ul>
+    <li><b>A data de término original nunca é alterada.</b> Ela é a base do desvio.</li>
+    <li>Toda vez que a previsão de término do projeto muda, cria-se um item na lista Mudanças de data com categoria e motivo obrigatórios.</li>
+    <li>A previsão de término do projeto é a maior data entre as tarefas do Planner (término ou conclusão).</li>
+    <li>Se a mudança vier da sincronização com o Planner, o item é criado como <b>"motivo pendente"</b> e aparece como pendência do GP até ser justificado.</li>
+    <li>Na carteira: selo "Data alterada N×" cinza com 1 mudança, laranja com 2 e vermelho com 3 ou mais. No projeto, o cartão de prazo fica destacado a partir de 2 mudanças.</li>
+    <li>Exibir sempre: data original, previsão atual, desvio acumulado em dias e número de mudanças.</li>
+  </ul>
+
+  <h3>6.3 Saúde</h3>
+  <div class="tw"><table><thead><tr><th>Nível</th><th>Quando</th></tr></thead><tbody>
+    <tr><td>Vermelho</td><td>Previsão de término mais de 10% após a linha de base; marco contratual comprometido; escopo em disputa; gate atrasado mais de 7 dias</td></tr>
+    <tr><td>Cinza</td><td>Dependência externa (cliente ou terceiro) com prazo vencido</td></tr>
+    <tr><td>Amarelo</td><td>Até 10% de atraso previsto; risco alto (impacto e probabilidade altos) aberto; gate atrasado até 7 dias; gate devolvido para ajustes; Planner sem sincronização há mais de 3 dias</td></tr>
+    <tr><td>Verde</td><td>Nenhuma das condições acima</td></tr>
+  </tbody></table></div>
+  <p>Prioridade: vermelho, cinza, amarelo, verde. Mostrar sempre o motivo. O GP pode registrar uma avaliação manual com justificativa obrigatória; o cálculo automático continua visível ao lado. Mudança de nível gera evento no histórico.</p>
+  <p class="small">O percentual de atraso é (previsão de término − linha de base) ÷ (linha de base − data de início).</p>
+
+  <h3>6.4 Linha de base</h3>
+  <ul>
+    <li>Registrada na aprovação do Gate 3 (cópia das datas das tarefas do Planner).</li>
+    <li>Alterar a previsão nunca altera a linha de base.</li>
+    <li>Redefinir a linha de base é uma ação separada, só para Liderança, com justificativa; a anterior fica no histórico. A data de término original continua intacta.</li>
+  </ul>
+
+  <h3>6.5 Gates</h3>
+  <ul>
+    <li><b>Critérios atendidos não aprovam o gate.</b> A aprovação é um registro separado de cada aprovador exigido.</li>
+    <li>A aprovação só pode ser solicitada (por GP ou Liderança) com todos os critérios atendidos. Se algum critério ficar pendente, mostrar o motivo e um atalho para resolvê-lo.</li>
+    <li>Gates 2 e 4 exigem duas aprovações (cliente e GP), registradas separadamente.</li>
+    <li>Devolver para ajustes exige comentário, muda a situação para "devolvido" e descarta as demais aprovações daquela rodada.</li>
+    <li>Critérios ligados a documento são calculados: atendidos quando o documento está aprovado na versão atual ou é não aplicável.</li>
+    <li>Ao aprovar o gate, as entregas vinculadas a ele são marcadas como concluídas e enviadas ao Planner.</li>
+    <li>Os itens do Gate 5 são feitos durante a garantia; a etapa 18 apenas consolida e arquiva.</li>
+  </ul>
+
+  <h3>6.6 Avanço de etapa</h3>
+  <ul>
+    <li>Só avança com o checklist da etapa concluído.</li>
+    <li>Na última etapa de uma fase com gate, só avança com o gate aprovado.</li>
+    <li>Projeto pausado não avança.</li>
+    <li>Concluir a etapa 15 grava a data de go-live e muda a situação para "em garantia".</li>
+    <li>A garantia dura 30 dias a partir do go-live. Pendências documentais não suspendem a contagem, mas bloqueiam o Gate 5.</li>
+    <li>Toda mudança de etapa e de fase vai para o histórico.</li>
+  </ul>
+
+  <h3>6.7 Documentos</h3>
+  <ul>
+    <li>Documento de fase futura nunca aparece como vencido.</li>
+    <li>Documento obrigatório sem prazo aparece como "sem prazo definido".</li>
+    <li>Arquivo existente não significa aprovado.</li>
+    <li>Não aplicáveis saem do denominador e exigem justificativa.</li>
+    <li>A aprovação vale para uma versão. Publicar nova versão de um documento aprovado exige revalidação e reabre o critério de gate vinculado.</li>
+    <li>Não permitir registrar aprovação de versão antiga.</li>
+    <li>Mostrar separadamente: regularidade até a fase atual, regularidade total, vencidos e aguardando aprovação.</li>
+    <li>Prazos de documentos de fases após o Planejamento são definidos na aprovação do Gate 3.</li>
+  </ul>
+
+  <h3>6.8 Pendências e "quem precisa agir"</h3>
+  <p>Lista calculada por projeto, ordenada por gravidade e prazo: dependência externa vencida, impedimentos, aprovações de gate pendentes, gate devolvido, documentos vencidos, documentos aguardando aprovação, revalidações, entregas atrasadas, dependências do cliente, critérios de gate pendentes e mudanças de data sem motivo. A primeira é a "Ação necessária" na carteira.</p>
+</section>
+
+<section class="s" id="integracoes">
+  <h2>7. Integrações</h2>
+  <h3>7.1 Azure DevOps (épico)</h3>
+  <ul>
+    <li>Ler os épicos que já representam projetos (mesma origem da visão Financeiro).</li>
+    <li>Ao abrir o acompanhamento de um épico pela primeira vez, criar o item em Acompanhamento do projeto e gerar etapas, gates e documentos pelo modelo.</li>
+    <li>Opcional: gravar no épico, como comentário ou campo, a fase atual e a aprovação de cada gate.</li>
+  </ul>
+  <h3>7.2 Planner</h3>
+  <ul>
+    <li>Um plano por projeto, informado em <code>PlannerPlanId</code>.</li>
+    <li>Ler as tarefas via Microsoft Graph (<code>/planner/plans/{id}/tasks</code>): título, responsáveis, <code>startDateTime</code>, <code>dueDateTime</code>, <code>percentComplete</code>, <code>completedDateTime</code>.</li>
+    <li>O Planner só trabalha com 0%, 50% e 100% por tarefa. O % do projeto sai da média ponderada.</li>
+    <li>Sincronização periódica (sugestão: a cada hora) e botão "Sincronizar" manual. Gravar a data e hora da última sincronização.</li>
+    <li>Na sincronização, comparar o término do projeto com o anterior; se mudou, criar a mudança de data com "motivo pendente".</li>
+    <li>O Planner recebe só entregas de valor. O backlog técnico continua no DevOps.</li>
+  </ul>
+  <h3>7.3 SharePoint</h3>
+  <ul>
+    <li>Listas descritas na seção 4 e biblioteca de documentos do projeto.</li>
+    <li>Link e versão do documento lidos da biblioteca; a aprovação fica na lista.</li>
+  </ul>
+  <h3>7.4 Identificadores estáveis</h3>
+  <p>Projeto: ID do épico. Gate: <code>EpicId/G0…G5</code>. Documento: <code>EpicId/DOC-XXX</code>. Entrega: ID da tarefa no Planner. Mudança de data: <code>EpicId/MD-n</code>.</p>
+</section>
+
+<section class="s" id="permissoes">
+  <h2>8. Perfis e permissões</h2>
+  <div class="tw"><table><thead><tr><th>Ação</th><th>GP</th><th>Liderança</th><th>Aprovador do cliente</th></tr></thead><tbody>
+    <tr><td>Atualizar etapas, checklist, documentos, riscos</td><td>Sim</td><td>Sim</td><td>Não (leitura)</td></tr>
+    <tr><td>Marcar critérios manuais de gate</td><td>Sim</td><td>Sim</td><td>Não</td></tr>
+    <tr><td>Solicitar aprovação de gate</td><td>Sim</td><td>Sim</td><td>Não</td></tr>
+    <tr><td>Aprovar/devolver gate</td><td>Gates 2, 3, 4 (parte GP)</td><td>Gates 0, 1, 5</td><td>Gates 2 e 4 (parte cliente)</td></tr>
+    <tr><td>Registrar mudança de data</td><td>Sim</td><td>Sim</td><td>Não</td></tr>
+    <tr><td>Redefinir linha de base</td><td>Não</td><td>Sim, com justificativa</td><td>Não</td></tr>
+    <tr><td>Avaliação manual de saúde</td><td>Sim</td><td>Sim</td><td>Não</td></tr>
+  </tbody></table></div>
+  <p class="small">Aprovação do cliente: definir se o cliente acessa o gestor ou se o GP registra a decisão com evidência (e-mail, ata). O protótipo aceita os dois.</p>
+</section>
+
+<section class="s" id="aceite">
+  <h2>9. Critérios de aceite</h2>
+  <ul class="chk">
+    <li>A carteira lista todos os épicos de projeto com as 7 colunas e os indicadores calculados.</li>
+    <li>Clicar em um indicador filtra a lista; voltar do projeto preserva os filtros.</li>
+    <li>O % de avanço vem do Planner e mostra a data da última sincronização.</li>
+    <li>Mudanças de data exigem motivo, preservam a data original e mostram desvio e quantidade de mudanças.</li>
+    <li>Mudança de data detectada no Planner gera pendência de justificativa.</li>
+    <li>Os 6 gates têm checklists completos; critérios atendidos e aprovação são eventos distintos.</li>
+    <li>Gates com dois aprovadores registram cada aprovação separadamente; devolução exige comentário.</li>
+    <li>Aprovação de documento é ligada à versão; nova versão pede revalidação.</li>
+    <li>Documentos de fase futura não aparecem como vencidos; não aplicáveis saem do cálculo.</li>
+    <li>A saúde mostra o motivo e segue as regras da seção 6.3.</li>
+    <li>A linha de base só muda por redefinição formal.</li>
+    <li>Todas as ações vão para o histórico com pessoa, data, ação e motivo.</li>
+    <li>A fase não pode ser alterada arrastando cards no quadro.</li>
+  </ul>
+</section>
+
+<section class="s" id="aberto">
+  <h2>10. Pontos para o dev avaliar</h2>
+  <ol>
+    <li>Quais campos do épico já existem para situação, GP e datas, e se cabe guardar <code>PlannerPlanId</code> no próprio épico.</li>
+    <li>Checklist de etapas e critérios de gate: lista filha ou campo JSON.</li>
+    <li>Se os incrementos (etapas 12–13) devem vir das Features do épico no DevOps.</li>
+    <li>Frequência da sincronização com o Planner e com o DevOps (sugestão: a cada hora, mais o botão manual).</li>
+    <li>Como identificar as tarefas do Planner que são entregas de valor (bucket, rótulo ou prefixo).</li>
+    <li>Riscos e impedimentos: manter só na lista ou espelhar como work items no DevOps.</li>
+    <li>Acesso do cliente ao gestor ou registro da aprovação pelo GP com evidência.</li>
+    <li>Limites do alerta de mudança de data (hoje: laranja com 2, vermelho com 3 ou mais).</li>
+  </ol>
+  <div class="note">O protótipo <code>prototipo-gestor-projetos/index.html</code> abre direto no navegador, sem instalação, e tem dados fictícios para testar todos os fluxos. A aba "O que cadastramos" resume as listas desta especificação.</div>
+</section>
+</main>
+</div>
+</body></html>
