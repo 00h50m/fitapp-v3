@@ -394,13 +394,13 @@ const ExerciseDetailModal = ({ exercise, onClose }) => {
             </div>
           )}
           <div className="px-5 py-5 flex flex-col gap-4">
-            {(exercise.sets || exercise.reps || exercise.rest_seconds) && (
+            {(exercise.sets || exercise.reps || exercise.rest_seconds > 0) && (
               <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4">
                 <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-3">📋 Prescrição</p>
                 <div className="grid grid-cols-3 gap-2 text-center">
                   {exercise.sets && <div className="bg-background/40 rounded-xl py-3"><p className="text-2xl font-black text-primary">{exercise.sets}</p><p className="text-[10px] text-muted-foreground mt-1">séries</p></div>}
                   {exercise.reps && <div className="bg-background/40 rounded-xl py-3"><p className="text-2xl font-black">{exercise.reps}</p><p className="text-[10px] text-muted-foreground mt-1">reps</p></div>}
-                  {exercise.rest_seconds && <div className="bg-background/40 rounded-xl py-3"><p className="text-2xl font-black">{exercise.rest_seconds}s</p><p className="text-[10px] text-muted-foreground mt-1">descanso</p></div>}
+                  {exercise.rest_seconds > 0 && <div className="bg-background/40 rounded-xl py-3"><p className="text-2xl font-black">{exercise.rest_seconds}s</p><p className="text-[10px] text-muted-foreground mt-1">descanso</p></div>}
                 </div>
               </div>
             )}
@@ -764,7 +764,7 @@ const StudentWorkoutPage = () => {
                                   <div className="flex flex-wrap gap-2 mt-1 text-xs text-muted-foreground">
                                     {ex.sets && <span>{ex.sets} séries</span>}
                                     {ex.reps && <span>· {ex.reps} reps</span>}
-                                    {ex.rest_seconds && <span>· {ex.rest_seconds}s descanso</span>}
+                                    {ex.rest_seconds > 0 && <span>· {ex.rest_seconds}s descanso</span>}
                                     {ex.load && <span>· {ex.load}</span>}
                                   </div>
                                   {(prevLog?.kg || best) && (

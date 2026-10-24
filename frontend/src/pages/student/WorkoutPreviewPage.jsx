@@ -312,7 +312,7 @@ const WorkoutPreviewPage = () => {
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className={cn("text-[10px] font-medium px-1.5 py-0.5 rounded border", typeCfg.color)}>{typeCfg.label}</span>
                     <span className="text-[10px] text-muted-foreground">{block.exercises.length} exerc.</span>
-                    {block.rest_after_block_seconds && (
+                    {block.rest_after_block_seconds > 0 && (
                       <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
                         <Clock className="h-2.5 w-2.5" />{block.rest_after_block_seconds}s
                       </span>
@@ -333,7 +333,7 @@ const WorkoutPreviewPage = () => {
                           <div className="flex flex-wrap gap-2 mt-1 text-xs text-muted-foreground">
                             {ex.sets && <span className="flex items-center gap-1"><Layers className="h-3 w-3" />{ex.sets} séries</span>}
                             {ex.reps && <span className="flex items-center gap-1"><Repeat className="h-3 w-3" />{ex.reps} reps</span>}
-                            {ex.rest_seconds && <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{ex.rest_seconds}s</span>}
+                            {ex.rest_seconds > 0 && <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{ex.rest_seconds}s</span>}
                             {ex.load && <span className="flex items-center gap-1"><Weight className="h-3 w-3" />{ex.load}</span>}
                             {ex.tempo && <span className="flex items-center gap-1"><Zap className="h-3 w-3" />{ex.tempo}</span>}
                           </div>
