@@ -1,5 +1,5 @@
 import React from "react";
-import { CheckCircle2, Zap, Lock, House, Dumbbell } from "lucide-react";
+import { CheckCircle2, Zap, Lock, House, Dumbbell, Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DIFFICULTY_LABEL } from "@/lib/difficultyLabels";
 import { CoverGlyph } from "@/lib/coverIcons";
@@ -9,6 +9,7 @@ const ENV_ICON = { casa: House, academia: Dumbbell };
 const SIZE_CLASSES = {
   sm: { card: "w-32", cover: "h-48" },
   md: { card: "w-36 sm:w-44", cover: "h-52 sm:h-64" },
+  lg: { card: "w-full", cover: "h-44 sm:h-48" },
 };
 
 // ── Card editorial (capa com título e selo de progresso sobrepostos) ──
@@ -61,7 +62,12 @@ export const JourneyCard = ({ journey, studentJourney, hasAccess, onSelect, size
           </div>
         )}
 
-        {EnvIcon && (
+        {size === "lg" ? (
+          <div className="absolute top-2.5 right-2.5 bg-primary/95 rounded-full px-2.5 py-1 flex items-center gap-1 shadow-sm">
+            <Flame className="h-3 w-3 text-primary-foreground" />
+            <span className="text-[10px] font-bold text-primary-foreground">{total} treino{total !== 1 ? "s" : ""}</span>
+          </div>
+        ) : EnvIcon && (
           <div className="absolute top-2 right-2 bg-black/50 rounded-full p-1">
             <EnvIcon className="h-3 w-3 text-white/90" />
           </div>
@@ -74,16 +80,21 @@ export const JourneyCard = ({ journey, studentJourney, hasAccess, onSelect, size
         )}
 
         {/* Título e metadados sobrepostos na capa, estilo editorial */}
-        <div className="absolute bottom-0 left-0 right-0 p-2.5 pt-6">
+        <div className={cn("absolute bottom-0 left-0 right-0", size === "lg" ? "p-3.5 pt-8" : "p-2.5 pt-6")}>
           <div className="flex items-center justify-between gap-2 mb-0.5">
-            <span className={cn("text-[9px] font-medium uppercase tracking-wide", DIFFICULTY_LABEL[journey.difficulty]?.overlayColor ?? "text-white/60")}>
+            <span className={cn("font-medium uppercase tracking-wide", size === "lg" ? "text-[10px]" : "text-[9px]", DIFFICULTY_LABEL[journey.difficulty]?.overlayColor ?? "text-white/60")}>
               {DIFFICULTY_LABEL[journey.difficulty]?.label}
             </span>
-            <span className="text-[9px] text-white/70">
-              {journey.duration_days ? `${journey.duration_days}d · ` : ""}{total} treino{total !== 1 ? "s" : ""}
-            </span>
+            {size !== "lg" && (
+              <span className="text-[9px] text-white/70">
+                {journey.duration_days ? `${journey.duration_days}d · ` : ""}{total} treino{total !== 1 ? "s" : ""}
+              </span>
+            )}
           </div>
-          <p className="text-xs sm:text-sm font-semibold text-white leading-tight line-clamp-2">{journey.title}</p>
+          <p className={cn("font-semibold text-white leading-tight line-clamp-2", size === "lg" ? "text-base" : "text-xs sm:text-sm")}>{journey.title}</p>
+          {size === "lg" && journey.description && (
+            <p className="text-[11px] text-white/70 leading-snug line-clamp-1 mt-0.5">{journey.description}</p>
+          )}
         </div>
       </div>
     </div>

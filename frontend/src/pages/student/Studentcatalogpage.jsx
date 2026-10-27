@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { JourneyCard } from "@/components/student/JourneyCard";
-import { Loader2, BookOpen, ChevronRight, CheckCircle2, Lock, MessageCircle, ArrowLeft, Search } from "lucide-react";
+import { Loader2, BookOpen, ChevronRight, CheckCircle2, Lock, MessageCircle, ArrowLeft, Search, House, Dumbbell } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { CoverGlyph } from "@/lib/coverIcons";
+import { DIFFICULTY_LABEL } from "@/lib/difficultyLabels";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
 import { CatalogSkeleton } from "@/components/student/LoadingSkeletons";
 
@@ -104,6 +105,8 @@ const StudentCatalogPage = () => {
   const [grantedIds, setGrantedIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [envFilter, setEnvFilter] = useState(null);     // null | "academia" | "casa"
+  const [levelFilter, setLevelFilter] = useState(null);  // null | "iniciante" | "intermediario" | "avancado"
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -157,6 +160,17 @@ const StudentCatalogPage = () => {
     ? journeys.filter(j => j.title.toLowerCase().includes(search.trim().toLowerCase()))
     : null;
 
+  // Filtro por ambiente/nível (toggle + abas) — assume o lugar da navegação
+  // editorial quando o aluno escolhe um recorte específico.
+  const filterActive = !search.trim() && !!(envFilter || levelFilter);
+  const rankAccess = (j) => (myJourneyIds.has(j.id) ? 0 : grantedIds.has(j.id) ? 1 : 2);
+  const filteredJourneys = filterActive
+    ? journeys
+        .filter(j => !envFilter || j.environment === envFilter)
+        .filter(j => !levelFilter || j.difficulty === levelFilter)
+        .sort((a, b) => rankAccess(a) - rankAccess(b))
+    : null;
+
   return (
     <div className="min-h-screen bg-background pb-24 w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto">
       {/* Header */}
@@ -188,6 +202,49 @@ const StudentCatalogPage = () => {
         </div>
       </div>
 
+      {!loading && journeys.length > 0 && !search.trim() && (
+        <div className="px-4 pb-3 space-y-3">
+          <div className="inline-flex p-1 bg-muted rounded-full gap-1">
+            {[{ value: "academia", label: "Academia", icon: Dumbbell }, { value: "casa", label: "Em Casa", icon: House }].map(opt => {
+              const active = envFilter === opt.value;
+              const Icon = opt.icon;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setEnvFilter(active ? null : opt.value)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors",
+                    active ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <Icon className="h-3.5 w-3.5" />{opt.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center gap-4 border-b border-border overflow-x-auto scrollbar-none">
+            {[{ value: null, label: "Todos" }, ...Object.entries(DIFFICULTY_LABEL).map(([value, cfg]) => ({ value, label: cfg.label }))].map(opt => {
+              const active = levelFilter === opt.value;
+              return (
+                <button
+                  key={opt.label}
+                  type="button"
+                  onClick={() => setLevelFilter(opt.value)}
+                  className={cn(
+                    "pb-2 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors",
+                    active ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <CatalogSkeleton />
       ) : journeys.length === 0 ? (
@@ -202,6 +259,15 @@ const StudentCatalogPage = () => {
             <p className="text-sm text-muted-foreground text-center py-12">Nenhum programa encontrado pra "{search}".</p>
           ) : searchResults.map(j => (
             <JourneyListRow key={j.id} journey={j} studentJourney={getStudentJourney(j.id)} hasAccess={grantedIds.has(j.id)} onSelect={handleSelect} />
+          ))}
+        </div>
+      ) : filteredJourneys !== null ? (
+        // Filtro de ambiente/nível ativo: lista vertical de cards grandes
+        <div className="px-4 pt-1 space-y-3">
+          {filteredJourneys.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-12">Nenhum programa encontrado com esse filtro.</p>
+          ) : filteredJourneys.map(j => (
+            <JourneyCard key={j.id} journey={j} studentJourney={getStudentJourney(j.id)} hasAccess={grantedIds.has(j.id)} onSelect={handleSelect} size="lg" />
           ))}
         </div>
       ) : (
