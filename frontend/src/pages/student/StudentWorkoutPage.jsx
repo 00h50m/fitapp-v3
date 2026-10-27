@@ -11,9 +11,14 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   User, Dumbbell, LogOut, Loader2, ChevronLeft, ChevronDown, ChevronUp,
   CheckCircle2, Clock, Repeat, Layers, Video, Play, RefreshCw, Trophy,
-  AlertCircle, Lock, FileText, X, HelpCircle, Zap, Weight, StickyNote,
+  AlertCircle, Lock, FileText, X, XCircle, HelpCircle, Zap, Weight, StickyNote,
   Timer, History, BarChart2, MoreHorizontal, ImageOff,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -394,16 +399,29 @@ const ExerciseDetailModal = ({ exercise, onClose }) => {
             </div>
           )}
           <div className="px-5 py-5 flex flex-col gap-4">
-            {(exercise.sets || exercise.reps || exercise.rest_seconds > 0) && (
-              <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4">
-                <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-3">📋 Prescrição</p>
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  {exercise.sets && <div className="bg-background/40 rounded-xl py-3"><p className="text-2xl font-black text-primary">{exercise.sets}</p><p className="text-[10px] text-muted-foreground mt-1">séries</p></div>}
-                  {exercise.reps && <div className="bg-background/40 rounded-xl py-3"><p className="text-2xl font-black">{exercise.reps}</p><p className="text-[10px] text-muted-foreground mt-1">reps</p></div>}
-                  {exercise.rest_seconds > 0 && <div className="bg-background/40 rounded-xl py-3"><p className="text-2xl font-black">{exercise.rest_seconds}s</p><p className="text-[10px] text-muted-foreground mt-1">descanso</p></div>}
+            {(exercise.sets || exercise.reps || exercise.rest_seconds > 0) && (() => {
+              const items = [
+                exercise.sets && { key: "sets", value: exercise.sets, label: "séries", primary: true },
+                exercise.reps && { key: "reps", value: exercise.reps, label: "reps" },
+                exercise.rest_seconds > 0 && { key: "rest", value: `${exercise.rest_seconds}s`, label: "descanso" },
+              ].filter(Boolean);
+              return (
+                <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4">
+                  <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-3">📋 Prescrição</p>
+                  <div className={cn("grid gap-2 text-center", items.length === 1 ? "grid-cols-1" : items.length === 2 ? "grid-cols-2" : "grid-cols-3")}>
+                    {items.map(item => {
+                      const isLong = String(item.value).length > 7;
+                      return (
+                        <div key={item.key} className="bg-background/40 rounded-xl py-3 px-2 flex flex-col justify-center min-w-0">
+                          <p className={cn("font-black break-words", item.primary && "text-primary", isLong ? "text-xs leading-snug" : "text-2xl")}>{item.value}</p>
+                          <p className="text-[10px] text-muted-foreground mt-1">{item.label}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
             {exercise.default_description && <p className="text-sm text-muted-foreground leading-relaxed">{exercise.default_description}</p>}
             {exercise.instructions && <div><p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Como executar</p><div className="bg-muted/30 rounded-2xl p-4"><p className="text-sm leading-relaxed whitespace-pre-line">{exercise.instructions}</p></div></div>}
             {exercise.tips && <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 flex gap-3"><StickyNote className="h-4 w-4 text-amber-400 flex-shrink-0 mt-0.5" /><p className="text-sm leading-relaxed">{exercise.tips}</p></div>}
@@ -449,6 +467,8 @@ const StudentWorkoutPage = () => {
   const [sessionPRs, setSessionPRs] = useState([]);       // nomes de exercícios com recorde pessoal batido nesta sessão
   const [justFinished, setJustFinished] = useState(null); // snapshot do resumo pra tela de conclusão (null = não mostra)
   const [tick, setTick]             = useState(Date.now()); // atualiza o cronômetro de duração do treino
+  const [showCancelModal, setShowCancelModal] = useState(false); // confirmação de "iniciei por engano"
+  const [cancelling, setCancelling] = useState(false);
 
   const loadWorkout = useCallback(async () => {
     if (!user || !workoutId) { setLoading(false); return; }
@@ -638,6 +658,26 @@ const StudentWorkoutPage = () => {
     finally { setFinishing(false); }
   };
 
+  // Desfaz um "Iniciar Treino" por engano — apaga a sessão de hoje e qualquer
+  // carga já registrada nela, sem deixar resquício no histórico do aluno.
+  const handleCancelSession = async () => {
+    if (!activeSession) return;
+    setCancelling(true);
+    try {
+      await supabase.from("workout_exercise_logs").delete().eq("session_id", activeSession.id);
+      await supabase.from("workout_sessions").delete().eq("id", activeSession.id);
+      setActiveSession(null);
+      setCompletedSets({});
+      setCompletedExercises(new Set());
+      setSessionSetLogs({});
+      setSessionVolume(0);
+      setSessionPRs([]);
+      setShowCancelModal(false);
+      toast.success("Treino cancelado.");
+    } catch (err) { toast.error("Erro ao cancelar: " + err.message); }
+    finally { setCancelling(false); }
+  };
+
   const isExerciseDone = (ex) => {
     const numSets = Number(ex.sets) || 1;
     return completedExercises.has(ex.exercise_row_id) || (completedSets[ex.exercise_row_id]?.size ?? 0) >= numSets;
@@ -715,6 +755,12 @@ const StudentWorkoutPage = () => {
                 <div className="h-2.5 rounded-full bg-muted overflow-hidden"><div className={cn("h-full rounded-full transition-all", progressPct===100?"bg-success":"bg-primary")} style={{ width: `${progressPct}%` }} /></div>
                 {sessionVolume > 0 && <p className="text-xs text-muted-foreground flex items-center gap-1"><Weight className="h-3 w-3" />Volume total: <span className="font-semibold text-foreground">{Math.round(sessionVolume).toLocaleString("pt-BR")}kg</span></p>}
                 {progressPct===100 && <p className="text-xs text-center text-success font-semibold">🏆 Todos os exercícios concluídos!</p>}
+                <button
+                  className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-destructive pt-1.5 mt-1 border-t border-border/60 transition-colors"
+                  onClick={() => setShowCancelModal(true)}
+                >
+                  <XCircle className="h-3.5 w-3.5" />Cancelar treino
+                </button>
               </div>
             )}
 
@@ -892,6 +938,26 @@ const StudentWorkoutPage = () => {
       )}
 
       {/* Modais */}
+      <AlertDialog open={showCancelModal} onOpenChange={setShowCancelModal}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">Cancelar treino?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Isso apaga a sessão de hoje e qualquer carga já registrada nela. Você pode iniciar o treino de novo a qualquer momento.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-muted border-border">Voltar a treinar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleCancelSession}
+              disabled={cancelling}
+            >
+              {cancelling ? "Cancelando..." : "Cancelar treino"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       {detailExercise && <ExerciseDetailModal exercise={detailExercise} onClose={() => setDetailExercise(null)} />}
       {showPdfModal && workout?.pdf_url && <PdfModal url={workout.pdf_url} onClose={() => setShowPdfModal(false)} />}
       {historyExercise && <LoadHistoryModal exerciseName={historyExercise.name} exerciseRowId={historyExercise.rowId} onClose={() => setHistoryExercise(null)} />}
