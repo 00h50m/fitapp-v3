@@ -89,8 +89,8 @@ const EvolutionSection = ({ profileId, plan }) => {
 const SEL = "w-full bg-muted border border-border text-foreground rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
 
 function accessStatus(access_end, is_active) {
-  if (!is_active) return { label: "Inativo", variant: "secondary" };
-  if (!access_end) return { label: "Sem plano", variant: "secondary" };
+  if (!is_active) return { label: "Inativo", variant: "muted" };
+  if (!access_end) return { label: "Sem plano", variant: "muted" };
   const diff = Math.ceil((new Date(access_end + "T23:59") - new Date()) / 86400000);
   if (diff < 0)  return { label: "Expirado", variant: "destructive" };
   if (diff <= 7) return { label: `Expira em ${diff}d`, variant: "warning" };
@@ -118,7 +118,7 @@ const InfoChip = ({ icon: Icon, label, value, color = "default" }) => {
       <Icon className="h-4 w-4 flex-shrink-0" />
       <div className="min-w-0">
         <p className="text-[10px] text-muted-foreground leading-none mb-0.5">{label}</p>
-        <p className="text-sm font-semibold leading-none truncate">{value || "—"}</p>
+        <p className="text-sm font-semibold leading-none truncate">{value === 0 ? 0 : (value || "—")}</p>
       </div>
     </div>
   );
@@ -407,7 +407,7 @@ const AdminAlunoDetailPage = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-sm font-medium text-foreground truncate">{w.title}</p>
-                          <Badge variant={w.status === "active" ? "success" : "secondary"} className="text-[10px]">{w.status === "active" ? "Ativo" : "Inativo"}</Badge>
+                          <Badge variant={w.status === "active" ? "success" : "muted"} className="text-[10px]">{w.status === "active" ? "Ativo" : "Inativo"}</Badge>
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {w.end_date ? `até ${new Date(w.end_date + "T12:00").toLocaleDateString("pt-BR")}` : "Sem validade"}{" · "}{done} sessão{done !== 1 ? "ões" : ""} concluída{done !== 1 ? "s" : ""}

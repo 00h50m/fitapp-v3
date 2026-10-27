@@ -59,6 +59,7 @@ const ExerciseSelectorModal = ({ isOpen, onClose, onSelect, selectedIds = [] }) 
       const { data, error } = await supabase
         .from("exercises")
         .select("id, title, default_description, video_url, gif_url, muscle_group, equipment, difficulty")
+        .eq("is_active", true)
         .order("title");
       if (error) throw error;
       setExercises(data || []);

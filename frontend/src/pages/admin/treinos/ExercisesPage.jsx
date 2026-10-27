@@ -84,6 +84,7 @@ const ExercisesPage = () => {
       const { data, error } = await supabase
         .from("exercises")
         .select("*")
+        .eq("is_active", true)
         .order("title", { ascending: true });
       if (error) throw error;
       setExercises(data || []);

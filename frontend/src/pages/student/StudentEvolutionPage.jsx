@@ -10,6 +10,11 @@ import { EvolutionSkeleton } from "@/components/student/LoadingSkeletons";
 import { usePlanPermission, FEATURES } from "@/lib/planPermissions";
 import { LockedFeature } from "@/components/ui/locked-feature";
 import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   getBodyAssessments, addBodyAssessment, deleteBodyAssessment,
   getProgressPhotos, uploadProgressPhoto, deleteProgressPhoto,
 } from "@/services/evolutionService";
@@ -34,6 +39,8 @@ const AssessmentsSection = ({ profileId, userId }) => {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyAssessmentForm());
   const [saving, setSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     try { setAssessments(await getBodyAssessments(profileId)); }
@@ -59,9 +66,15 @@ const AssessmentsSection = ({ profileId, userId }) => {
     finally { setSaving(false); }
   };
 
-  const handleDelete = async (id) => {
-    try { await deleteBodyAssessment(id); setAssessments(prev => prev.filter(a => a.id !== id)); }
-    catch (err) { toast.error("Erro ao excluir: " + err.message); }
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await deleteBodyAssessment(deleteTarget.id);
+      setAssessments(prev => prev.filter(a => a.id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (err) { toast.error("Erro ao excluir: " + err.message); }
+    finally { setDeleting(false); }
   };
 
   return (
@@ -108,11 +121,26 @@ const AssessmentsSection = ({ profileId, userId }) => {
                   ))}
                 </div>
               </div>
-              <button className="text-muted-foreground hover:text-destructive flex-shrink-0" onClick={() => handleDelete(a.id)}><Trash2 className="h-3.5 w-3.5" /></button>
+              <button className="text-muted-foreground hover:text-destructive flex-shrink-0" onClick={() => setDeleteTarget(a)}><Trash2 className="h-3.5 w-3.5" /></button>
             </div>
           ))}
         </div>
       )}
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">Excluir medida?</AlertDialogTitle>
+            <AlertDialogDescription>Esta medida será apagada e não pode ser recuperada.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-muted border-border">Cancelar</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={handleDelete} disabled={deleting}>
+              {deleting ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
@@ -122,6 +150,8 @@ const PhotosSection = ({ profileId }) => {
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     try { setPhotos(await getProgressPhotos(profileId)); }
@@ -144,9 +174,15 @@ const PhotosSection = ({ profileId }) => {
     finally { setUploading(false); }
   };
 
-  const handleDelete = async (photo) => {
-    try { await deleteProgressPhoto(photo.id, photo.storage_path); setPhotos(prev => prev.filter(p => p.id !== photo.id)); }
-    catch (err) { toast.error("Erro ao excluir: " + err.message); }
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await deleteProgressPhoto(deleteTarget.id, deleteTarget.storage_path);
+      setPhotos(prev => prev.filter(p => p.id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (err) { toast.error("Erro ao excluir: " + err.message); }
+    finally { setDeleting(false); }
   };
 
   return (
@@ -172,8 +208,8 @@ const PhotosSection = ({ profileId }) => {
             <div key={p.id} className="relative aspect-square rounded-xl overflow-hidden bg-muted group">
               {p.signedUrl ? <img src={p.signedUrl} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Camera className="h-5 w-5 text-muted-foreground/40" /></div>}
               <button
-                className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/60 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => handleDelete(p)}
+                className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/60 flex items-center justify-center text-white"
+                onClick={() => setDeleteTarget(p)}
               >
                 <Trash2 className="h-3 w-3" />
               </button>
@@ -182,6 +218,21 @@ const PhotosSection = ({ profileId }) => {
           ))}
         </div>
       )}
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">Excluir foto?</AlertDialogTitle>
+            <AlertDialogDescription>Esta foto será apagada e não pode ser recuperada.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-muted border-border">Cancelar</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={handleDelete} disabled={deleting}>
+              {deleting ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

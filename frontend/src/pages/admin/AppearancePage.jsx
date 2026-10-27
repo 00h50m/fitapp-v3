@@ -9,6 +9,11 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   getDraftSettings, saveDraft, publishDraft, discardDraft, uploadBrandingImage,
 } from "@/services/appSettingsService";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
@@ -70,6 +75,7 @@ const AppearancePage = () => {
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [previewDevice, setPreviewDevice] = useState("mobile");
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -107,6 +113,7 @@ const AppearancePage = () => {
   const handleDiscard = async () => {
     try { setDraft(await discardDraft()); toast("Rascunho descartado — voltou ao que está publicado."); }
     catch (err) { toast.error("Erro: " + err.message); }
+    finally { setShowDiscardDialog(false); }
   };
 
   if (loading || !draft) {
@@ -124,7 +131,7 @@ const AppearancePage = () => {
             <p className="text-muted-foreground mt-1">Configure a identidade que seus alunos veem — nada fica fixo no código.</p>
           </div>
           <div className="flex items-center flex-wrap gap-2 flex-shrink-0">
-            <Button variant="outline" size="sm" onClick={handleDiscard}>Descartar rascunho</Button>
+            <Button variant="outline" size="sm" onClick={() => setShowDiscardDialog(true)}>Descartar rascunho</Button>
             <Button variant="outline" size="sm" className="gap-1.5" onClick={handleSaveDraft} disabled={saving}>
               {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}Salvar rascunho
             </Button>
@@ -243,6 +250,23 @@ const AppearancePage = () => {
           </div>
         </div>
       </div>
+
+      <AlertDialog open={showDiscardDialog} onOpenChange={setShowDiscardDialog}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">Descartar rascunho?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Todas as alterações não publicadas serão perdidas e a tela volta a mostrar o que já está no ar.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-muted border-border">Continuar editando</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={handleDiscard}>
+              Descartar rascunho
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 };

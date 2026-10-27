@@ -13,8 +13,8 @@ import { toast } from "sonner";
 import { PLAN_VALUE_LABEL as PLAN_LABEL } from "@/lib/planPermissions";
 
 function getAccessStatus(access_end, is_active) {
-  if (is_active === false) return { label: "Inativo", variant: "secondary" };
-  if (!access_end) return { label: "Sem data", variant: "secondary" };
+  if (is_active === false) return { label: "Inativo", variant: "muted" };
+  if (!access_end) return { label: "Sem data", variant: "muted" };
   const diff = Math.ceil((new Date(access_end + "T23:59") - new Date()) / 86400000);
   if (diff < 0) return { label: "Expirado", variant: "destructive" };
   if (diff <= 7) return { label: `Expira em ${diff}d`, variant: "warning" };

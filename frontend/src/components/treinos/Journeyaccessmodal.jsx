@@ -2,6 +2,11 @@ import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { getStudentsWithAccessStatus, grantJourneyAccess, revokeJourneyAccess } from "@/services/journeyService";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -15,6 +20,8 @@ const JourneyAccessModal = ({ journey, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [toggling, setToggling] = useState({});
+  const [showGrantAllConfirm, setShowGrantAllConfirm] = useState(false);
+  const [grantingAll, setGrantingAll] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -51,10 +58,13 @@ const JourneyAccessModal = ({ journey, onClose }) => {
   const handleGrantAll = async () => {
     const withoutAccess = students.filter(s => !s.hasAccess);
     if (!withoutAccess.length) return;
-    if (!confirm(`Liberar para todos os ${withoutAccess.length} alunos sem acesso?`)) return;
-    for (const s of withoutAccess) { await grantJourneyAccess(journey.id, s.id).catch(() => {}); }
-    setStudents(prev => prev.map(s => ({ ...s, hasAccess: true })));
-    toast.success("Acesso liberado para todos!");
+    setGrantingAll(true);
+    try {
+      for (const s of withoutAccess) { await grantJourneyAccess(journey.id, s.id).catch(() => {}); }
+      setStudents(prev => prev.map(s => ({ ...s, hasAccess: true })));
+      toast.success("Acesso liberado para todos!");
+      setShowGrantAllConfirm(false);
+    } finally { setGrantingAll(false); }
   };
 
   const filtered = students.filter(s =>
@@ -88,7 +98,7 @@ const JourneyAccessModal = ({ journey, onClose }) => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar aluno..." className="pl-8 h-8 text-sm bg-muted border-border" />
           </div>
-          {withoutAccess > 0 && <Button variant="outline" size="sm" className="h-8 text-xs whitespace-nowrap" onClick={handleGrantAll}>Liberar todos</Button>}
+          {withoutAccess > 0 && <Button variant="outline" size="sm" className="h-8 text-xs whitespace-nowrap" onClick={() => setShowGrantAllConfirm(true)}>Liberar todos</Button>}
         </div>
         <div className="flex-1 overflow-y-auto space-y-1 min-h-0 mt-1">
           {loading && <div className="flex items-center justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>}
@@ -120,6 +130,23 @@ const JourneyAccessModal = ({ journey, onClose }) => {
         </div>
         <Button variant="ghost" className="mt-2 flex-shrink-0" onClick={onClose}>Fechar</Button>
       </DialogContent>
+
+      <AlertDialog open={showGrantAllConfirm} onOpenChange={setShowGrantAllConfirm}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">Liberar para todos?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Isso libera o acesso à jornada "{journey.title}" para todos os {withoutAccess} alunos que ainda não têm acesso.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-muted border-border">Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleGrantAll} disabled={grantingAll}>
+              {grantingAll ? "Liberando..." : "Liberar todos"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 };

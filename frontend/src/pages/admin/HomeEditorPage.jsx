@@ -10,6 +10,11 @@ import { toast } from "sonner";
 import {
   getDraftHomeSections, saveDraftSection, reorderDraftSections, publishHomeSections, discardHomeSectionsDraft,
 } from "@/services/homeSectionsService";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const SECTION_LABEL = {
   banner: "Banner principal",
@@ -66,6 +71,7 @@ const HomeEditorPage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -111,6 +117,7 @@ const HomeEditorPage = () => {
   const handleDiscard = async () => {
     try { setSections(await discardHomeSectionsDraft()); toast("Rascunho descartado."); }
     catch (err) { toast.error("Erro: " + err.message); }
+    finally { setShowDiscardDialog(false); }
   };
 
   if (loading) return <AdminLayout><div className="flex items-center justify-center py-24"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></AdminLayout>;
@@ -126,7 +133,7 @@ const HomeEditorPage = () => {
             <p className="text-muted-foreground mt-1">Ative, reordene e edite as seções que o aluno vê ao abrir o app.</p>
           </div>
           <div className="flex items-center flex-wrap gap-2 flex-shrink-0">
-            <Button variant="outline" size="sm" onClick={handleDiscard}>Descartar</Button>
+            <Button variant="outline" size="sm" onClick={() => setShowDiscardDialog(true)}>Descartar</Button>
             <Button variant="outline" size="sm" className="gap-1.5" onClick={handleSaveDraft} disabled={saving}>
               {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}Salvar rascunho
             </Button>
@@ -154,6 +161,23 @@ const HomeEditorPage = () => {
           "Público" filtra a seção: Todo mundo (sempre aparece), Aluno novo (sem treino/jornada ativa ainda) ou Aluno com atividade (já tem algo em andamento).
         </p>
       </div>
+
+      <AlertDialog open={showDiscardDialog} onOpenChange={setShowDiscardDialog}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">Descartar rascunho?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Todas as alterações não publicadas nesta página inicial serão perdidas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-muted border-border">Continuar editando</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={handleDiscard}>
+              Descartar rascunho
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 };

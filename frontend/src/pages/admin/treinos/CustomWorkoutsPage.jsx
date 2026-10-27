@@ -35,7 +35,7 @@ function getRealStatus(w) {
 const statusConfig = {
   active:   { label: "Ativo",    variant: "success",     icon: CheckCircle2, color: "text-green-600 dark:text-green-400" },
   expired:  { label: "Expirado", variant: "destructive", icon: XCircle,      color: "text-destructive" },
-  inactive: { label: "Inativo",  variant: "secondary",   icon: Clock,        color: "text-muted-foreground" },
+  inactive: { label: "Inativo",  variant: "muted",       icon: Clock,        color: "text-muted-foreground" },
 };
 
 function fmtDate(val) {
