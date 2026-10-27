@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { getJourneys, getCategories, getStudentJourneys, getGrantedJourneyIds } from "@/services/journeyService";
+import { getJourneys, getStudentJourneys, getGrantedJourneyIds } from "@/services/journeyService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BottomNav } from "@/components/layout/BottomNav";
@@ -80,27 +80,11 @@ const JourneyListRow = ({ journey, studentJourney, hasAccess, onSelect }) => {
   );
 };
 
-// ── Fileira editorial (rolagem horizontal, estilo plataforma de conteúdo) ──
-const JourneyRow = ({ title, journeys, getStudentJourney, grantedIds, onSelect }) => {
-  if (!journeys.length) return null;
-  return (
-    <div className="mb-6">
-      <p className="text-sm font-semibold text-foreground mb-2.5">{title}</p>
-      <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none">
-        {journeys.map(j => (
-          <JourneyCard key={j.id} journey={j} studentJourney={getStudentJourney(j.id)} hasAccess={grantedIds.has(j.id)} onSelect={onSelect} size="md" />
-        ))}
-      </div>
-    </div>
-  );
-};
-
 // ── Página principal ───────────────────────────────────────────
 const StudentCatalogPage = () => {
   const navigate = useNavigate();
   const { settings } = useAppSettings();
   const [journeys, setJourneys] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [studentJourneys, setStudentJourneys] = useState([]);
   const [grantedIds, setGrantedIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
@@ -113,42 +97,21 @@ const StudentCatalogPage = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       const { data: profile } = await supabase.from("profiles").select("id").eq("user_id", user.id).single();
-      const [j, c, sj, ids] = await Promise.all([
+      const [j, sj, ids] = await Promise.all([
         getJourneys(),
-        getCategories(),
         getStudentJourneys(profile.id),
         getGrantedJourneyIds(profile.id),
       ]);
-      setJourneys(j); setCategories(c); setStudentJourneys(sj); setGrantedIds(new Set(ids));
+      setJourneys(j); setStudentJourneys(sj); setGrantedIds(new Set(ids));
     } catch { toast.error("Erro ao carregar catálogo"); }
     finally { setLoading(false); }
   }, []);
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
-  // Aplica o filtro indicado na URL (vindo do atalho "O que você quer treinar hoje?" da Home)
-  const [jumpToCategory, setJumpToCategory] = useState(null);
-  useEffect(() => {
-    if (loading) return;
-    const hash = window.location.hash;
-    if (hash?.startsWith("#cat-")) setJumpToCategory(hash.replace("#cat-", ""));
-  }, [loading]);
-  useEffect(() => {
-    if (!jumpToCategory) return;
-    const el = document.getElementById(`cat-${jumpToCategory}`);
-    el?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [jumpToCategory, journeys]);
-
   const getStudentJourney = (id) => studentJourneys.find(sj => sj.journey_id === id) ?? null;
   const myJourneyIds = new Set(studentJourneys.map(sj => sj.journey_id));
   const myJourneys = journeys.filter(j => myJourneyIds.has(j.id));
-  const availableJourneys = journeys.filter(j => grantedIds.has(j.id) && !myJourneyIds.has(j.id));
-  const lockedJourneys = journeys.filter(j => !grantedIds.has(j.id));
-  // Exclui o que o aluno já está fazendo (isso já aparece em "Em andamento") — senão
-  // as fileiras de baixo viram repetição das mesmas jornadas de cima.
-  const newJourneys = journeys.filter(j => !myJourneyIds.has(j.id)).slice(0, 8); // getJourneys() já ordena por created_at desc
-  const noEquipmentJourneys = journeys.filter(j => j.equipment === "sem_equipamento" && grantedIds.has(j.id) && !myJourneyIds.has(j.id));
-  const beginnerJourneys = journeys.filter(j => j.difficulty === "iniciante" && grantedIds.has(j.id) && !myJourneyIds.has(j.id));
 
   const handleSelect = (journey) => {
     const hasAccess = grantedIds.has(journey.id);
@@ -160,16 +123,13 @@ const StudentCatalogPage = () => {
     ? journeys.filter(j => j.title.toLowerCase().includes(search.trim().toLowerCase()))
     : null;
 
-  // Filtro por ambiente/nível (toggle + abas) — assume o lugar da navegação
-  // editorial quando o aluno escolhe um recorte específico.
-  const filterActive = !search.trim() && !!(envFilter || levelFilter);
+  // Lista única (toggle de ambiente + abas de nível), ordenada com o que o
+  // aluno já está fazendo primeiro, depois liberados, depois bloqueados.
   const rankAccess = (j) => (myJourneyIds.has(j.id) ? 0 : grantedIds.has(j.id) ? 1 : 2);
-  const filteredJourneys = filterActive
-    ? journeys
-        .filter(j => !envFilter || j.environment === envFilter)
-        .filter(j => !levelFilter || j.difficulty === levelFilter)
-        .sort((a, b) => rankAccess(a) - rankAccess(b))
-    : null;
+  const filteredJourneys = journeys
+    .filter(j => !envFilter || j.environment === envFilter)
+    .filter(j => !levelFilter || j.difficulty === levelFilter)
+    .sort((a, b) => rankAccess(a) - rankAccess(b));
 
   return (
     <div className="min-h-screen bg-background pb-24 w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto">
@@ -261,46 +221,14 @@ const StudentCatalogPage = () => {
             <JourneyListRow key={j.id} journey={j} studentJourney={getStudentJourney(j.id)} hasAccess={grantedIds.has(j.id)} onSelect={handleSelect} />
           ))}
         </div>
-      ) : filteredJourneys !== null ? (
-        // Filtro de ambiente/nível ativo: lista vertical de cards grandes
+      ) : (
+        // Lista vertical de cards grandes, filtrada pelo toggle de ambiente/nível
         <div className="px-4 pt-1 space-y-3">
           {filteredJourneys.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-12">Nenhum programa encontrado com esse filtro.</p>
           ) : filteredJourneys.map(j => (
             <JourneyCard key={j.id} journey={j} studentJourney={getStudentJourney(j.id)} hasAccess={grantedIds.has(j.id)} onSelect={handleSelect} size="lg" />
           ))}
-        </div>
-      ) : (
-        // Navegação editorial, por organização, estilo plataforma de conteúdo
-        <div className="px-4 pt-3">
-          <JourneyRow title="Em andamento" journeys={myJourneys} getStudentJourney={getStudentJourney} grantedIds={grantedIds} onSelect={handleSelect} />
-          <JourneyRow title="Novos programas" journeys={newJourneys} getStudentJourney={getStudentJourney} grantedIds={grantedIds} onSelect={handleSelect} />
-          <JourneyRow title="Comece por aqui" journeys={beginnerJourneys} getStudentJourney={getStudentJourney} grantedIds={grantedIds} onSelect={handleSelect} />
-          <JourneyRow title="Sem equipamentos" journeys={noEquipmentJourneys} getStudentJourney={getStudentJourney} grantedIds={grantedIds} onSelect={handleSelect} />
-
-          {categories.map(cat => {
-            const catJourneys = availableJourneys.filter(j => j.category_id === cat.id);
-            if (!catJourneys.length) return null;
-            return (
-              <div id={`cat-${cat.id}`} key={cat.id}>
-                <JourneyRow
-                  title={cat.name}
-                  journeys={catJourneys}
-                  getStudentJourney={getStudentJourney}
-                  grantedIds={grantedIds}
-                  onSelect={handleSelect}
-                />
-              </div>
-            );
-          })}
-
-          {availableJourneys.filter(j => !j.category_id).length > 0 && (
-            <JourneyRow title="Disponíveis" journeys={availableJourneys.filter(j => !j.category_id)} getStudentJourney={getStudentJourney} grantedIds={grantedIds} onSelect={handleSelect} />
-          )}
-
-          {lockedJourneys.length > 0 && (
-            <JourneyRow title="🔒 Em breve" journeys={lockedJourneys} getStudentJourney={() => null} grantedIds={new Set()} onSelect={handleSelect} />
-          )}
 
           <div className="bg-card/60 border border-dashed border-border rounded-2xl p-5 text-center space-y-3 mt-2">
             <p className="text-sm text-muted-foreground">Quer mais programas liberados pra você?</p>
