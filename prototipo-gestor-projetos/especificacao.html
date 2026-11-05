@@ -102,7 +102,7 @@ html{scroll-behavior:smooth}
     <li>Qual gate impede o avanço, o que falta e quem precisa agir?</li>
     <li>Quais documentos estão vencidos ou aguardando aprovação?</li>
   </ul>
-  <p>A aba Projetos passa a ter três subabas: <b>Financeiro</b> (a tela atual), <b>Acompanhamento</b> (nova, abre por padrão) e <b>Processo e modelos</b> (referência do processo).</p>
+  <p><b>A tela de Projetos mantém a cara atual</b> (4 cartões, busca, Ativos/Finalizados e tabela financeira). Ela ganha uma faixa de alertas, filtros e três informações do processo na tabela; clicar na linha abre a página de acompanhamento do projeto. Um botão "Processo" no cabeçalho do relatório abre a referência do processo.</p>
 </section>
 
 <section class="s" id="fontes">
@@ -125,31 +125,21 @@ html{scroll-behavior:smooth}
 <section class="s" id="telas">
   <h2>3. Telas</h2>
 
-  <h3>3.1 Carteira (Projetos › Acompanhamento)</h3>
-  <p><b>Indicadores no topo</b> (todos calculados, clicar filtra a lista):</p>
-  <ul>
-    <li>Projetos ativos.</li>
-    <li>Projetos com previsão de atraso (previsão de término após a linha de base).</li>
-    <li>Gates aguardando aprovação.</li>
-    <li>Documentos obrigatórios vencidos (somente até a fase atual).</li>
-    <li>Marcos nos próximos 7 dias.</li>
-    <li>Projetos com data alterada (e quantos com 2 mudanças ou mais).</li>
-  </ul>
-  <p><b>Filtros:</b> busca por cliente ou projeto, responsável, fase, saúde, situação, "somente minhas pendências" e limpar filtros. Ao voltar de um projeto, os filtros precisam estar preservados.</p>
-  <p><b>Lista</b> com 7 colunas:</p>
-  <div class="tw"><table><thead><tr><th>Coluna</th><th>Conteúdo</th><th>Origem</th></tr></thead><tbody>
-    <tr><td>Projeto</td><td>Cliente, nome do projeto, GP e ID do épico</td><td><span class="src dv">Épico DevOps</span></td></tr>
-    <tr><td>Fase e etapa</td><td>Fase, "Etapa N/18 · nome da etapa", barra de fases, situação quando não for "Ativo"</td><td><span class="src ls">Lista</span></td></tr>
-    <tr><td>Saúde</td><td>Verde, amarelo, vermelho ou cinza, com o primeiro motivo (texto, não só cor)</td><td><span class="src sys">Sistema</span></td></tr>
-    <tr><td>Avanço</td><td>% concluído e data da última sincronização; alerta se desatualizado</td><td><span class="src pl">Planner</span></td></tr>
-    <tr><td>Prazo de término</td><td>Data original, previsão atual, desvio em dias e selo "Data alterada N×"</td><td><span class="src ls">Lista</span> + <span class="src pl">Planner</span></td></tr>
-    <tr><td>Gate e documentos</td><td>Próximo gate (critérios atendidos/total e situação) e documentos até a fase (com vencidos)</td><td><span class="src ls">Lista</span></td></tr>
-    <tr><td>Ação necessária</td><td>Principal pendência, responsável e prazo</td><td><span class="src sys">Sistema</span></td></tr>
+  <h3>3.1 Tela de Projetos (a atual, complementada)</h3>
+  <p>Continua igual: cartões Total projetos, Em andamento, Rentabilidade média e Parcelas pendentes; busca; Ativos/Finalizados; colunas Cliente, Projeto, Responsável, Parcela pend., Horas, Vl. venda, Orçado, Realizado e Rentabilidade.</p>
+  <p><b>O que entra:</b></p>
+  <div class="tw"><table><thead><tr><th>Item</th><th>Conteúdo</th><th>Origem</th></tr></thead><tbody>
+    <tr><td>Faixa "Atenção"</td><td>Abaixo dos cartões: X com previsão de atraso, X com data alterada, X gates aguardando aprovação, X documentos vencidos, X marcos nos próximos 7 dias. Só aparecem os maiores que zero; clicar filtra a tabela</td><td><span class="src sys">Sistema</span></td></tr>
+    <tr><td>Filtros</td><td>Fase, Saúde e "Minhas pendências" ao lado da busca; a busca passa a considerar responsável e ID</td><td><span class="src sys">Sistema</span></td></tr>
+    <tr><td>Coluna Fase (no lugar de Status)</td><td>Chip com a fase atual e "Etapa N/18"; pausado, em garantia e encerrado com cores próprias</td><td><span class="src ls">Lista</span></td></tr>
+    <tr><td>Coluna Avanço (nova)</td><td>% do Planner com barra e data da última sincronização (amarela se &gt; 3 dias)</td><td><span class="src pl">Planner</span></td></tr>
+    <tr><td>Coluna Prazo (nova)</td><td>Previsão de término, desvio em dias sobre a data original e selo "Data alterada N×"</td><td><span class="src ls">Lista</span> + <span class="src pl">Planner</span></td></tr>
+    <tr><td>Ícone de alerta (1ª coluna)</td><td>Passa a indicar a saúde: vermelho para Vermelho/Cinza, amarelo para Amarelo; tooltip com os motivos</td><td><span class="src sys">Sistema</span></td></tr>
   </tbody></table></div>
-  <p><b>Quadro por fases:</b> alternativa à lista, com uma coluna por fase. Os cards abrem o projeto. <b>Não pode haver arrastar e soltar</b>: a fase só muda pela aprovação do gate.</p>
+  <p>Clicar na linha abre a página do projeto. Ao voltar, busca e filtros são preservados.</p>
 
   <h3>3.2 Página do projeto</h3>
-  <p>Breadcrumb e botão "Voltar à carteira". Cabeçalho com cliente, projeto, equipe (GP, analista, Tech Lead), complexidade, situação e quatro cartões:</p>
+  <p>Breadcrumb "Projetos › Cliente — Projeto" e botão "Voltar para Projetos". Cabeçalho com cliente, projeto, equipe (GP, analista, Tech Lead), complexidade, situação e quatro cartões:</p>
   <ul>
     <li><b>Fase e etapa</b>, com barra de progresso das fases.</li>
     <li><b>Saúde</b>, com os motivos e o link para avaliação manual.</li>
@@ -335,7 +325,7 @@ html{scroll-behavior:smooth}
     <li>Toda vez que a previsão de término do projeto muda, cria-se um item na lista Mudanças de data com categoria e motivo obrigatórios.</li>
     <li>A previsão de término do projeto é a maior data entre as tarefas do Planner (término ou conclusão).</li>
     <li>Se a mudança vier da sincronização com o Planner, o item é criado como <b>"motivo pendente"</b> e aparece como pendência do GP até ser justificado.</li>
-    <li>Na carteira: selo "Data alterada N×" cinza com 1 mudança, laranja com 2 e vermelho com 3 ou mais. No projeto, o cartão de prazo fica destacado a partir de 2 mudanças.</li>
+    <li>Na tela de Projetos: selo "Data alterada N×" cinza com 1 mudança, laranja com 2 e vermelho com 3 ou mais. No projeto, o cartão de prazo fica destacado a partir de 2 mudanças.</li>
     <li>Exibir sempre: data original, previsão atual, desvio acumulado em dias e número de mudanças.</li>
   </ul>
 
@@ -390,7 +380,7 @@ html{scroll-behavior:smooth}
   </ul>
 
   <h3>6.8 Pendências e "quem precisa agir"</h3>
-  <p>Lista calculada por projeto, ordenada por gravidade e prazo: dependência externa vencida, impedimentos, aprovações de gate pendentes, gate devolvido, documentos vencidos, documentos aguardando aprovação, revalidações, entregas atrasadas, dependências do cliente, critérios de gate pendentes e mudanças de data sem motivo. A primeira é a "Ação necessária" na carteira.</p>
+  <p>Lista calculada por projeto, ordenada por gravidade e prazo: dependência externa vencida, impedimentos, aprovações de gate pendentes, gate devolvido, documentos vencidos, documentos aguardando aprovação, revalidações, entregas atrasadas, dependências do cliente, critérios de gate pendentes e mudanças de data sem motivo. A primeira é a principal pendência do projeto, exibida no Resumo.</p>
 </section>
 
 <section class="s" id="integracoes">
@@ -436,8 +426,8 @@ html{scroll-behavior:smooth}
 <section class="s" id="aceite">
   <h2>9. Critérios de aceite</h2>
   <ul class="chk">
-    <li>A carteira lista todos os épicos de projeto com as 7 colunas e os indicadores calculados.</li>
-    <li>Clicar em um indicador filtra a lista; voltar do projeto preserva os filtros.</li>
+    <li>A tela de Projetos continua igual à atual e ganha a faixa de alertas, os filtros e as colunas Fase, Avanço e Prazo.</li>
+    <li>Clicar em um alerta filtra a tabela; voltar do projeto preserva os filtros.</li>
     <li>O % de avanço vem do Planner e mostra a data da última sincronização.</li>
     <li>Mudanças de data exigem motivo, preservam a data original e mostram desvio e quantidade de mudanças.</li>
     <li>Mudança de data detectada no Planner gera pendência de justificativa.</li>
@@ -448,7 +438,7 @@ html{scroll-behavior:smooth}
     <li>A saúde mostra o motivo e segue as regras da seção 6.3.</li>
     <li>A linha de base só muda por redefinição formal.</li>
     <li>Todas as ações vão para o histórico com pessoa, data, ação e motivo.</li>
-    <li>A fase não pode ser alterada arrastando cards no quadro.</li>
+    <li>A fase só muda pelo avanço de etapa e pela aprovação do gate.</li>
   </ul>
 </section>
 
